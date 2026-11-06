@@ -22,7 +22,7 @@ The whole game is in **`index.html`**: plain HTML, CSS, and JavaScript with a Ca
 | 👆 Taps / likes | +3 score per tap, and the circle grows |
 | 💬 Comments | Joins if they're new, +5, and their message shows in a bubble over their circle |
 | ➕ Follows | Joins with +100 and a NEW badge |
-| 🎁 Sends a gift | Big score, **⚡ power**, and a special ability (see below) |
+| 🎁 Sends a gift | **50 points per coin**, ⚡ power, and special powers (see below) |
 
 **Rules**
 - A circle can eat another that is at least **20% smaller**. Similar-size circles bounce off each other.
@@ -30,10 +30,40 @@ The whole game is in **`index.html`**: plain HTML, CSS, and JavaScript with a Ca
 - A knocked-out viewer comes back as soon as they tap, comment, or gift again.
 - The **top 3 wear crowns**. The leaderboard (top-left) shows score and 💀 eats.
 
-### 🎁 Gifts and abilities
+### 🎁 Gifts: the more coins, the stronger
 
-| Gift | Score | ⚡ Power | Special ability |
-|---|---|---|---|
+**1 coin = 50 points.** A 1,000-coin gift is worth 50,000 points. Every gift also triggers **every power at or below its level**, so big gifts stack lots of powers at once.
+
+| Gift size | New power unlocked | What it does |
+|---|---|---|
+| 1+ coin (Rose) | 🌹 Speed burst | Faster for 4s |
+| 5+ coins | 💗 Shield | Can't be eaten or cut for 10s |
+| 30+ coins | 🧲 Magnet | Pulls in energy dots **and smaller circles** for 10s |
+| 100+ coins | 🌌 Shockwave | Blasts nearby circles away; smaller ones lose 15% |
+| 500+ coins | ❄️ Freeze | **Everyone else** and the saws freeze for 5s |
+| 1,000+ coins | 🎯 Hunter | Green crosshair, extra speed, hunts smaller circles for 15s |
+| 5,000+ coins | 🕳️ Black hole | Sucks every circle and dot toward you for 8s, and you can eat almost anything smaller |
+| 20,000+ coins | 👑 Arena King | **Doubles your score**, gold crown and aura, 30s immune to saws, eating, freeze and black holes |
+
+**⚡ Power** also stacks with every gift, shown as a gold badge. Each point means a bit more speed, saw armor, and stealing points when bumping. At **⚡10** you get **🦈 Giant Jaws**: you can eat circles only 5% smaller.
+
+**🏅 Supporter ranks:** total coins a viewer sends during the stream (kept between rounds). A higher rank makes **every tap worth more**:
+
+| Total coins | Rank | Taps worth |
+|---|---|---|
+| 100 | 🥉 Bronze | 1.5× |
+| 500 | 🥈 Silver | 2× |
+| 1,000 | 🥇 Gold | 3× |
+| 5,000 | 💎 Diamond | 5× |
+| 20,000 | 🔥 Legend | 10× |
+
+The rank shows next to their name with a colored ring.
+
+**💫 Revive:** if a viewer gets knocked out, any gift brings them back with **half their old points**.
+
+**💰 Top gifter** of the stream is shown under the leaderboard.
+
+---|---|---|---|
 | 🌹 Rose | +50 | +1 | Speed burst (4s) |
 | 💗 Heart | +200 | +3 | Shield bubble (10s): can't be eaten or cut |
 | 🌌 Galaxy | +1K | +10 | Shockwave: blasts nearby circles away, and smaller ones lose 15% |
@@ -105,14 +135,7 @@ The game can now read your **real** TikTok LIVE through **TikFinity**, a free st
 
 **Testing first (not live):** open the normal game link, tap 🎁, scroll to **REAL LIVE CONNECTION**, and press **CONNECT TO TIKFINITY**. It says ✅ Connected when TikFinity is running. If TikFinity shows a different local address in its settings, paste that into **Address**. The default is `ws://localhost:21213/`. If Chrome asks to allow access to devices on your local network, allow it.
 
-**How real gifts become abilities.** Any TikTok gift works, based on its coin value:
-
-| Gift value | Ability tier |
-|---|---|
-| 1–4 coins (Rose…) | 🌹 Speed burst, ⚡ = coins |
-| 5–99 coins | 💗 Shield, ⚡+3 |
-| 100–999 coins | 🌌 Shockwave, ⚡+10 |
-| 1,000+ coins (Universe…) | 🪐 Hunter mode, ⚡+30 |
+**Real gifts:** any TikTok gift works. Its coin value decides the points and powers, using the table above.
 
 Gift streaks (like 10 Roses in a row) count once, when the streak ends.
 
@@ -129,7 +152,7 @@ The game listens for events in one place (`LiveEvents`). The TikFinity bridge (`
 { "type": "join",    "user": "name" }
 { "type": "follow",  "user": "name" }
 { "type": "comment", "user": "name", "comment": "hi!" }
-{ "type": "gift",    "user": "name", "gift": "rose" }   // rose | heart | galaxy | universe
+{ "type": "gift",    "user": "name", "coins": 100, "giftName": "Galaxy" }
 ```
 
 TikTok doesn't offer an official public API for LIVE events. Tools like TikFinity read the public LIVE data. Use them in line with TikTok's terms.

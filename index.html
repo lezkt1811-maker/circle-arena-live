@@ -31,6 +31,7 @@ input,select{font-family:inherit;font-size:16px;user-select:text;-webkit-user-se
 #lbList .sc{color:var(--green);font-weight:800}
 #lbList .kl{color:var(--pink);width:30px;text-align:right}
 #lbList li.me .nm{color:var(--cyan);font-weight:800}
+#topGifter{margin-top:4px;font-size:10.5px;color:var(--gold);font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#topGifter:empty{display:none}
 
 #info{top:calc(8px + var(--sat));right:calc(8px + var(--sar));padding:7px 10px;text-align:right;font-size:12px;line-height:1.5}
 #info b{color:var(--gold);font-size:14px}
@@ -115,7 +116,7 @@ input,select{font-family:inherit;font-size:16px;user-select:text;-webkit-user-se
 <body>
 <canvas id="game"></canvas>
 
-<div id="lb" class="ui glass"><div class="logo">CIRCLE ARENA LIVE</div><ol id="lbList"></ol></div>
+<div id="lb" class="ui glass"><div class="logo">CIRCLE ARENA LIVE</div><ol id="lbList"></ol><div id="topGifter"></div></div>
 <div id="info" class="ui glass">
   <div>Players Left: <b id="left">0</b></div>
   <div>Round <span id="roundNum">1</span> · <span class="t" id="timer">3:00</span></div>
@@ -142,10 +143,14 @@ input,select{font-family:inherit;font-size:16px;user-select:text;-webkit-user-se
     </select>
   </div>
   <div class="gifts">
-    <button data-evt="rose" style="--c:#ff2bd6"><em>🌹</em>Rose<small>+50 · ⚡+1 · speed</small></button>
-    <button data-evt="heart" style="--c:#ff5fa2"><em>💗</em>Heart<small>+200 · ⚡+3 · shield</small></button>
-    <button data-evt="galaxy" style="--c:#9d4dff"><em>🌌</em>Galaxy<small>+1K · ⚡+10 · shockwave</small></button>
-    <button data-evt="universe" style="--c:#00f0ff"><em>🪐</em>Universe<small>+5K · ⚡+30 · hunter</small></button>
+    <button data-evt="gift" data-coins="1" data-name="Rose" style="--c:#ff2bd6"><em>🌹</em>1 coin<small>Speed burst</small></button>
+    <button data-evt="gift" data-coins="5" data-name="Heart" style="--c:#ff5fa2"><em>💗</em>5 coins<small>+ Shield</small></button>
+    <button data-evt="gift" data-coins="30" data-name="Magnet" style="--c:#ff7bf2"><em>🧲</em>30 coins<small>+ Magnet</small></button>
+    <button data-evt="gift" data-coins="100" data-name="Galaxy" style="--c:#9d4dff"><em>🌌</em>100 coins<small>+ Shockwave</small></button>
+    <button data-evt="gift" data-coins="500" data-name="Ice Storm" style="--c:#7df9ff"><em>❄️</em>500 coins<small>+ Freeze everyone</small></button>
+    <button data-evt="gift" data-coins="1000" data-name="Hunter" style="--c:#39ff7a"><em>🎯</em>1,000 coins<small>+ Hunter mode</small></button>
+    <button data-evt="gift" data-coins="5000" data-name="Black Hole" style="--c:#c77dff"><em>🕳️</em>5,000 coins<small>+ Black hole</small></button>
+    <button data-evt="gift" data-coins="20000" data-name="Universe" style="--c:#ffd84d"><em>👑</em>20,000 coins<small>+ ARENA KING</small></button>
     <button data-evt="follow" style="--c:#3d7bff"><em>➕</em>New Follower<small>joins with +100</small></button>
     <button data-evt="like" style="--c:#ff7bf2"><em>👆</em>Taps ×15<small>likes = growth</small></button>
     <button data-evt="join" style="--c:#7df9ff"><em>👋</em>Viewer Joins<small>new circle</small></button>
@@ -172,7 +177,8 @@ input,select{font-family:inherit;font-size:16px;user-select:text;-webkit-user-se
     <div class="help">
       👆 <b>Tap the screen</b> as fast as you can. Every tap is a like that grows <b>your</b> circle.<br>
       🤖 Pretend viewers join and tap too, so the arena stays busy.<br>
-      🎁 Gifts give a circle <b>⚡ power</b>: more speed, armor against saws, stealing points when bumping, and at ⚡10 <b>Giant Jaws</b> (eat almost anyone smaller).
+      🎁 <b>1 coin = 50 points.</b> Bigger gifts unlock bigger powers: shield, magnet, shockwave, freeze, hunter, black hole and <b>ARENA KING</b>.<br>
+      🏅 Supporter ranks (🥉🥈🥇💎🔥) make every tap worth up to <b>10×</b>.
     </div>
   </div>
 </div>
@@ -212,7 +218,7 @@ const CHAT_LINES = ['hi!!', 'lets gooo', 'tap tap tap', 'im winning', 'help me �
 const rand = (a, b) => a + Math.random() * (b - a);
 const pick = a => a[Math.floor(Math.random() * a.length)];
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
-const fmt = n => { n = Math.max(0, Math.floor(n)); if (n < 1000) return String(n); const k = n / 1000; return (k < 10 ? k.toFixed(1).replace(/\.0$/, '') : Math.floor(k)) + 'K'; };
+const fmt = n => { n = Math.max(0, Math.floor(n)); if (n < 1000) return String(n); const sh = (v, u) => (v < 10 ? v.toFixed(1).replace(/\.0$/, '') : Math.floor(v)) + u; return n < 1e6 ? sh(n / 1000, 'K') : sh(n / 1e6, 'M'); };
 const levelFor = s => 1 + Math.floor(Math.log2(1 + Math.max(0, s) / 40));
 const fakeName = () => pick(NAME_A) + '_' + pick(NAME_B) + (Math.random() < 0.5 ? Math.floor(rand(1, 999)) : '');
 
@@ -288,7 +294,8 @@ const G = {
   players: [], byName: new Map(), saws: [], pellets: [],
   parts: [], texts: [], rings: [], bubbles: [],
   host: null, hostName: 'You', round: 1, timeLeft: CONFIG.ROUND_TIME,
-  phase: 'menu', winT: 0, paused: false, auto: true, autoT: 0, time: 0, nextId: 1
+  phase: 'menu', winT: 0, paused: false, auto: true, autoT: 0, time: 0, nextId: 1,
+  coins: new Map(), freezeT: 0, freezer: null
 };
 
 const radiusFor = s => Math.min((11 + 6.5 * Math.log2(1 + Math.max(0, s) / 8)) * S, Math.min(W, H) * 0.2);
@@ -298,7 +305,7 @@ const aliveList = () => G.players.filter(p => p.alive);
      +2% speed (max +40%), saw armor, and bump-stealing.
    At ⚡10+ the circle unlocks GIANT JAWS: it can eat circles only 5% smaller. */
 const JAWS_POWER = 10;
-const eatRatio = p => (p.power >= JAWS_POWER ? 1.05 : CONFIG.EAT_RATIO);
+const eatRatio = p => (p.power >= JAWS_POWER || p.blackT > 0 ? 1.05 : CONFIG.EAT_RATIO);
 const canEat = (big, small) => small.shieldT <= 0 && big.score >= small.score * eatRatio(big);
 
 function spawnPoint(r) {
@@ -320,7 +327,7 @@ function addPlayer(name, opts) {
   const r = radiusFor(score), pos = spawnPoint(r), a = Math.random() * Math.PI * 2;
   const p = { id: G.nextId++, name, score, kills: 0, r, x: pos.x, y: pos.y, vx: Math.cos(a) * 40, vy: Math.sin(a) * 40,
     color: opts.color || pick(PALETTE), emoji: opts.emoji || pick(EMOJI), alive: true, isHost: !!opts.isHost,
-    power: 0, shieldT: 1.5, hunterT: 0, boostT: 0, hitCD: 0, newT: opts.isNew ? 6 : 0, wa: a, spin: rand(0.6, 1.4) * (Math.random() < 0.5 ? -1 : 1), deadT: 0, pulse: 0 };
+    power: 0, magnetT: 0, blackT: 0, kingT: 0, lastScore: 0, shieldT: 1.5, hunterT: 0, boostT: 0, hitCD: 0, newT: opts.isNew ? 6 : 0, wa: a, spin: rand(0.6, 1.4) * (Math.random() < 0.5 ? -1 : 1), deadT: 0, pulse: 0 };
   G.players.push(p);
   G.byName.set(name, p);
   ring(p.x, p.y, 4, p.r + 40 * S, 0.6, p.color, 3);
@@ -330,7 +337,7 @@ function addPlayer(name, opts) {
 function revive(p, score) {
   p.score = score || CONFIG.START_SCORE; p.kills = p.kills || 0; p.r = radiusFor(p.score);
   const pos = spawnPoint(p.r); p.x = pos.x; p.y = pos.y; p.vx = 0; p.vy = 0;
-  p.alive = true; p.shieldT = 1.5; p.hunterT = 0; p.boostT = 0; p.hitCD = 0;
+  p.alive = true; p.shieldT = 1.5; p.hunterT = 0; p.boostT = 0; p.hitCD = 0; p.magnetT = 0; p.blackT = 0; p.kingT = 0;
   ring(p.x, p.y, 4, p.r + 40 * S, 0.6, p.color, 3);
 }
 
@@ -341,7 +348,12 @@ function getOrJoin(name, opts) {
   if (!(p && p.alive)) {
     if (G.phase !== 'play') return p || null;
     if (aliveList().length >= CONFIG.MAX_PLAYERS) return null;
-    if (p) revive(p); else p = addPlayer(name, opts);
+    if (p) {
+      // a gift brings a knocked-out viewer back with half their old points
+      const back = opts.revive && p.lastScore > CONFIG.START_SCORE * 2 ? Math.floor(p.lastScore * 0.5) : 0;
+      revive(p, back || undefined);
+      if (back) { text(p.x, p.y - p.r - 10 * S, 'REVIVED ' + fmt(back), '#7df9ff', 16); chatLine(name, 'came back to life! 💫', '#7df9ff'); }
+    } else p = addPlayer(name, opts);
   }
   p.lastActive = G.time;
   if (opts.pic) loadPic(p, opts.pic);
@@ -365,7 +377,8 @@ function addScore(p, n, label, color) {
 }
 
 function eliminate(p, by) {
-  p.alive = false; p.deadT = 0;
+  p.alive = false; p.deadT = 0; p.lastScore = p.score;
+  if (G.freezer === p) G.freezeT = 0;
   burst(p.x, p.y, p.color, 30 + Math.min(40, p.r), 220 * S);
   ring(p.x, p.y, p.r, p.r * 2.5, 0.5, p.color, 4);
   if (p.isHost) toast('💀', 'You were ' + (by ? 'eaten by ' + by : 'cut by a saw') + '! Back in ' + CONFIG.HOST_RESPAWN + 's', '#ff2bd6');
@@ -419,12 +432,17 @@ function step(dt) {
   // host respawn
   if (G.host && !G.host.alive && G.phase === 'play') { G.host.deadT += dt; if (G.host.deadT > CONFIG.HOST_RESPAWN) revive(G.host); }
 
+  G.freezeT = Math.max(0, G.freezeT - dt);
+  const holes = alive.filter(h => h.blackT > 0);
   for (const p of alive) {
+    p.magnetT = Math.max(0, p.magnetT - dt); p.blackT = Math.max(0, p.blackT - dt); p.kingT = Math.max(0, p.kingT - dt);
     p.shieldT = Math.max(0, p.shieldT - dt); p.hunterT = Math.max(0, p.hunterT - dt);
     p.boostT = Math.max(0, p.boostT - dt); p.hitCD = Math.max(0, p.hitCD - dt); p.newT = Math.max(0, p.newT - dt);
     p.pulse = Math.max(0, p.pulse - dt * 4);
     // grow smoothly toward the size that matches the score
     p.r += (radiusFor(p.score) - p.r) * Math.min(1, dt * 6);
+    // ❄️ frozen by someone's Freeze gift (Arena Kings can't be frozen)
+    if (G.freezeT > 0 && p !== G.freezer && p.kingT <= 0) { p.vx = 0; p.vy = 0; continue; }
 
     // steering: wander + chase smaller + flee bigger + collect pellets
     p.wa += rand(-2, 2) * dt;
@@ -455,10 +473,27 @@ function step(dt) {
     const k = 1 - Math.exp(-2.2 * dt);
     p.vx += (dx / dl * speed - p.vx) * k; p.vy += (dy / dl * speed - p.vy) * k;
     p.x += p.vx * dt; p.y += p.vy * dt;
+    // 🕳️ black holes pull every other circle in
+    for (const h of holes) {
+      if (h === p || p.kingT > 0) continue;
+      const hx = h.x - p.x, hy = h.y - p.y, hd = Math.hypot(hx, hy) || 1;
+      const pull = Math.min(hd, 150 * S * dt);
+      p.x += hx / hd * pull; p.y += hy / hd * pull;
+    }
+    // 🧲 magnets pull in nearby smaller circles
+    for (const m2 of alive) {
+      if (m2 === p || m2.magnetT <= 0 || !canEat(m2, p)) continue;
+      const mx = m2.x - p.x, my = m2.y - p.y, md = Math.hypot(mx, my) || 1;
+      if (md < m2.r + 220 * S) { const pull = Math.min(md, 80 * S * dt); p.x += mx / md * pull; p.y += my / md * pull; }
+    }
     if (p.x < p.r) { p.x = p.r; p.vx = Math.abs(p.vx); } if (p.x > W - p.r) { p.x = W - p.r; p.vx = -Math.abs(p.vx); }
     if (p.y < p.r) { p.y = p.r; p.vy = Math.abs(p.vy); } if (p.y > H - p.r) { p.y = H - p.r; p.vy = -Math.abs(p.vy); }
 
-    // pellets
+    // pellets (magnets and black holes suck them in)
+    if (p.magnetT > 0 || p.blackT > 0) {
+      const R = p.r + (p.blackT > 0 ? 600 : 260) * S, sp = 320 * S * dt;
+      for (const f of G.pellets) { const fx = p.x - f.x, fy = p.y - f.y, fd = Math.hypot(fx, fy) || 1; if (fd < R) { const st = Math.min(fd, sp); f.x += fx / fd * st; f.y += fy / fd * st; } }
+    }
     for (let i = G.pellets.length - 1; i >= 0; i--) {
       const f = G.pellets[i];
       if ((f.x - p.x) ** 2 + (f.y - p.y) ** 2 < p.r * p.r) { G.pellets.splice(i, 1); p.score += 2; }
@@ -504,8 +539,9 @@ function step(dt) {
 
   // spinning saws
   for (const s of G.saws) {
-    s.ang += s.spin * dt;
-    s.x += s.vx * dt; s.y += s.vy * dt;
+    const frozen = G.freezeT > 0;
+    s.ang += s.spin * dt * (frozen ? 0.1 : 1);
+    if (!frozen) { s.x += s.vx * dt; s.y += s.vy * dt; }
     if (s.x < s.r || s.x > W - s.r) { s.vx *= -1; s.x = clamp(s.x, s.r, W - s.r); }
     if (s.y < s.r || s.y > H - s.r) { s.vy *= -1; s.y = clamp(s.y, s.r, H - s.r); }
     for (const p of alive) {
@@ -515,7 +551,7 @@ function step(dt) {
         p.hitCD = 0.6;
         const nx = dx / d, ny = dy / d;
         p.vx += nx * 260 * S; p.vy += ny * 260 * S;
-        if (p.shieldT > 0) { ring(p.x, p.y, p.r, p.r + 20 * S, 0.3, '#7df9ff', 3); continue; }
+        if (p.shieldT > 0 || p.kingT > 0) { ring(p.x, p.y, p.r, p.r + 20 * S, 0.3, '#7df9ff', 3); continue; }
         const dmg = Math.max(1, p.score * CONFIG.SAW_DAMAGE / (1 + p.power * 0.15));
         p.score -= dmg;
         text(p.x + nx * p.r * 0.5, p.y - p.r * 0.3, '-' + fmt(dmg), '#ff4d6d', 15);
@@ -551,14 +587,16 @@ function autoViewers(dt) {
   const names = G.players.filter(p => !p.isHost).map(p => p.name);
   const existing = () => (names.length ? pick(names) : fakeName());
   const r = Math.random();
-  if (r < 0.62) LiveEvents.emit({ type: 'like', user: existing(), count: Math.floor(rand(1, 8)), quiet: true });
-  else if (r < 0.70) LiveEvents.emit({ type: 'join', user: fakeName() });
-  else if (r < 0.80) LiveEvents.emit({ type: 'comment', user: existing(), comment: pick(CHAT_LINES) });
-  else if (r < 0.90) LiveEvents.emit({ type: 'gift', gift: 'rose', user: existing() });
-  else if (r < 0.95) LiveEvents.emit({ type: 'gift', gift: 'heart', user: existing() });
-  else if (r < 0.975) LiveEvents.emit({ type: 'follow', user: fakeName() });
-  else if (r < 0.993) LiveEvents.emit({ type: 'gift', gift: 'galaxy', user: existing() });
-  else LiveEvents.emit({ type: 'gift', gift: 'universe', user: existing() });
+  if (r < 0.60) LiveEvents.emit({ type: 'like', user: existing(), count: Math.floor(rand(1, 8)), quiet: true });
+  else if (r < 0.67) LiveEvents.emit({ type: 'join', user: fakeName() });
+  else if (r < 0.77) LiveEvents.emit({ type: 'comment', user: existing(), comment: pick(CHAT_LINES) });
+  else if (r < 0.80) LiveEvents.emit({ type: 'follow', user: fakeName() });
+  else {
+    // pretend gifts: mostly small, big ones are rare
+    const g = Math.random();
+    const coins = g < 0.55 ? 1 : g < 0.75 ? 5 : g < 0.87 ? 30 : g < 0.94 ? 100 : g < 0.97 ? 500 : g < 0.99 ? 1000 : g < 0.997 ? 5000 : 20000;
+    LiveEvents.emit({ type: 'gift', coins, user: existing() });
+  }
 }
 
 /* ---------------- LIVE events ----------------
@@ -581,12 +619,32 @@ const LiveEvents = {
   }
 };
 
-const GIFTS = {
-  rose:     { icon: '🌹', name: 'Rose',     score: 50,   power: 1 },
-  heart:    { icon: '💗', name: 'Heart',    score: 200,  power: 3 },
-  galaxy:   { icon: '🌌', name: 'Galaxy',   score: 1000, power: 10 },
-  universe: { icon: '🪐', name: 'Universe', score: 5000, power: 30 }
-};
+/* ---------------- GIFTS: the more coins, the stronger ----------------
+   1 coin = 50 points. Each gift also triggers EVERY ability at or below its tier. */
+const POINTS_PER_COIN = 50;
+const TIERS = [
+  { min: 1,     key: 'speed',     icon: '🌹', label: 'SPEED BURST', power: 1 },
+  { min: 5,     key: 'shield',    icon: '💗', label: 'SHIELD',      power: 3 },
+  { min: 30,    key: 'magnet',    icon: '🧲', label: 'MAGNET',      power: 5 },
+  { min: 100,   key: 'shockwave', icon: '🌌', label: 'SHOCKWAVE',   power: 10 },
+  { min: 500,   key: 'freeze',    icon: '❄️', label: 'FREEZE ALL',  power: 15 },
+  { min: 1000,  key: 'hunter',    icon: '🎯', label: 'HUNTER MODE', power: 30 },
+  { min: 5000,  key: 'blackhole', icon: '🕳️', label: 'BLACK HOLE',  power: 50 },
+  { min: 20000, key: 'king',      icon: '👑', label: 'ARENA KING',  power: 100 }
+];
+const tierFor = coins => { let t = TIERS[0]; for (const x of TIERS) if (coins >= x.min) t = x; return t; };
+// Supporter ranks: total coins a viewer has sent this stream. Higher rank = every tap is worth more.
+const RANKS = [
+  { min: 0,     icon: '',   name: '',        mult: 1,  color: null },
+  { min: 100,   icon: '🥉', name: 'Bronze',  mult: 1.5, color: '#cd7f32' },
+  { min: 500,   icon: '🥈', name: 'Silver',  mult: 2,  color: '#c0c8e0' },
+  { min: 1000,  icon: '🥇', name: 'Gold',    mult: 3,  color: '#ffd84d' },
+  { min: 5000,  icon: '💎', name: 'Diamond', mult: 5,  color: '#7df9ff' },
+  { min: 20000, icon: '🔥', name: 'Legend',  mult: 10, color: '#ff4d6d' }
+];
+const rankFor = name => { const c = G.coins.get(name) || 0; let r = RANKS[0]; for (const x of RANKS) if (c >= x.min) r = x; return r; };
+// old simple names still work (simulator / relays)
+const GIFT_COINS = { rose: 1, heart: 5, galaxy: 100, universe: 1000 };
 
 LiveEvents.on(e => {
   if (G.phase === 'menu') return;
@@ -596,7 +654,7 @@ LiveEvents.on(e => {
     case 'like': {
       const p = getOrJoin(user, jo);
       if (!p) return;
-      const n = CONFIG.TAP_SCORE * (e.count || 1);
+      const n = Math.round(CONFIG.TAP_SCORE * (e.count || 1) * rankFor(p.name).mult);
       addScore(p, n, e.quiet ? null : '+' + n, '#ff7bf2');
       heartsAt(p, Math.min(4, e.count || 1));
       break;
@@ -621,27 +679,46 @@ LiveEvents.on(e => {
       break;
     }
     case 'gift': {
-      const g = GIFTS[e.gift];
-      if (!g) return;
+      const count = Math.max(1, +e.count || 1);
+      const coins = Math.max(1, Math.round(+e.coins || (GIFT_COINS[e.gift] || 1) * count));
+      const giftName = e.giftName || (e.gift ? e.gift[0].toUpperCase() + e.gift.slice(1) : 'Gift');
       let p;
-      if (e.target === 'me') p = G.host && G.host.alive ? G.host : getOrJoin(G.hostName);
+      if (e.target === 'me') p = G.host && G.host.alive ? G.host : getOrJoin(G.hostName, { revive: true });
       else if (e.target === 'leader') { const al = aliveList(); p = al.reduce((a, b) => (b.score > a.score ? b : a), al[0]); }
-      else p = getOrJoin(user, jo);
+      else p = getOrJoin(user, { pic: e.pic, revive: true });
       if (!p) return;
-      const gScore = e.score || g.score, gPower = e.power || g.power;
-      giftFeed(g.icon, e.giftName ? `${user} · ${e.giftName}${e.count > 1 ? ' x' + e.count : ''}` : user);
-      addScore(p, gScore, '+' + fmt(gScore) + '  ⚡+' + gPower, '#ffd84d');
+      // supporter rank (total coins this stream)
+      const oldRank = rankFor(p.name);
+      G.coins.set(p.name, (G.coins.get(p.name) || 0) + coins);
+      const newRank = rankFor(p.name);
+      if (newRank !== oldRank) { banner(`${p.name} is now ${newRank.icon} ${newRank.name.toUpperCase()} · taps x${newRank.mult}`); ring(p.x, p.y, p.r, p.r + 80 * S, 0.7, newRank.color, 6); }
+
+      const top = tierFor(coins);
+      const pts = coins * POINTS_PER_COIN;
+      const pw = top.key === 'speed' ? coins : top.power;
+      giftFeed(top.icon, `${user} · ${giftName}${count > 1 ? ' x' + count : ''} · ${fmt(coins)}🪙`);
+      addScore(p, pts, '+' + fmt(pts) + '  ⚡+' + pw, '#ffd84d');
       const before = p.power;
-      p.power += gPower;
+      p.power += pw;
       if (before < JAWS_POWER && p.power >= JAWS_POWER) { banner(`${p.name} unlocked GIANT JAWS 🦈`); ring(p.x, p.y, p.r, p.r + 90 * S, 0.7, '#ffd84d', 6); }
-      if (e.gift === 'rose') { p.boostT = 4; burst(p.x, p.y, '#ff2bd6', 18, 160 * S); }
-      if (e.gift === 'heart') { p.shieldT = Math.max(p.shieldT, 10); burst(p.x, p.y, '#ff5fa2', 24, 180 * S); }
-      if (e.gift === 'galaxy') { shockwave(p); banner(`${user} sent ${e.giftName || 'a Galaxy'} 🌌`); }
-      if (e.gift === 'universe') {
-        p.hunterT = 15; p.shieldT = Math.max(p.shieldT, 15);
-        burst(p.x, p.y, null, 140, 520 * S); for (let i = 0; i < 5; i++) ring(p.x, p.y, p.r, p.r + 70 * S + i * 55 * S, 0.6 + i * 0.15, PALETTE[i], 6);
-        banner(`${user} sent ${e.giftName || 'Universe'} 🪐 → HUNTER MODE`);
-        flashA = 0.5;
+
+      // every ability up to this gift's tier
+      for (const t of TIERS) {
+        if (coins < t.min) break;
+        if (t.key === 'speed') { p.boostT = Math.max(p.boostT, 4); burst(p.x, p.y, '#ff2bd6', 14, 160 * S); }
+        if (t.key === 'shield') p.shieldT = Math.max(p.shieldT, 10);
+        if (t.key === 'magnet') p.magnetT = Math.max(p.magnetT, 10);
+        if (t.key === 'shockwave') shockwave(p);
+        if (t.key === 'freeze') { G.freezeT = 5; G.freezer = p; flashA = Math.max(flashA, 0.35); }
+        if (t.key === 'hunter') p.hunterT = Math.max(p.hunterT, 15);
+        if (t.key === 'blackhole') p.blackT = Math.max(p.blackT, 8);
+        if (t.key === 'king') { p.kingT = 30; p.shieldT = Math.max(p.shieldT, 30); p.score *= 2; text(p.x, p.y, 'x2 SCORE', '#ffd84d', 26); }
+      }
+      if (coins >= 100) {
+        banner(`${user} sent ${giftName} ${top.icon} → ${top.label}!`);
+        burst(p.x, p.y, null, Math.min(160, 40 + coins / 50), 520 * S);
+        for (let i = 0; i < Math.min(6, 1 + Math.floor(Math.log10(coins))); i++) ring(p.x, p.y, p.r, p.r + 70 * S + i * 55 * S, 0.6 + i * 0.15, PALETTE[i], 6);
+        flashA = Math.max(flashA, Math.min(0.6, coins / 5000));
       }
       break;
     }
@@ -754,6 +831,25 @@ function drawPlayer(p, rank) {
   ctx.setLineDash([r * 0.5, r * 0.28]);
   ctx.beginPath(); ctx.arc(0, 0, r + 3 * S, 0, 6.283); ctx.stroke();
   ctx.restore();
+  // ❄️ frozen
+  if (G.freezeT > 0 && p !== G.freezer && p.kingT <= 0) {
+    ctx.fillStyle = 'rgba(180,240,255,.45)'; ctx.beginPath(); ctx.arc(x, y, r, 0, 6.283); ctx.fill();
+    ctx.font = `${Math.max(12 * S, r * 0.5)}px system-ui,sans-serif`; ctx.fillText('❄️', x + r * 0.6, y - r * 0.6);
+  }
+  // 🧲 magnet field
+  if (p.magnetT > 0) {
+    ctx.save(); ctx.strokeStyle = 'rgba(255,123,242,.45)'; ctx.lineWidth = 2 * S; ctx.setLineDash([6 * S, 10 * S]); ctx.lineDashOffset = -t * 40;
+    ctx.beginPath(); ctx.arc(x, y, r + 220 * S, 0, 6.283); ctx.stroke(); ctx.restore();
+  }
+  // 👑 Arena King aura
+  if (p.kingT > 0) {
+    ctx.save(); ctx.shadowColor = '#ffd84d'; ctx.shadowBlur = 30; ctx.strokeStyle = '#ffd84d'; ctx.lineWidth = 5 * S;
+    ctx.beginPath(); ctx.arc(x, y, r + 14 * S + Math.sin(t * 4) * 3, 0, 6.283); ctx.stroke(); ctx.restore();
+    for (let i = 0; i < 6; i++) { const a = t * 1.5 + i * 1.047, rr = r + 22 * S; ctx.drawImage(glow('#ffd84d'), x + Math.cos(a) * rr - 6 * S, y + Math.sin(a) * rr - 6 * S, 12 * S, 12 * S); }
+  }
+  // supporter rank ring
+  const rk = rankFor(p.name);
+  if (rk.color) { ctx.strokeStyle = rk.color; ctx.lineWidth = 3 * S; ctx.beginPath(); ctx.arc(x, y, r + 6 * S, 0, 6.283); ctx.stroke(); }
   // shield
   if (p.shieldT > 0) {
     ctx.strokeStyle = 'rgba(125,249,255,.85)'; ctx.lineWidth = 2 * S;
@@ -783,7 +879,7 @@ function drawPlayer(p, rank) {
   const fn = Math.max(9 * S, Math.min(14 * S, r * 0.32));
   ctx.font = `700 ${fn}px system-ui,sans-serif`; ctx.lineWidth = fn * 0.3;
   const ny = y + r + fn * 0.95;
-  const nm = p.isHost ? '★ ' + p.name : p.name;
+  const nm = (p.isHost ? '★ ' : '') + (rk.icon ? rk.icon + ' ' : '') + p.name;
   const half = ctx.measureText(nm).width / 2 + 3;
   const nx = clamp(x, half, W - half), nyy = Math.min(ny, H - fn * 0.7);
   ctx.strokeText(nm, nx, nyy); ctx.fillStyle = p.isHost ? '#00f0ff' : 'rgba(255,255,255,.9)'; ctx.fillText(nm, nx, nyy);
@@ -805,7 +901,8 @@ function drawPlayer(p, rank) {
     ctx.fillStyle = '#fff'; ctx.fillText('NEW', x + r * 0.5 + bw / 2, y - r + 4.5 * S);
   }
   // crowns for the top 3
-  if (rank < 3) drawCrown(x, y - r - 2 * S, Math.max(18 * S, r * (rank === 0 ? 0.9 : 0.6)), rank === 0);
+  if (p.kingT > 0) drawCrown(x, y - r - 2 * S, Math.max(26 * S, r * 1.1), true);
+  else if (rank < 3) drawCrown(x, y - r - 2 * S, Math.max(18 * S, r * (rank === 0 ? 0.9 : 0.6)), rank === 0);
 }
 
 function draw() {
@@ -830,7 +927,20 @@ function draw() {
   const ranked = alive.slice().sort((a, b) => b.score - a.score);
   const rankOf = new Map(ranked.map((p, i) => [p, i]));
   alive.sort((a, b) => a.r - b.r);
+  // black hole vortex under the players
+  for (const h of alive) {
+    if (h.blackT <= 0) continue;
+    const R = h.r * 2.6 + 60 * S;
+    const g = ctx.createRadialGradient(h.x, h.y, h.r * 0.5, h.x, h.y, R);
+    g.addColorStop(0, 'rgba(0,0,0,.85)'); g.addColorStop(0.6, 'rgba(60,0,90,.45)'); g.addColorStop(1, 'rgba(60,0,90,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(h.x, h.y, R, 0, 6.283); ctx.fill();
+    ctx.save(); ctx.translate(h.x, h.y); ctx.rotate(-t * 3);
+    ctx.strokeStyle = 'rgba(199,125,255,.7)'; ctx.lineWidth = 2.5 * S;
+    for (let i = 0; i < 4; i++) { ctx.rotate(Math.PI / 2); ctx.beginPath(); ctx.arc(R * 0.25, 0, R * 0.6, -0.4, 1.6); ctx.stroke(); }
+    ctx.restore();
+  }
   for (const p of alive) drawPlayer(p, rankOf.get(p));
+  if (G.freezeT > 0) { ctx.fillStyle = `rgba(125,249,255,${0.08 + 0.04 * Math.sin(t * 5)})`; ctx.fillRect(0, 0, W, H); }
   for (const s of G.saws) drawSaw(s);
   // particles
   ctx.globalCompositeOperation = 'lighter';
@@ -886,6 +996,9 @@ function updateHud(dt) {
     const d = document.createElement('span'); d.className = 'kl'; d.textContent = p.kills ? p.kills + '💀' : '';
     li.append(a, b, c, d); list.appendChild(li);
   });
+  let tg = null, tc = 0;
+  for (const [n, c] of G.coins) if (c > tc) { tc = c; tg = n; }
+  $('topGifter').textContent = tg ? `💰 Top gifter: ${rankFor(tg).icon} ${tg} · ${fmt(tc)}🪙` : '';
   const h = G.host;
   if (h && h.alive) { $('youScore').textContent = fmt(h.score); $('youLv').textContent = 'LV ' + levelFor(h.score) + ' · #' + (alive.indexOf(h) + 1); }
   else if (h) { $('youScore').textContent = '💀'; $('youLv').textContent = 'respawning…'; }
@@ -1011,13 +1124,6 @@ const Bridge = {
     this.status('Not connected.');
     $('btnConnect').textContent = 'CONNECT TO TIKFINITY'; $('btnConnect').classList.add('off');
   },
-  // Gift value (coins/diamonds) decides the ability tier.
-  tier(diamonds) {
-    if (diamonds >= 1000) return { gift: 'universe', score: 5000 + Math.round(diamonds * 0.2), power: 30 };
-    if (diamonds >= 100) return { gift: 'galaxy', score: 1000 + diamonds * 2, power: 10 };
-    if (diamonds >= 5) return { gift: 'heart', score: 200 + diamonds * 10, power: 3 };
-    return { gift: 'rose', score: 50 * diamonds, power: diamonds };
-  },
   handle(msg) {
     if (!msg || typeof msg !== 'object') return;
     // Our own format passes straight through.
@@ -1044,7 +1150,7 @@ const Bridge = {
       if ((d.giftType === 1 || (d.gift && d.gift.gift_type === 1)) && d.repeatEnd === false) return;
       const count = Math.max(1, +d.repeatCount || 1);
       const diamonds = Math.max(1, (+d.diamondCount || 1) * count);
-      LiveEvents.emit(Object.assign(base, this.tier(diamonds), { type: 'gift', giftName: d.giftName || 'Gift', count }));
+      LiveEvents.emit(Object.assign(base, { type: 'gift', coins: diamonds, giftName: d.giftName || 'Gift', count }));
     }
   }
 };
@@ -1054,17 +1160,17 @@ $('overlayLink').textContent = location.origin + location.pathname + '?live=1';
 $('btnConnect').addEventListener('click', () => {
   if (Bridge.want) Bridge.disconnect(); else Bridge.connect($('wsUrl').value.trim());
 });
-function simulate(kind) {
+function simulate(kind, btn) {
   if (G.phase === 'menu') return;
   const typed = $('giftUser').value.trim().replace(/^@/, '');
   const user = typed || fakeName();
   const target = $('giftTarget').value;
-  if (GIFTS[kind]) LiveEvents.emit({ type: 'gift', gift: kind, user, target });
+  if (kind === 'gift') LiveEvents.emit({ type: 'gift', coins: +btn.dataset.coins, giftName: btn.dataset.name, user, target });
   else if (kind === 'like') LiveEvents.emit({ type: 'like', user, count: 15 });
   else if (kind === 'comment') { LiveEvents.emit({ type: 'comment', user, comment: $('commentText').value.trim() || pick(CHAT_LINES) }); $('commentText').value = ''; }
   else LiveEvents.emit({ type: kind, user });
 }
-document.querySelectorAll('#giftPanel .gifts button').forEach(b => b.addEventListener('click', () => simulate(b.dataset.evt)));
+document.querySelectorAll('#giftPanel .gifts button').forEach(b => b.addEventListener('click', () => simulate(b.dataset.evt, b)));
 $('btnSendComment').addEventListener('click', () => simulate('comment'));
 $('commentText').addEventListener('keydown', e => { if (e.key === 'Enter') simulate('comment'); });
 try { $('nameInput').value = localStorage.getItem('cal_name') || ''; } catch (err) { /* ignore */ }

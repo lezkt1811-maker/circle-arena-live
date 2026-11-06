@@ -1,0 +1,1563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#05020d">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="description" content="Circle Arena Live - a neon arcade arena game. Eat energy, grow, and dominate.">
+<title>Circle Arena Live</title>
+<style>
+:root{
+  --bg:#05020d; --cyan:#00f0ff; --pink:#ff2bd6; --violet:#9d4dff; --blue:#3d7bff;
+  --text:#ece8ff; --dim:#a79cd6; --panel:rgba(14,6,34,.74); --border:rgba(157,77,255,.5);
+  --sat:env(safe-area-inset-top,0px); --sab:env(safe-area-inset-bottom,0px);
+  --sal:env(safe-area-inset-left,0px); --sar:env(safe-area-inset-right,0px);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{position:fixed;inset:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  overscroll-behavior:none;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+canvas#game{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+button{font-family:inherit;cursor:pointer;touch-action:manipulation;border:none;color:inherit}
+input,select{font-family:inherit;font-size:16px;user-select:text;-webkit-user-select:text}
+.hidden{display:none!important}
+.ui{position:fixed;z-index:5}
+.glass{background:var(--panel);border:1px solid var(--border);border-radius:14px;
+  box-shadow:0 0 18px rgba(157,77,255,.25),inset 0 0 14px rgba(0,240,255,.06);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+
+/* ---------- HUD ---------- */
+#hud{top:calc(8px + var(--sat));left:calc(8px + var(--sal));width:178px;padding:9px 11px;pointer-events:none}
+.logo{font-weight:900;letter-spacing:.12em;font-size:13px;line-height:1;white-space:nowrap;
+  background:linear-gradient(90deg,var(--cyan),var(--violet),var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 6px rgba(0,240,255,.55))}
+.logo b{font-weight:900}
+#hudName{margin-top:5px;font-size:12px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;margin-top:6px}
+.stats div{display:flex;flex-direction:column}
+.stats label{font-size:9px;letter-spacing:.14em;color:var(--dim);text-transform:uppercase}
+.stats span{font-size:16px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--cyan);text-shadow:0 0 8px rgba(0,240,255,.6)}
+.stats div:nth-child(2) span{color:var(--pink);text-shadow:0 0 8px rgba(255,43,214,.6)}
+.stats div:nth-child(3) span{color:#c77dff;text-shadow:0 0 8px rgba(157,77,255,.6)}
+.stats div:nth-child(4) span{color:#7da6ff;text-shadow:0 0 8px rgba(61,123,255,.6)}
+.meter{margin-top:7px}
+.meter .row{display:flex;justify-content:space-between;font-size:9px;letter-spacing:.1em;color:var(--dim);text-transform:uppercase}
+.meter .bar{height:7px;margin-top:3px;border-radius:6px;background:rgba(255,255,255,.08);overflow:hidden;border:1px solid rgba(0,240,255,.25)}
+.meter i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--blue),var(--cyan),var(--pink));box-shadow:0 0 10px var(--cyan);transition:width .25s}
+#effects{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+#effects span{font-size:10px;font-weight:700;padding:2px 6px;border-radius:8px;background:rgba(255,255,255,.08);border:1px solid var(--c,#00f0ff);color:var(--c,#00f0ff)}
+
+/* ---------- Top buttons ---------- */
+#controls{left:calc(8px + var(--sal));display:flex;gap:7px}
+.iconBtn{width:44px;height:44px;border-radius:12px;font-size:18px;font-weight:900;color:var(--cyan);
+  background:var(--panel);border:1px solid var(--border);box-shadow:0 0 12px rgba(0,240,255,.25)}
+.iconBtn:active{transform:scale(.92);box-shadow:0 0 18px rgba(255,43,214,.6)}
+#btnGifts{color:var(--pink)}
+
+/* ---------- Leaderboard + minimap ---------- */
+#side{top:calc(8px + var(--sat));right:calc(8px + var(--sar));width:170px;display:flex;flex-direction:column;gap:8px;align-items:flex-end;pointer-events:none}
+#leaderboard{width:100%;padding:8px 10px}
+#leaderboard h3{font-size:10px;letter-spacing:.2em;color:var(--pink);text-shadow:0 0 8px rgba(255,43,214,.7);margin-bottom:4px}
+#lbList{list-style:none}
+#lbList li{display:flex;gap:6px;font-size:11.5px;line-height:1.55;font-variant-numeric:tabular-nums}
+#lbList li .rk{width:16px;color:var(--dim)}
+#lbList li .nm{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#lbList li .sc{color:var(--cyan)}
+#lbList li.me{color:#fff;font-weight:800}
+#lbList li.me .nm{color:var(--pink)}
+#lbList li.gap{justify-content:center;color:var(--dim);line-height:1}
+#minimap{width:130px;height:130px;border-radius:12px;border:1px solid rgba(0,240,255,.45);box-shadow:0 0 14px rgba(0,240,255,.3)}
+
+/* ---------- Joystick + boost ---------- */
+#joyBase{position:fixed;z-index:4;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;pointer-events:none;
+  border:2px solid rgba(0,240,255,.55);background:radial-gradient(circle,rgba(0,240,255,.10),rgba(157,77,255,.10) 60%,rgba(0,0,0,0) 72%);
+  box-shadow:0 0 22px rgba(0,240,255,.35),inset 0 0 22px rgba(157,77,255,.35);opacity:.55;transition:opacity .15s}
+#joyBase.active{opacity:1}
+#joyKnob{position:absolute;left:50%;top:50%;width:52px;height:52px;margin:-26px 0 0 -26px;border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,#fff,var(--cyan) 35%,var(--blue));box-shadow:0 0 18px var(--cyan)}
+#btnBoost{position:fixed;z-index:5;right:calc(22px + var(--sar));bottom:calc(26px + var(--sab));width:92px;height:92px;border-radius:50%;
+  font-weight:900;font-size:13px;letter-spacing:.12em;color:#fff;
+  background:radial-gradient(circle at 35% 30%,#ff8af0,var(--pink) 45%,#6a0f8f);border:2px solid rgba(255,255,255,.35);
+  box-shadow:0 0 24px rgba(255,43,214,.7),inset 0 0 18px rgba(255,255,255,.25);touch-action:none}
+#btnBoost.on{transform:scale(.93);box-shadow:0 0 40px rgba(255,43,214,1),0 0 70px rgba(0,240,255,.5)}
+
+/* ---------- Event feed ---------- */
+#feed{position:fixed;z-index:6;left:50%;transform:translateX(-50%);bottom:calc(150px + var(--sab));width:min(440px,72vw);
+  display:flex;flex-direction:column;gap:5px;align-items:center;pointer-events:none}
+.toast{display:flex;gap:7px;align-items:center;max-width:100%;padding:6px 11px;border-radius:12px;font-size:12.5px;font-weight:600;
+  background:rgba(12,4,30,.86);border:1px solid var(--c);box-shadow:0 0 14px color-mix(in srgb,var(--c) 45%,transparent);
+  animation:tin .25s ease-out;transition:opacity .4s,transform .4s}
+.toast b{font-size:15px}
+.toast span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.toast.out{opacity:0;transform:translateY(-10px)}
+@keyframes tin{from{opacity:0;transform:translateY(12px) scale(.95)}to{opacity:1;transform:none}}
+
+/* ---------- Gift panel ---------- */
+#giftPanel{position:fixed;z-index:8;right:calc(8px + var(--sar));bottom:calc(128px + var(--sab));width:min(330px,calc(100vw - 16px));
+  max-height:calc(100% - 150px - var(--sab) - var(--sat));overflow-y:auto;padding:12px;touch-action:pan-y;-webkit-overflow-scrolling:touch}
+#giftPanel h2{font-size:13px;letter-spacing:.16em;color:var(--pink);display:flex;justify-content:space-between;align-items:center}
+#giftPanel h2 button{background:none;font-size:20px;color:var(--dim);width:32px;height:32px}
+#giftPanel .note{font-size:10.5px;color:var(--dim);margin:4px 0 9px;line-height:1.35}
+.field{display:flex;gap:6px;margin-bottom:7px;align-items:center}
+.field label{font-size:10px;letter-spacing:.1em;color:var(--dim);width:52px;text-transform:uppercase}
+.field input,.field select{flex:1;min-width:0;padding:7px 8px;border-radius:9px;background:rgba(255,255,255,.07);color:#fff;border:1px solid rgba(0,240,255,.35);outline:none}
+.field select option{background:#140726}
+.gifts{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:4px}
+.gifts button{padding:10px 6px;border-radius:11px;font-size:12.5px;font-weight:800;background:rgba(255,255,255,.06);
+  border:1px solid var(--c);color:#fff;box-shadow:0 0 10px color-mix(in srgb,var(--c) 35%,transparent);display:flex;flex-direction:column;align-items:center;gap:2px}
+.gifts button em{font-style:normal;font-size:20px}
+.gifts button small{font-size:9.5px;font-weight:600;color:var(--dim)}
+.gifts button:active{transform:scale(.95);background:color-mix(in srgb,var(--c) 30%,transparent)}
+.commentRow{display:flex;gap:6px;margin-top:8px}
+.commentRow input{flex:1;min-width:0;padding:8px;border-radius:9px;background:rgba(255,255,255,.07);color:#fff;border:1px solid rgba(255,43,214,.45);outline:none}
+.commentRow button{padding:0 12px;border-radius:9px;font-weight:800;background:var(--pink);color:#fff}
+
+/* ---------- Overlays ---------- */
+.overlay{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:20px;
+  background:radial-gradient(ellipse at center,rgba(26,11,51,.55),rgba(5,2,13,.88))}
+.card{width:min(420px,100%);padding:26px 22px;text-align:center}
+.bigTitle{font-size:clamp(34px,10vw,54px);font-weight:900;line-height:.95;letter-spacing:.04em;
+  background:linear-gradient(90deg,var(--cyan),var(--violet),var(--pink),var(--cyan));background-size:300% 100%;
+  -webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 6s linear infinite;
+  filter:drop-shadow(0 0 14px rgba(0,240,255,.45))}
+.bigTitle small{display:block;font-size:.42em;letter-spacing:.55em;margin-top:6px}
+@keyframes shine{to{background-position:300% 0}}
+.sub{color:var(--dim);margin:12px 0 18px;font-size:14px}
+.card input{width:100%;padding:13px 14px;border-radius:12px;text-align:center;font-weight:700;background:rgba(255,255,255,.07);color:#fff;
+  border:1px solid rgba(0,240,255,.5);outline:none;box-shadow:inset 0 0 12px rgba(0,240,255,.12)}
+.card input:focus{border-color:var(--pink)}
+.btn{display:block;width:100%;margin-top:12px;padding:14px;border-radius:12px;font-size:17px;font-weight:900;letter-spacing:.18em;color:#fff;
+  background:linear-gradient(90deg,var(--blue),var(--violet),var(--pink));box-shadow:0 0 22px rgba(255,43,214,.5)}
+.btn:active{transform:scale(.97)}
+.btn.alt{background:rgba(255,255,255,.07);border:1px solid var(--border);box-shadow:none;font-size:14px}
+.help{margin-top:16px;font-size:12px;color:var(--dim);line-height:1.6}
+.help b{color:var(--cyan)}
+.deadTitle{font-size:34px;font-weight:900;letter-spacing:.12em;color:var(--pink);text-shadow:0 0 18px var(--pink)}
+.deadGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0 6px}
+.deadGrid div{padding:9px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid rgba(157,77,255,.35)}
+.deadGrid label{display:block;font-size:10px;letter-spacing:.14em;color:var(--dim);text-transform:uppercase}
+.deadGrid span{font-size:20px;font-weight:800;color:var(--cyan)}
+
+/* ---------- Small screens ---------- */
+@media (max-width:600px){
+  #hud{width:150px;padding:7px 9px}
+  .logo{font-size:11px}
+  .stats span{font-size:14px}
+  #side{width:128px}
+  #leaderboard{padding:6px 8px}
+  #lbList li{font-size:10.5px}
+  #minimap{width:96px;height:96px}
+  #btnBoost{width:80px;height:80px;font-size:12px}
+}
+@media (max-height:500px){
+  #minimap{width:80px;height:80px}
+  #feed{bottom:calc(100px + var(--sab))}
+  #giftPanel{bottom:calc(8px + var(--sab));right:calc(110px + var(--sar));max-height:calc(100% - 16px)}
+}
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<!-- HUD -->
+<div id="hud" class="ui glass">
+  <div class="logo">CIRCLE ARENA <b>LIVE</b></div>
+  <div id="hudName">Player</div>
+  <div class="stats">
+    <div><label>Score</label><span id="hudScore">0</span></div>
+    <div><label>Level</label><span id="hudLevel">1</span></div>
+    <div><label>Size</label><span id="hudSize">0</span></div>
+    <div><label>Players</label><span id="hudPlayers">0</span></div>
+  </div>
+  <div class="meter">
+    <div class="row"><span>⚡ Community</span><span id="meterPct">0%</span></div>
+    <div class="bar"><i id="meterFill"></i></div>
+    <div class="row" style="margin-top:3px"><span>👁 Viewers <b id="hudViewers">0</b></span><span>❤ <b id="hudLikes">0</b></span></div>
+  </div>
+  <div id="effects"></div>
+</div>
+
+<div id="controls" class="ui">
+  <button id="btnPause" class="iconBtn" aria-label="Pause">❚❚</button>
+  <button id="btnRestart" class="iconBtn" aria-label="Restart">↻</button>
+  <button id="btnGifts" class="iconBtn" aria-label="Live event simulator">🎁</button>
+</div>
+
+<div id="side" class="ui">
+  <div id="leaderboard" class="glass"><h3>LEADERBOARD</h3><ol id="lbList"></ol></div>
+  <canvas id="minimap"></canvas>
+</div>
+
+<div id="feed"></div>
+<div id="joyBase"><div id="joyKnob"></div></div>
+<button id="btnBoost" aria-label="Boost">BOOST</button>
+
+<!-- Simulated LIVE event panel (development only) -->
+<div id="giftPanel" class="glass hidden">
+  <h2>LIVE EVENT SIMULATOR <button id="btnCloseGifts" aria-label="Close">✕</button></h2>
+  <p class="note">Development tool. These buttons SIMULATE TikTok LIVE events — there is no real TikTok connection yet.</p>
+  <div class="field"><label>Sender</label><input id="giftUser" maxlength="20" placeholder="random viewer"></div>
+  <div class="field"><label>Target</label>
+    <select id="giftTarget">
+      <option value="me">You</option>
+      <option value="leader">Leader</option>
+      <option value="random">Random player</option>
+      <option value="smallest">Smallest player</option>
+    </select>
+  </div>
+  <div class="gifts">
+    <button data-evt="rose" style="--c:#ff2bd6"><em>🌹</em>Rose<small>+15 energy</small></button>
+    <button data-evt="heart" style="--c:#ff5fa2"><em>💗</em>Heart<small>speed boost</small></button>
+    <button data-evt="galaxy" style="--c:#9d4dff"><em>🌌</em>Galaxy<small>energy explosion</small></button>
+    <button data-evt="universe" style="--c:#00f0ff"><em>🪐</em>Universe<small>transformation</small></button>
+    <button data-evt="follow" style="--c:#3d7bff"><em>➕</em>New Follower<small>spawns a player</small></button>
+    <button data-evt="like" style="--c:#ff7bf2"><em>👍</em>Likes ×10<small>community meter</small></button>
+    <button data-evt="join" style="--c:#7df9ff"><em>👋</em>Viewer Joins<small>energy drop</small></button>
+    <button data-evt="comment" style="--c:#ffd84d"><em>💬</em>Special Comment<small>random event</small></button>
+  </div>
+  <div class="commentRow">
+    <input id="commentText" maxlength="60" placeholder="Comment: rain, gold, shrink, magnet…">
+    <button id="btnSendComment">SEND</button>
+  </div>
+</div>
+
+<!-- Start screen -->
+<div id="startScreen" class="overlay">
+  <div class="card glass">
+    <div class="bigTitle">CIRCLE ARENA<small>LIVE</small></div>
+    <p class="sub">Collect energy. Grow bigger. Eat smaller circles.<br>Don't get eaten.</p>
+    <input id="nameInput" maxlength="14" placeholder="Enter your username" autocomplete="off">
+    <button id="btnPlay" class="btn">PLAY</button>
+    <div class="help">
+      📱 <b>Phone:</b> drag on the left side to move · hold <b>BOOST</b> to dash<br>
+      🖱 <b>Computer:</b> move the mouse · or <b>WASD / Arrows</b> · <b>Space</b> boost · <b>P</b> pause
+    </div>
+    <div class="help" id="bestLine"></div>
+  </div>
+</div>
+
+<!-- Pause screen -->
+<div id="pauseScreen" class="overlay hidden">
+  <div class="card glass">
+    <div class="deadTitle" style="color:var(--cyan);text-shadow:0 0 18px var(--cyan)">PAUSED</div>
+    <button id="btnResume" class="btn">RESUME</button>
+    <button id="btnPauseRestart" class="btn alt">RESTART ARENA</button>
+  </div>
+</div>
+
+<!-- Death screen -->
+<div id="deathScreen" class="overlay hidden">
+  <div class="card glass">
+    <div class="deadTitle">ELIMINATED</div>
+    <p class="sub" id="deathBy">You were eaten.</p>
+    <div class="deadGrid">
+      <div><label>Score</label><span id="dScore">0</span></div>
+      <div><label>Level</label><span id="dLevel">1</span></div>
+      <div><label>Time alive</label><span id="dTime">0s</span></div>
+      <div><label>Best score</label><span id="dBest">0</span></div>
+    </div>
+    <button id="btnRespawn" class="btn">RESPAWN</button>
+    <button id="btnDeathRestart" class="btn alt">RESTART ARENA</button>
+  </div>
+</div>
+
+<script>
+(function () {
+'use strict';
+
+/* =====================================================================
+   CIRCLE ARENA LIVE
+   File layout (all in this one file so it runs on GitHub Pages as-is):
+     1. CONFIG + helpers
+     2. Sim      - pure game logic. No DOM, no canvas. (Portable to a server.)
+     3. AI       - computer opponents (also pure logic)
+     4. LiveEvents - event bus for TikTok-style LIVE events (simulated for now)
+     5. Input    - joystick / boost / mouse / keyboard
+     6. Renderer - canvas drawing only, reads the world
+     7. UI       - HUD, leaderboard, menus, toasts
+     8. Game     - main loop that ties everything together
+   ===================================================================== */
+
+/* ---------------- 1. CONFIG ---------------- */
+const CONFIG = {
+  WORLD_W: 4000, WORLD_H: 4000,
+  GRID: 100,               // spatial grid cell size for pellets
+  PELLET_TARGET: 900,      // normal number of energy pellets
+  PELLET_MAX: 2600,        // hard cap (gift effects can add more)
+  START_MASS: 20,
+  MIN_MASS: 10,
+  MAX_MASS: 6000,
+  BOT_COUNT: 14,
+  MAX_PLAYERS: 40,
+  EAT_RATIO: 1.15,         // must be 15% bigger to eat (equal size can never eat)
+  EAT_OVERLAP: 0.3,        // how deep the small circle must be inside the big one
+  BASE_SPEED: 640,
+  MIN_SPEED: 48,
+  ACCEL: 7,                // higher = snappier steering
+  BOOST_MULT: 1.75,
+  BOOST_COST: 0.035,       // fraction of mass burned per second while boosting
+  BOOST_MIN_MASS: 26,
+  DECAY_START: 350,        // very big players slowly shrink
+  DECAY_RATE: 0.0025,
+  SPAWN_SHIELD: 2.5,       // seconds of spawn protection
+  BOT_RESPAWN: 3,
+  TICK: 1 / 60
+};
+
+const PALETTE = ['#00f0ff', '#ff2bd6', '#9d4dff', '#3d7bff', '#00ffc8', '#ff5fa2', '#7df9ff', '#c77dff', '#4d9dff', '#ff7bf2', '#5cffa8', '#ffd84d'];
+const PELLET_COLORS = ['#00f0ff', '#ff2bd6', '#9d4dff', '#3d7bff', '#7df9ff', '#ff7bf2', '#c77dff'];
+const BOT_NAMES = ['Nova', 'Pixel', 'Zap', 'Orbit', 'Glitch', 'Luna', 'Vortex', 'Neon', 'Blip', 'Quasar', 'Echo', 'Spark', 'Rogue', 'Comet', 'Flux', 'Byte', 'Halo', 'Nyx', 'Prism', 'Volt', 'Astra', 'Drift', 'Kilo', 'Mochi', 'Rift', 'Sol', 'Tango', 'Vega', 'Wisp', 'Zenith', 'Ion', 'Jinx'];
+const VIEWER_A = ['neon', 'star', 'pixel', 'cosmic', 'glow', 'hyper', 'lunar', 'turbo', 'retro', 'astro'];
+const VIEWER_B = ['fox', 'queen', 'pup', 'rider', 'cat', 'wave', 'ghost', 'king', 'bean', 'bot'];
+
+const rand = (a, b) => a + Math.random() * (b - a);
+const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
+const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+const massToRadius = m => Math.sqrt(m) * 6;
+const levelFor = m => 1 + Math.floor(Math.sqrt(Math.max(0, m - CONFIG.START_MASS) / 12));
+const randomViewer = () => '@' + pick(VIEWER_A) + pick(VIEWER_B) + Math.floor(rand(1, 99));
+
+/* ---------------- 2. SIM (pure game logic) ----------------
+   Everything that changes the game state lives here.
+   It never touches the DOM, so a future Cloudflare Worker could run
+   this same code as the authoritative multiplayer server.
+   Things the screen should react to are pushed into world.events. */
+const Sim = {
+  createWorld() {
+    const cols = Math.ceil(CONFIG.WORLD_W / CONFIG.GRID), rows = Math.ceil(CONFIG.WORLD_H / CONFIG.GRID);
+    const grid = new Array(cols * rows);
+    for (let i = 0; i < grid.length; i++) grid[i] = [];
+    const world = {
+      w: CONFIG.WORLD_W, h: CONFIG.WORLD_H, players: [], pellets: [], grid, cols, rows,
+      time: 0, nextId: 1, events: [], goldenT: 0, community: 0, viewers: 0, likes: 0
+    };
+    for (let i = 0; i < CONFIG.PELLET_TARGET; i++) Sim.spawnPellet(world);
+    return world;
+  },
+
+  spawnPellet(world, x, y, mass, vx, vy) {
+    if (world.pellets.length >= CONFIG.PELLET_MAX) return null;
+    const m = mass || 1;
+    const pe = {
+      x: x == null ? rand(20, world.w - 20) : clamp(x, 8, world.w - 8),
+      y: y == null ? rand(20, world.h - 20) : clamp(y, 8, world.h - 8),
+      mass: m, r: 4 + m * 1.6, vx: vx || 0, vy: vy || 0,
+      color: pick(PELLET_COLORS), phase: Math.random() * 6.283, dead: false
+    };
+    world.pellets.push(pe);
+    return pe;
+  },
+
+  botName(world) {
+    const used = new Set(world.players.map(p => p.name));
+    const free = BOT_NAMES.filter(n => !used.has(n));
+    return free.length ? pick(free) : pick(BOT_NAMES) + Math.floor(rand(2, 99));
+  },
+
+  addPlayer(world, o) {
+    const mass = o.mass || CONFIG.START_MASS;
+    const r = massToRadius(mass);
+    const pos = o.x != null ? { x: o.x, y: o.y } : Sim.safeSpawnPoint(world, r);
+    const L = levelFor(mass);
+    const p = {
+      id: world.nextId++, name: o.name || 'Player', color: o.color || pick(PALETTE),
+      x: pos.x, y: pos.y, vx: 0, vy: 0, mass, r,
+      isBot: !!o.isBot, isHuman: !!o.isHuman, keepName: !!o.keepName, alive: true,
+      input: { dx: 0, dy: 0, boost: false },
+      speedT: 0, shieldT: CONFIG.SPAWN_SHIELD, transformT: 0, magnetT: 0, respawnT: 0,
+      level: L, peakLevel: L, score: 0, kills: 0, boosting: false, born: world.time, killedBy: null,
+      bot: o.isBot ? AI.createBrain() : null
+    };
+    world.players.push(p);
+    return p;
+  },
+
+  safeSpawnPoint(world, r) {
+    let best = { x: world.w / 2, y: world.h / 2 }, bestD = -1;
+    for (let i = 0; i < 30; i++) {
+      const x = rand(150, world.w - 150), y = rand(150, world.h - 150);
+      let minD = Infinity;
+      for (const o of world.players) {
+        if (!o.alive || o.mass < CONFIG.START_MASS * 1.1) continue;
+        const d = Math.hypot(o.x - x, o.y - y) - o.r - r;
+        if (d < minD) minD = d;
+      }
+      if (minD > 550) return { x, y };
+      if (minD > bestD) { bestD = minD; best = { x, y }; }
+    }
+    return best;
+  },
+
+  respawn(world, p) {
+    if (p.isBot && !p.keepName) { p.name = Sim.botName(world); p.color = pick(PALETTE); }
+    p.mass = p.isBot ? CONFIG.START_MASS * rand(0.9, 1.8) : CONFIG.START_MASS;
+    p.r = massToRadius(p.mass);
+    const pos = Sim.safeSpawnPoint(world, p.r);
+    p.x = pos.x; p.y = pos.y; p.vx = 0; p.vy = 0;
+    p.alive = true; p.shieldT = CONFIG.SPAWN_SHIELD; p.speedT = 0; p.transformT = 0; p.magnetT = 0;
+    p.score = 0; p.kills = 0; p.level = p.peakLevel = levelFor(p.mass); p.born = world.time; p.killedBy = null;
+    p.input = { dx: 0, dy: 0, boost: false };
+    if (p.isBot) p.bot = AI.createBrain();
+    world.events.push({ type: 'spawn', p, x: p.x, y: p.y });
+  },
+
+  setInput(p, dx, dy, boost) {
+    p.input.dx = dx; p.input.dy = dy; p.input.boost = !!boost;
+  },
+
+  clampPlayer(world, p) {
+    const r = p.r;
+    if (p.x < r) { p.x = r; if (p.vx < 0) p.vx = 0; }
+    if (p.x > world.w - r) { p.x = world.w - r; if (p.vx > 0) p.vx = 0; }
+    if (p.y < r) { p.y = r; if (p.vy < 0) p.vy = 0; }
+    if (p.y > world.h - r) { p.y = world.h - r; if (p.vy > 0) p.vy = 0; }
+  },
+
+  step(world, dt) {
+    world.time += dt;
+    if (world.goldenT > 0) world.goldenT = Math.max(0, world.goldenT - dt);
+    const P = world.players;
+    for (const p of P) {
+      if (!p.alive) {
+        if (p.isBot) { p.respawnT -= dt; if (p.respawnT <= 0) Sim.respawn(world, p); }
+        continue;
+      }
+      if (p.isBot) AI.think(world, p, dt);
+    }
+    for (const p of P) if (p.alive) Sim.movePlayer(world, p, dt);
+    Sim.updatePellets(world, dt);
+    Sim.buildGrid(world);
+    Sim.eatPellets(world);
+    Sim.resolvePlayers(world);
+    const need = CONFIG.PELLET_TARGET - world.pellets.length;
+    for (let i = 0; i < Math.min(need, 12); i++) Sim.spawnPellet(world);
+    for (const p of P) {
+      if (!p.alive) continue;
+      if (p.mass > CONFIG.MAX_MASS) p.mass = CONFIG.MAX_MASS;
+      p.r = massToRadius(p.mass);
+      const L = levelFor(p.mass);
+      p.level = L;
+      if (L > p.peakLevel) { p.peakLevel = L; world.events.push({ type: 'levelup', p, level: L }); }
+    }
+  },
+
+  movePlayer(world, p, dt) {
+    p.speedT = Math.max(0, p.speedT - dt);
+    p.shieldT = Math.max(0, p.shieldT - dt);
+    p.transformT = Math.max(0, p.transformT - dt);
+    p.magnetT = Math.max(0, p.magnetT - dt);
+    let dx = p.input.dx || 0, dy = p.input.dy || 0;
+    const mag = Math.hypot(dx, dy);
+    if (mag > 1) { dx /= mag; dy /= mag; }
+    let speed = Math.max(CONFIG.MIN_SPEED, CONFIG.BASE_SPEED / Math.pow(p.mass, 0.3));
+    p.boosting = false;
+    if (p.input.boost && mag > 0.15 && p.mass > CONFIG.BOOST_MIN_MASS) {
+      speed *= CONFIG.BOOST_MULT;
+      p.mass -= p.mass * CONFIG.BOOST_COST * dt;
+      p.boosting = true;
+    }
+    if (p.speedT > 0) speed *= 1.6;
+    if (p.transformT > 0) speed *= 1.2;
+    const k = 1 - Math.exp(-CONFIG.ACCEL * dt);
+    p.vx += (dx * speed - p.vx) * k;
+    p.vy += (dy * speed - p.vy) * k;
+    p.x += p.vx * dt;
+    p.y += p.vy * dt;
+    if (p.mass > CONFIG.DECAY_START) p.mass -= p.mass * CONFIG.DECAY_RATE * dt;
+    if (p.mass < CONFIG.MIN_MASS) p.mass = CONFIG.MIN_MASS;
+    p.r = massToRadius(p.mass);
+    Sim.clampPlayer(world, p);
+  },
+
+  updatePellets(world, dt) {
+    const fr = Math.exp(-2.2 * dt);
+    for (const pe of world.pellets) {
+      if (pe.vx !== 0 || pe.vy !== 0) {
+        pe.x += pe.vx * dt; pe.y += pe.vy * dt;
+        pe.vx *= fr; pe.vy *= fr;
+        if (pe.x < 8) { pe.x = 8; pe.vx = Math.abs(pe.vx); }
+        if (pe.x > world.w - 8) { pe.x = world.w - 8; pe.vx = -Math.abs(pe.vx); }
+        if (pe.y < 8) { pe.y = 8; pe.vy = Math.abs(pe.vy); }
+        if (pe.y > world.h - 8) { pe.y = world.h - 8; pe.vy = -Math.abs(pe.vy); }
+        if (Math.abs(pe.vx) + Math.abs(pe.vy) < 6) { pe.vx = 0; pe.vy = 0; }
+      }
+    }
+    for (const p of world.players) {
+      if (!p.alive || p.magnetT <= 0) continue;
+      const R = p.r + 380, R2 = R * R, s = 520 * dt;
+      for (const pe of world.pellets) {
+        const dx = p.x - pe.x, dy = p.y - pe.y, d2 = dx * dx + dy * dy;
+        if (d2 < R2 && d2 > 1) {
+          const d = Math.sqrt(d2), st = Math.min(s, d);
+          pe.x += dx / d * st; pe.y += dy / d * st;
+        }
+      }
+    }
+  },
+
+  buildGrid(world) {
+    const g = world.grid, G = CONFIG.GRID, cols = world.cols, rows = world.rows;
+    for (let i = 0; i < g.length; i++) g[i].length = 0;
+    for (const pe of world.pellets) {
+      const cx = clamp((pe.x / G) | 0, 0, cols - 1), cy = clamp((pe.y / G) | 0, 0, rows - 1);
+      g[cy * cols + cx].push(pe);
+    }
+  },
+
+  eatPellets(world) {
+    const G = CONFIG.GRID, cols = world.cols, rows = world.rows, g = world.grid;
+    const mult = world.goldenT > 0 ? 2 : 1;
+    let any = false;
+    for (const p of world.players) {
+      if (!p.alive) continue;
+      const r = p.r, r2 = r * r;
+      const x0 = clamp(((p.x - r) / G) | 0, 0, cols - 1), x1 = clamp(((p.x + r) / G) | 0, 0, cols - 1);
+      const y0 = clamp(((p.y - r) / G) | 0, 0, rows - 1), y1 = clamp(((p.y + r) / G) | 0, 0, rows - 1);
+      for (let cy = y0; cy <= y1; cy++) {
+        for (let cx = x0; cx <= x1; cx++) {
+          const cell = g[cy * cols + cx];
+          for (let i = 0; i < cell.length; i++) {
+            const pe = cell[i];
+            if (pe.dead) continue;
+            const dx = pe.x - p.x, dy = pe.y - p.y;
+            if (dx * dx + dy * dy < r2) {
+              pe.dead = true; any = true;
+              const gain = pe.mass * mult;
+              p.mass += gain; p.score += gain;
+              if (p.isHuman) world.events.push({ type: 'pellet', p, x: pe.x, y: pe.y, color: pe.color });
+            }
+          }
+        }
+      }
+    }
+    if (any) world.pellets = world.pellets.filter(pe => !pe.dead);
+  },
+
+  resolvePlayers(world) {
+    const A = world.players.filter(p => p.alive);
+    for (let i = 0; i < A.length; i++) {
+      const a = A[i];
+      for (let j = i + 1; j < A.length; j++) {
+        const b = A[j];
+        if (!a.alive) break;
+        if (!b.alive) continue;
+        const dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy), rs = a.r + b.r;
+        if (d >= rs) continue;
+        const big = a.mass >= b.mass ? a : b, small = big === a ? b : a;
+        const canEat = big.mass >= small.mass * CONFIG.EAT_RATIO && small.shieldT <= 0;
+        if (canEat) {
+          if (d < big.r - small.r * CONFIG.EAT_OVERLAP) Sim.consume(world, big, small);
+        } else {
+          // Similar size (or shielded): circles bump instead of overlapping.
+          let nx, ny;
+          if (d < 0.01) { const an = Math.random() * 6.283; nx = Math.cos(an); ny = Math.sin(an); }
+          else { nx = dx / d; ny = dy / d; }
+          const push = (rs - d) * 0.5, tot = a.mass + b.mass;
+          a.x -= nx * push * (b.mass / tot); a.y -= ny * push * (b.mass / tot);
+          b.x += nx * push * (a.mass / tot); b.y += ny * push * (a.mass / tot);
+          Sim.clampPlayer(world, a); Sim.clampPlayer(world, b);
+        }
+      }
+    }
+  },
+
+  consume(world, big, small) {
+    small.alive = false;
+    small.respawnT = CONFIG.BOT_RESPAWN;
+    small.killedBy = big.name;
+    const gain = small.mass;
+    big.mass = Math.min(CONFIG.MAX_MASS, big.mass + gain);
+    big.score += gain + 10;
+    big.kills++;
+    world.events.push({ type: 'eat', eater: big, victim: small, x: small.x, y: small.y, color: small.color, mass: gain });
+  },
+
+  aliveCount(world) { let n = 0; for (const p of world.players) if (p.alive) n++; return n; },
+
+  /* ---- LIVE effects (called by the LIVE event handler) ---- */
+  giftEnergy(world, p, amt) {
+    p.mass = Math.min(CONFIG.MAX_MASS, p.mass + amt); p.score += amt;
+    world.events.push({ type: 'rose', p, x: p.x, y: p.y, amt });
+  },
+  giftSpeed(world, p, secs) {
+    p.speedT = Math.min(15, p.speedT + secs);
+    world.events.push({ type: 'heart', p, x: p.x, y: p.y });
+  },
+  galaxyBurst(world, p) {
+    const n = 70;
+    for (let i = 0; i < n; i++) {
+      const an = (i / n) * 6.283 + rand(-0.05, 0.05), spd = rand(260, 680), d = p.r + 14;
+      Sim.spawnPellet(world, p.x + Math.cos(an) * d, p.y + Math.sin(an) * d, 2, Math.cos(an) * spd, Math.sin(an) * spd);
+    }
+    const R = p.r + 460;
+    for (const o of world.players) {
+      if (o === p || !o.alive) continue;
+      const dx = o.x - p.x, dy = o.y - p.y, d = Math.hypot(dx, dy) || 1;
+      if (d < R) { const imp = 900 * (1 - d / R); o.vx += dx / d * imp; o.vy += dy / d * imp; }
+    }
+    world.events.push({ type: 'galaxy', p, x: p.x, y: p.y });
+  },
+  transform(world, p) {
+    const gain = Math.min(p.mass * 0.5, 400) + 25;
+    p.mass = Math.min(CONFIG.MAX_MASS, p.mass + gain); p.score += gain;
+    p.transformT = 12; p.shieldT = Math.max(p.shieldT, 12);
+    world.events.push({ type: 'universe', p, x: p.x, y: p.y });
+  },
+  spawnBot(world, name, near) {
+    if (world.players.length >= CONFIG.MAX_PLAYERS) return null;
+    const o = { name, isBot: true, keepName: true, mass: rand(22, 45) };
+    if (near) {
+      const an = Math.random() * 6.283, d = rand(400, 650);
+      o.x = clamp(near.x + Math.cos(an) * d, 100, world.w - 100);
+      o.y = clamp(near.y + Math.sin(an) * d, 100, world.h - 100);
+    }
+    const p = Sim.addPlayer(world, o);
+    world.events.push({ type: 'spawn', p, x: p.x, y: p.y });
+    return p;
+  },
+  pelletDrop(world, x, y, n, mass) {
+    for (let i = 0; i < n; i++) {
+      const an = (i / n) * 6.283, d = rand(40, 90);
+      Sim.spawnPellet(world, x + Math.cos(an) * d, y + Math.sin(an) * d, mass || 2, Math.cos(an) * 120, Math.sin(an) * 120);
+    }
+    world.events.push({ type: 'drop', x, y });
+  },
+  pelletRain(world, cx, cy, n) {
+    for (let i = 0; i < n; i++) {
+      const an = Math.random() * 6.283, d = Math.sqrt(Math.random()) * 900;
+      Sim.spawnPellet(world, cx + Math.cos(an) * d, cy + Math.sin(an) * d, 1);
+    }
+    for (let i = 0; i < n / 2; i++) Sim.spawnPellet(world);
+    world.events.push({ type: 'rain', x: cx, y: cy });
+  },
+  shrink(world, p, frac) {
+    const lost = (p.mass - CONFIG.MIN_MASS) * frac;
+    if (lost <= 0) return 0;
+    p.mass -= lost;
+    p.r = massToRadius(p.mass);
+    const n = Math.min(40, Math.max(6, Math.floor(lost / 4)));
+    for (let i = 0; i < n; i++) {
+      const an = Math.random() * 6.283, spd = rand(300, 600), d = p.r + 20;
+      Sim.spawnPellet(world, p.x + Math.cos(an) * d, p.y + Math.sin(an) * d, 2, Math.cos(an) * spd, Math.sin(an) * spd);
+    }
+    world.events.push({ type: 'shrink', p, x: p.x, y: p.y, lost });
+    return lost;
+  },
+  magnet(world, p, secs) { p.magnetT = secs; world.events.push({ type: 'magnet', p, x: p.x, y: p.y }); },
+  golden(world, secs) { world.goldenT = secs; world.events.push({ type: 'golden' }); },
+  storm(world, cx, cy) {
+    Sim.pelletRain(world, cx, cy, 260);
+    for (const p of world.players) if (p.alive) { p.mass += 8; p.score += 8; }
+    world.events.push({ type: 'storm', x: cx, y: cy });
+  }
+};
+
+/* ---------------- 3. AI ---------------- */
+const AI = {
+  createBrain() {
+    return { t: Math.random() * 0.3, target: null, targetUntil: 0, wx: rand(300, 3700), wy: rand(300, 3700), wanderUntil: 0,
+      aggression: rand(0.6, 1.3), caution: rand(0.8, 1.4) };
+  },
+
+  think(world, p, dt) {
+    const b = p.bot;
+    b.t -= dt;
+    if (b.t > 0) return;
+    b.t = rand(0.1, 0.25);
+    const view = 380 + p.r * 4;
+    let fx = 0, fy = 0, threatD = Infinity, prey = null, preyScore = 0, preyD = 0;
+    for (const o of world.players) {
+      if (o === p || !o.alive) continue;
+      const dx = o.x - p.x, dy = o.y - p.y, dist = Math.hypot(dx, dy) || 1, edge = dist - o.r - p.r;
+      if (edge > view) continue;
+      if (o.mass >= p.mass * CONFIG.EAT_RATIO && p.shieldT <= 0.3) {
+        const wgt = 1 / Math.max(edge, 15);
+        fx -= dx / dist * wgt; fy -= dy / dist * wgt;
+        if (edge < threatD) threatD = edge;
+      } else if (p.mass >= o.mass * CONFIG.EAT_RATIO && o.shieldT <= 0) {
+        const s = (o.mass / Math.max(edge, 20)) * b.aggression;
+        if (s > preyScore) { preyScore = s; prey = o; preyD = edge; }
+      }
+    }
+    // Wall avoidance (so bots don't get cornered)
+    const margin = 140 + p.r;
+    let wx = 0, wy = 0;
+    if (p.x < margin) wx += (margin - p.x) / margin;
+    if (p.x > world.w - margin) wx -= (p.x - (world.w - margin)) / margin;
+    if (p.y < margin) wy += (margin - p.y) / margin;
+    if (p.y > world.h - margin) wy -= (p.y - (world.h - margin)) / margin;
+
+    let dx = 0, dy = 0, boost = false;
+    if (threatD < view * 0.55 * b.caution) {
+      const m = Math.hypot(fx, fy) || 1;
+      dx = fx / m + wx * 1.6; dy = fy / m + wy * 1.6;
+      boost = threatD < 90 && p.mass > CONFIG.BOOST_MIN_MASS + 10 && Math.random() < 0.6;
+      b.target = null;
+    } else if (prey && preyScore > 0.03) {
+      const tx = prey.x + prey.vx * 0.35, ty = prey.y + prey.vy * 0.35;
+      dx = tx - p.x; dy = ty - p.y;
+      const m = Math.hypot(dx, dy) || 1; dx /= m; dy /= m;
+      dx += wx * 0.5; dy += wy * 0.5;
+      boost = preyD < p.r * 1.5 + 60 && p.mass > 60 && prey.mass > p.mass * 0.15 && Math.random() < b.aggression * 0.5;
+    } else {
+      if (!b.target || b.target.dead || world.time > b.targetUntil) {
+        b.target = AI.findPellet(world, p);
+        b.targetUntil = world.time + 2.5;
+      }
+      if (b.target) { dx = b.target.x - p.x; dy = b.target.y - p.y; }
+      else {
+        if (world.time > b.wanderUntil || Math.hypot(b.wx - p.x, b.wy - p.y) < 80) {
+          b.wx = rand(300, world.w - 300); b.wy = rand(300, world.h - 300); b.wanderUntil = world.time + rand(3, 7);
+        }
+        dx = b.wx - p.x; dy = b.wy - p.y;
+      }
+      const m = Math.hypot(dx, dy) || 1; dx = dx / m + wx * 0.6; dy = dy / m + wy * 0.6;
+    }
+    const m = Math.hypot(dx, dy) || 1;
+    Sim.setInput(p, dx / m, dy / m, boost);
+  },
+
+  findPellet(world, p) {
+    const G = CONFIG.GRID, cols = world.cols, rows = world.rows;
+    const cx = (p.x / G) | 0, cy = (p.y / G) | 0, R = 3 + Math.min(3, (p.r / G) | 0);
+    let best = null, bd = Infinity;
+    for (let y = Math.max(0, cy - R); y <= Math.min(rows - 1, cy + R); y++) {
+      for (let x = Math.max(0, cx - R); x <= Math.min(cols - 1, cx + R); x++) {
+        const cell = world.grid[y * cols + x];
+        for (let i = 0; i < cell.length; i++) {
+          const pe = cell[i];
+          if (pe.dead) continue;
+          const d = Math.hypot(pe.x - p.x, pe.y - p.y) * rand(0.8, 1.2) / pe.mass;
+          if (d < bd) { bd = d; best = pe; }
+        }
+      }
+    }
+    return best;
+  }
+};
+
+/* ---------------- 4. LIVE EVENTS ----------------
+   One small event bus. Anything (the simulator panel today, a real
+   LIVE bridge later) calls LiveEvents.emit({...}) with this shape:
+     { type:'gift',    gift:'rose'|'heart'|'galaxy'|'universe', user, target }
+     { type:'follow',  user }
+     { type:'like',    user, count }
+     { type:'join',    user }
+     { type:'comment', user, comment }
+   The game only listens to the bus, so swapping the source later does
+   not require touching gameplay code. */
+const LiveEvents = {
+  listeners: [],
+  on(fn) { this.listeners.push(fn); },
+  emit(evt) {
+    const e = Object.assign({ user: randomViewer(), count: 1, at: Date.now() }, evt);
+    for (const fn of this.listeners) { try { fn(e); } catch (err) { console.error('Live event error', err); } }
+  },
+  /* Future use: connect to YOUR OWN relay server that forwards LIVE
+     events as JSON in the shape above. Not used anywhere yet. */
+  connectBridge(url) {
+    const ws = new WebSocket(url);
+    ws.onmessage = m => { try { this.emit(JSON.parse(m.data)); } catch (e) { console.warn('Bad bridge message', e); } };
+    ws.onopen = () => UI.toast('🔌', 'Live bridge connected', '#00f0ff');
+    ws.onclose = () => UI.toast('🔌', 'Live bridge disconnected', '#ff2bd6');
+    return ws;
+  }
+};
+
+const COMMENT_EVENTS = {
+  rain:   { label: 'PELLET RAIN',  icon: '🌧' },
+  gold:   { label: 'GOLDEN HOUR',  icon: '✨' },
+  shrink: { label: 'SHRINK RAY',   icon: '📉' },
+  magnet: { label: 'MAGNET',       icon: '🧲' }
+};
+
+function resolveTarget(sel) {
+  const w = Game.world, alive = w.players.filter(p => p.alive);
+  if (!alive.length) return null;
+  const human = Game.human && Game.human.alive ? Game.human : null;
+  if (sel === 'me') return human || alive.reduce((a, b) => (b.mass > a.mass ? b : a));
+  if (sel === 'leader') return alive.reduce((a, b) => (b.mass > a.mass ? b : a));
+  if (sel === 'smallest') return alive.reduce((a, b) => (b.mass < a.mass ? b : a));
+  return pick(alive);
+}
+
+function focusPoint() {
+  const f = Game.focus();
+  return f ? { x: f.x, y: f.y } : { x: Game.world.w / 2, y: Game.world.h / 2 };
+}
+
+function applyLiveEvent(e) {
+  const w = Game.world;
+  if (!w) return;
+  const user = e.user;
+  switch (e.type) {
+    case 'gift': {
+      const t = resolveTarget(e.target || 'me');
+      if (!t) return;
+      if (e.gift === 'rose') { Sim.giftEnergy(w, t, 15); UI.toast('🌹', `${user} sent a Rose → ${t.name} +15 energy`, '#ff2bd6'); }
+      else if (e.gift === 'heart') { Sim.giftSpeed(w, t, 6); UI.toast('💗', `${user} sent a Heart → ${t.name} speed boost!`, '#ff5fa2'); }
+      else if (e.gift === 'galaxy') { Sim.galaxyBurst(w, t); UI.toast('🌌', `${user} sent a Galaxy → energy explosion!`, '#9d4dff'); }
+      else if (e.gift === 'universe') { Sim.transform(w, t); UI.toast('🪐', `${user} sent a UNIVERSE → ${t.name} TRANSFORMED!`, '#00f0ff'); }
+      break;
+    }
+    case 'follow': {
+      const name = user.replace(/^@/, '').slice(0, 14) || 'Follower';
+      const p = Sim.spawnBot(w, name, Game.focus());
+      if (p) UI.toast('➕', `${user} followed → ${name} entered the arena`, '#3d7bff');
+      else UI.toast('⚠', `Arena full (${CONFIG.MAX_PLAYERS} players)`, '#ffd84d');
+      break;
+    }
+    case 'like': {
+      w.likes += e.count;
+      w.community = Math.min(100, w.community + e.count);
+      if (w.community >= 100) {
+        w.community = 0;
+        const c = focusPoint();
+        Sim.storm(w, c.x, c.y);
+        UI.toast('⚡', 'COMMUNITY METER FULL → ENERGY STORM! Everyone +8', '#00f0ff');
+      } else {
+        UI.toast('👍', `${user} sent ${e.count} likes`, '#ff7bf2');
+      }
+      break;
+    }
+    case 'join': {
+      w.viewers++;
+      const c = focusPoint();
+      const an = Math.random() * 6.283, d = rand(160, 320);
+      Sim.pelletDrop(w, clamp(c.x + Math.cos(an) * d, 100, w.w - 100), clamp(c.y + Math.sin(an) * d, 100, w.h - 100), 14, 2);
+      UI.toast('👋', `${user} joined the LIVE → energy drop nearby`, '#7df9ff');
+      break;
+    }
+    case 'comment': {
+      const text = (e.comment || '').toLowerCase();
+      let kind = Object.keys(COMMENT_EVENTS).find(k => text.includes(k));
+      if (!kind) kind = pick(Object.keys(COMMENT_EVENTS));
+      const info = COMMENT_EVENTS[kind];
+      const said = e.comment ? `“${e.comment.slice(0, 40)}” ` : '';
+      if (kind === 'rain') { const c = focusPoint(); Sim.pelletRain(w, c.x, c.y, 220); }
+      else if (kind === 'gold') { Sim.golden(w, 15); }
+      else if (kind === 'shrink') {
+        const alive = w.players.filter(p => p.alive);
+        const leader = alive.reduce((a, b) => (b.mass > a.mass ? b : a), alive[0]);
+        if (leader) Sim.shrink(w, leader, 0.35);
+      }
+      else if (kind === 'magnet') { const t = resolveTarget(e.target || 'me'); if (t) Sim.magnet(w, t, 10); }
+      UI.toast(info.icon, `${user}: ${said}→ ${info.label}`, '#ffd84d');
+      break;
+    }
+  }
+}
+LiveEvents.on(applyLiveEvent);
+
+/* ---------------- 5. INPUT ---------------- */
+const Input = {
+  keys: {}, mouse: { x: 0, y: 0, active: false }, mouseBoost: false,
+  joy: { id: null, cx: 0, cy: 0, x: 0, y: 0 }, touchBoost: false, touchMode: false, R: 55,
+
+  init() {
+    const canvas = document.getElementById('game');
+    this.touchMode = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+    this.base = document.getElementById('joyBase');
+    this.knob = document.getElementById('joyKnob');
+    this.layout();
+
+    canvas.addEventListener('pointerdown', e => {
+      if (e.pointerType === 'mouse') {
+        if (e.button === 0) this.mouseBoost = true;
+        this.mouse.x = e.clientX; this.mouse.y = e.clientY; this.mouse.active = true;
+        return;
+      }
+      this.setTouchMode(true);
+      if (this.joy.id === null && e.clientX < window.innerWidth * 0.6) {
+        this.joy.id = e.pointerId;
+        this.joy.cx = this.joy.x = e.clientX;
+        this.joy.cy = this.joy.y = e.clientY;
+        try { canvas.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+        this.base.classList.add('active');
+        this.drawJoy();
+      }
+      e.preventDefault();
+    });
+    canvas.addEventListener('pointermove', e => {
+      if (e.pointerId === this.joy.id) { this.joy.x = e.clientX; this.joy.y = e.clientY; this.drawJoy(); }
+    });
+    const endJoy = e => {
+      if (e.pointerType === 'mouse') { this.mouseBoost = false; return; }
+      if (e.pointerId === this.joy.id) { this.joy.id = null; this.base.classList.remove('active'); this.layout(); }
+    };
+    canvas.addEventListener('pointerup', endJoy);
+    canvas.addEventListener('pointercancel', endJoy);
+    window.addEventListener('pointermove', e => {
+      if (e.pointerType === 'mouse') { this.mouse.x = e.clientX; this.mouse.y = e.clientY; this.mouse.active = true; this.setTouchMode(false); }
+    });
+    window.addEventListener('mouseup', () => { this.mouseBoost = false; });
+    canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+    const boost = document.getElementById('btnBoost');
+    boost.addEventListener('pointerdown', e => {
+      e.preventDefault(); this.touchBoost = true; boost.classList.add('on');
+      try { boost.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+    });
+    const endBoost = () => { this.touchBoost = false; boost.classList.remove('on'); };
+    boost.addEventListener('pointerup', endBoost);
+    boost.addEventListener('pointercancel', endBoost);
+    boost.addEventListener('lostpointercapture', endBoost);
+
+    const typing = e => e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT');
+    window.addEventListener('keydown', e => {
+      if (typing(e)) return;
+      const k = e.key.toLowerCase();
+      this.keys[k] = true;
+      if ([' ', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(k)) e.preventDefault();
+      if (k === 'p' || k === 'escape') Game.togglePause();
+    });
+    window.addEventListener('keyup', e => { this.keys[e.key.toLowerCase()] = false; });
+    window.addEventListener('blur', () => { this.keys = {}; this.mouseBoost = false; this.touchBoost = false; boost.classList.remove('on'); });
+
+    // Stop the page from scrolling / zooming while playing (the gift panel may still scroll).
+    document.addEventListener('touchmove', e => { if (!e.target.closest('#giftPanel')) e.preventDefault(); }, { passive: false });
+    document.addEventListener('gesturestart', e => e.preventDefault());
+    document.addEventListener('dblclick', e => e.preventDefault());
+  },
+
+  setTouchMode(on) {
+    if (this.touchMode === on) return;
+    this.touchMode = on;
+    this.layout();
+  },
+
+  layout() {
+    // Resting joystick position: bottom-left corner.
+    const h = window.innerHeight;
+    this.restX = 30 + 60; this.restY = h - 34 - 60;
+    this.base.style.display = this.touchMode ? 'block' : 'none';
+    if (this.joy.id === null) {
+      this.base.style.left = this.restX + 'px';
+      this.base.style.top = this.restY + 'px';
+      this.knob.style.transform = 'translate(0px,0px)';
+    }
+  },
+
+  drawJoy() {
+    let dx = this.joy.x - this.joy.cx, dy = this.joy.y - this.joy.cy;
+    const d = Math.hypot(dx, dy);
+    if (d > this.R) { dx = dx / d * this.R; dy = dy / d * this.R; }
+    this.base.style.left = this.joy.cx + 'px';
+    this.base.style.top = this.joy.cy + 'px';
+    this.knob.style.transform = `translate(${dx}px,${dy}px)`;
+  },
+
+  // Returns {dx, dy, boost}; dx/dy are -1..1. (sx, sy) = player position on screen.
+  read(sx, sy) {
+    const k = this.keys;
+    let dx = (k.d || k.arrowright ? 1 : 0) - (k.a || k.arrowleft ? 1 : 0);
+    let dy = (k.s || k.arrowdown ? 1 : 0) - (k.w || k.arrowup ? 1 : 0);
+    const boost = !!(k[' '] || k.shift || this.touchBoost || this.mouseBoost);
+    if (dx || dy) { const m = Math.hypot(dx, dy); return { dx: dx / m, dy: dy / m, boost }; }
+    if (this.joy.id !== null) {
+      let jx = (this.joy.x - this.joy.cx) / this.R, jy = (this.joy.y - this.joy.cy) / this.R;
+      const m = Math.hypot(jx, jy);
+      if (m < 0.12) return { dx: 0, dy: 0, boost };
+      if (m > 1) { jx /= m; jy /= m; }
+      return { dx: jx, dy: jy, boost };
+    }
+    if (this.mouse.active && !this.touchMode) {
+      const mx = this.mouse.x - sx, my = this.mouse.y - sy, m = Math.hypot(mx, my);
+      if (m < 6) return { dx: 0, dy: 0, boost };
+      const s = Math.min(1, m / 140);
+      return { dx: mx / m * s, dy: my / m * s, boost };
+    }
+    return { dx: 0, dy: 0, boost };
+  }
+};
+
+/* ---------------- 6. RENDERER ---------------- */
+function hexToRgb(h) { const n = parseInt(h.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
+function mixHex(h, target, t) {
+  const a = hexToRgb(h), b = hexToRgb(target);
+  return `rgb(${Math.round(a[0] + (b[0] - a[0]) * t)},${Math.round(a[1] + (b[1] - a[1]) * t)},${Math.round(a[2] + (b[2] - a[2]) * t)})`;
+}
+
+const Renderer = {
+  init() {
+    this.c = document.getElementById('game');
+    this.ctx = this.c.getContext('2d');
+    this.mmC = document.getElementById('minimap');
+    this.mm = this.mmC.getContext('2d');
+    this.cam = { x: CONFIG.WORLD_W / 2, y: CONFIG.WORLD_H / 2, zoom: 0.8 };
+    this.sprites = {};
+    this.colorCache = {};
+    this.particles = []; this.texts = []; this.rings = [];
+    this.flashA = 0; this.flashColor = '#ffffff'; this.shake = 0; this.frame = 0;
+    this.stars = [];
+    for (let i = 0; i < 140; i++) this.stars.push({ x: Math.random(), y: Math.random(), s: rand(0.4, 1.8), d: rand(0.03, 0.15), a: rand(0.2, 0.8) });
+    this.resize();
+  },
+
+  reset() { this.particles.length = 0; this.texts.length = 0; this.rings.length = 0; this.flashA = 0; this.shake = 0; },
+
+  resize() {
+    this.dpr = Math.min(window.devicePixelRatio || 1, 2);
+    this.w = window.innerWidth; this.h = window.innerHeight;
+    this.c.width = Math.round(this.w * this.dpr); this.c.height = Math.round(this.h * this.dpr);
+    const r = this.mmC.getBoundingClientRect();
+    this.mmSize = Math.max(60, Math.round(r.width || 120));
+    this.mmC.width = this.mmSize * this.dpr; this.mmC.height = this.mmSize * this.dpr;
+    this.baseScale = clamp(Math.sqrt(this.w * this.h) / 900, 0.74, 1.25);
+    const ctx = this.ctx;
+    this.vignette = ctx.createRadialGradient(this.w / 2, this.h / 2, Math.min(this.w, this.h) * 0.35, this.w / 2, this.h / 2, Math.max(this.w, this.h) * 0.75);
+    this.vignette.addColorStop(0, 'rgba(0,0,0,0)');
+    this.vignette.addColorStop(1, 'rgba(10,0,25,0.55)');
+    this.arenaGrad = ctx.createRadialGradient(CONFIG.WORLD_W / 2, CONFIG.WORLD_H / 2, 0, CONFIG.WORLD_W / 2, CONFIG.WORLD_H / 2, CONFIG.WORLD_W * 0.72);
+    this.arenaGrad.addColorStop(0, '#1a0b33');
+    this.arenaGrad.addColorStop(0.6, '#0e0522');
+    this.arenaGrad.addColorStop(1, '#07020f');
+  },
+
+  sprite(color) {
+    let s = this.sprites[color];
+    if (s) return s;
+    s = document.createElement('canvas'); s.width = s.height = 64;
+    const g = s.getContext('2d'), gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+    gr.addColorStop(0, '#ffffff'); gr.addColorStop(0.16, color); gr.addColorStop(0.42, color + '66'); gr.addColorStop(1, color + '00');
+    g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
+    this.sprites[color] = s;
+    return s;
+  },
+
+  colors(hex) {
+    let c = this.colorCache[hex];
+    if (!c) { c = { light: mixHex(hex, '#ffffff', 0.55), dark: mixHex(hex, '#05020d', 0.55) }; this.colorCache[hex] = c; }
+    return c;
+  },
+
+  /* --- effects --- */
+  burst(x, y, color, n, speed) {
+    for (let i = 0; i < n && this.particles.length < 600; i++) {
+      const an = Math.random() * 6.283, sp = rand(0.3, 1) * speed;
+      this.particles.push({ x, y, vx: Math.cos(an) * sp, vy: Math.sin(an) * sp, life: rand(0.4, 1), max: 1, size: rand(6, 16), color: color || pick(PALETTE) });
+    }
+  },
+  ring(x, y, r0, r1, dur, color, width) { this.rings.push({ x, y, r0, r1, t: 0, dur, color, width: width || 6 }); },
+  text(x, y, str, color, size) { this.texts.push({ x, y, str, color, size: size || 26, life: 1.3, max: 1.3 }); },
+  flash(color, a) { this.flashColor = color; this.flashA = Math.max(this.flashA, a); },
+
+  onEvent(e, human) {
+    switch (e.type) {
+      case 'eat':
+        this.burst(e.x, e.y, e.color, Math.min(70, 12 + e.mass * 0.4), 160 + e.victim.r * 2);
+        this.ring(e.x, e.y, e.victim.r, e.victim.r * 2.4 + 30, 0.5, e.color, 5);
+        if (e.eater === human) this.text(e.eater.x, e.eater.y - e.eater.r - 10, '+' + Math.round(e.mass), '#00f0ff', 30);
+        if (e.victim === human) { this.shake = 14; this.flash('#ff2bd6', 0.4); }
+        break;
+      case 'pellet': this.burst(e.x, e.y, e.color, 2, 70); break;
+      case 'levelup':
+        if (e.p === human) { this.ring(e.p.x, e.p.y, e.p.r, e.p.r + 160, 0.8, '#ffd84d', 6); this.text(e.p.x, e.p.y - e.p.r - 20, 'LEVEL ' + e.level, '#ffd84d', 34); }
+        break;
+      case 'rose': this.burst(e.x, e.y, '#ff2bd6', 24, 220); this.text(e.x, e.y - e.p.r - 10, '🌹 +' + e.amt, '#ff7bf2', 30); break;
+      case 'heart': this.burst(e.x, e.y, '#ff5fa2', 24, 240); this.text(e.x, e.y - e.p.r - 10, '💗 SPEED!', '#ff5fa2', 30); break;
+      case 'galaxy':
+        this.ring(e.x, e.y, e.p.r, e.p.r + 520, 0.9, '#9d4dff', 14);
+        this.ring(e.x, e.y, e.p.r, e.p.r + 380, 0.7, '#00f0ff', 8);
+        this.ring(e.x, e.y, e.p.r, e.p.r + 260, 0.55, '#ff2bd6', 6);
+        this.burst(e.x, e.y, null, 110, 700);
+        this.shake = 10; this.flash('#9d4dff', 0.28);
+        break;
+      case 'universe':
+        for (let i = 0; i < 6; i++) this.ring(e.x, e.y, e.p.r, e.p.r + 200 + i * 90, 0.6 + i * 0.15, PALETTE[i], 10);
+        this.burst(e.x, e.y, null, 160, 800);
+        this.text(e.x, e.y - e.p.r - 30, '✦ TRANSFORMED ✦', '#ffffff', 40);
+        this.shake = 18; this.flash('#ffffff', 0.65);
+        break;
+      case 'spawn': this.ring(e.x, e.y, 10, 120, 0.6, '#00f0ff', 4); break;
+      case 'drop': this.ring(e.x, e.y, 10, 140, 0.7, '#7df9ff', 5); this.burst(e.x, e.y, '#7df9ff', 20, 200); break;
+      case 'rain': this.flash('#00f0ff', 0.18); break;
+      case 'storm': this.flash('#00f0ff', 0.45); this.shake = 8; break;
+      case 'shrink': this.ring(e.x, e.y, e.p.r, e.p.r + 200, 0.6, '#ff2bd6', 8); this.text(e.x, e.y - e.p.r - 10, '-' + Math.round(e.lost), '#ff2bd6', 34); break;
+      case 'magnet': this.ring(e.x, e.y, e.p.r, e.p.r + 380, 0.8, '#ff7bf2', 5); break;
+      case 'golden': this.flash('#ffd84d', 0.3); break;
+    }
+  },
+
+  update(world, dt) {
+    for (const p of world.players) {
+      if (!p.alive) continue;
+      if ((p.boosting || p.speedT > 0 || p.transformT > 0) && this.particles.length < 600 && Math.random() < 0.7) {
+        const sp = Math.hypot(p.vx, p.vy) || 1;
+        this.particles.push({ x: p.x - p.vx / sp * p.r * 0.9 + rand(-p.r, p.r) * 0.3, y: p.y - p.vy / sp * p.r * 0.9 + rand(-p.r, p.r) * 0.3,
+          vx: -p.vx * 0.2 + rand(-30, 30), vy: -p.vy * 0.2 + rand(-30, 30), life: 0.5, max: 0.5, size: Math.min(28, 6 + p.r * 0.25),
+          color: p.transformT > 0 ? pick(PALETTE) : p.color });
+      }
+    }
+    const fr = Math.exp(-2.5 * dt);
+    for (let i = this.particles.length - 1; i >= 0; i--) {
+      const q = this.particles[i];
+      q.x += q.vx * dt; q.y += q.vy * dt; q.vx *= fr; q.vy *= fr; q.life -= dt;
+      if (q.life <= 0) this.particles.splice(i, 1);
+    }
+    for (let i = this.texts.length - 1; i >= 0; i--) { const t = this.texts[i]; t.y -= 45 * dt; t.life -= dt; if (t.life <= 0) this.texts.splice(i, 1); }
+    for (let i = this.rings.length - 1; i >= 0; i--) { const r = this.rings[i]; r.t += dt; if (r.t >= r.dur) this.rings.splice(i, 1); }
+    this.flashA = Math.max(0, this.flashA - dt * 1.6);
+    this.shake *= Math.exp(-6 * dt);
+  },
+
+  draw(world, focus, dt) {
+    const ctx = this.ctx, w = this.w, h = this.h, dpr = this.dpr, cam = this.cam;
+    this.frame++;
+    if (focus) {
+      const tz = this.baseScale * Math.min(1.05, Math.pow(32 / focus.r, 0.42));
+      cam.zoom += (tz - cam.zoom) * (1 - Math.exp(-3 * dt));
+      const k = 1 - Math.exp(-9 * dt);
+      cam.x += (focus.x - cam.x) * k; cam.y += (focus.y - cam.y) * k;
+    }
+    const z = cam.zoom;
+    const sx = (Math.random() - 0.5) * this.shake, sy = (Math.random() - 0.5) * this.shake;
+
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.fillStyle = '#05020d';
+    ctx.fillRect(0, 0, w, h);
+    // parallax stars (screen space)
+    for (const s of this.stars) {
+      const x = ((s.x * w - cam.x * s.d) % w + w) % w, y = ((s.y * h - cam.y * s.d) % h + h) % h;
+      ctx.globalAlpha = s.a * (0.7 + 0.3 * Math.sin(world.time * 2 + s.x * 50));
+      ctx.fillStyle = s.d > 0.1 ? '#7df9ff' : '#c77dff';
+      ctx.fillRect(x, y, s.s, s.s);
+    }
+    ctx.globalAlpha = 1;
+
+    const ox = w / 2 - cam.x * z + sx, oy = h / 2 - cam.y * z + sy;
+    ctx.setTransform(dpr * z, 0, 0, dpr * z, dpr * ox, dpr * oy);
+    const vl = -ox / z, vt = -oy / z, vr = (w - ox) / z, vb = (h - oy) / z;
+
+    // arena floor
+    ctx.fillStyle = this.arenaGrad;
+    ctx.fillRect(0, 0, world.w, world.h);
+    // grid
+    const step = 100;
+    ctx.beginPath();
+    for (let x = Math.max(0, Math.floor(vl / step) * step); x <= Math.min(world.w, vr); x += step) { ctx.moveTo(x, Math.max(0, vt)); ctx.lineTo(x, Math.min(world.h, vb)); }
+    for (let y = Math.max(0, Math.floor(vt / step) * step); y <= Math.min(world.h, vb); y += step) { ctx.moveTo(Math.max(0, vl), y); ctx.lineTo(Math.min(world.w, vr), y); }
+    ctx.strokeStyle = 'rgba(157,77,255,0.14)';
+    ctx.lineWidth = 1.5 / z;
+    ctx.stroke();
+    // glowing border
+    ctx.save();
+    ctx.shadowColor = '#00f0ff'; ctx.shadowBlur = 25;
+    ctx.strokeStyle = '#00f0ff'; ctx.lineWidth = 8;
+    ctx.strokeRect(0, 0, world.w, world.h);
+    ctx.shadowColor = '#ff2bd6'; ctx.strokeStyle = 'rgba(255,43,214,0.6)'; ctx.lineWidth = 3;
+    ctx.strokeRect(-14, -14, world.w + 28, world.h + 28);
+    ctx.restore();
+
+    // pellets
+    const t = world.time, gold = world.goldenT > 0, pad = 40;
+    const goldSpr = gold ? this.sprite('#ffd84d') : null;
+    for (const pe of world.pellets) {
+      if (pe.x < vl - pad || pe.x > vr + pad || pe.y < vt - pad || pe.y > vb + pad) continue;
+      const s = pe.r * 3.4 * (1 + 0.14 * Math.sin(t * 3 + pe.phase));
+      ctx.drawImage(goldSpr || this.sprite(pe.color), pe.x - s / 2, pe.y - s / 2, s, s);
+    }
+
+    // shock rings
+    for (const r of this.rings) {
+      const k = r.t / r.dur, e = 1 - Math.pow(1 - k, 3);
+      ctx.globalAlpha = 1 - k;
+      ctx.strokeStyle = r.color; ctx.lineWidth = r.width * (1 - k * 0.5);
+      ctx.beginPath(); ctx.arc(r.x, r.y, r.r0 + (r.r1 - r.r0) * e, 0, 6.283); ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+
+    // players (small first so big ones draw on top)
+    const list = world.players.filter(p => p.alive && p.x + p.r > vl && p.x - p.r < vr && p.y + p.r > vt && p.y - p.r < vb);
+    list.sort((a, b) => a.mass - b.mass);
+    for (const p of list) this.drawPlayer(ctx, p, t, p === focus);
+
+    // particles (additive glow)
+    ctx.globalCompositeOperation = 'lighter';
+    for (const q of this.particles) {
+      if (q.x < vl - 30 || q.x > vr + 30 || q.y < vt - 30 || q.y > vb + 30) continue;
+      ctx.globalAlpha = Math.max(0, q.life / q.max);
+      const s = q.size;
+      ctx.drawImage(this.sprite(q.color), q.x - s / 2, q.y - s / 2, s, s);
+    }
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = 1;
+
+    // floating texts
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    for (const tx of this.texts) {
+      const fs = tx.size / Math.max(0.5, z) * 0.75;
+      ctx.globalAlpha = Math.min(1, tx.life / tx.max * 1.5);
+      ctx.font = `900 ${fs}px system-ui,sans-serif`;
+      ctx.lineWidth = fs * 0.15; ctx.strokeStyle = 'rgba(5,2,13,0.8)';
+      ctx.strokeText(tx.str, tx.x, tx.y);
+      ctx.fillStyle = tx.color; ctx.fillText(tx.str, tx.x, tx.y);
+    }
+    ctx.globalAlpha = 1;
+
+    // screen overlays
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.fillStyle = this.vignette; ctx.fillRect(0, 0, w, h);
+    if (gold) { ctx.fillStyle = `rgba(255,216,77,${0.05 + 0.03 * Math.sin(t * 4)})`; ctx.fillRect(0, 0, w, h); }
+    if (this.flashA > 0) { ctx.globalAlpha = this.flashA; ctx.fillStyle = this.flashColor; ctx.fillRect(0, 0, w, h); ctx.globalAlpha = 1; }
+
+    if (this.frame % 3 === 0) this.drawMinimap(world, focus);
+  },
+
+  drawPlayer(ctx, p, t, isMe) {
+    const r = p.r, x = p.x, y = p.y, col = this.colors(p.color);
+    // Universe transformation aura
+    if (p.transformT > 0) {
+      ctx.lineWidth = Math.max(4, r * 0.08);
+      for (let i = 0; i < 6; i++) {
+        const a0 = t * 2.2 + i * 1.047;
+        ctx.strokeStyle = `hsl(${(t * 140 + i * 60) % 360},100%,62%)`;
+        ctx.beginPath(); ctx.arc(x, y, r * 1.22 + 6 + Math.sin(t * 6 + i) * 4, a0, a0 + 0.75); ctx.stroke();
+      }
+    }
+    // body
+    ctx.save();
+    ctx.shadowColor = p.transformT > 0 ? `hsl(${(t * 140) % 360},100%,60%)` : p.color;
+    ctx.shadowBlur = Math.min(42, 16 + r * 0.12);
+    const g = ctx.createRadialGradient(x - r * 0.35, y - r * 0.35, r * 0.08, x, y, r);
+    g.addColorStop(0, col.light); g.addColorStop(0.55, p.color); g.addColorStop(1, col.dark);
+    ctx.fillStyle = g;
+    const n = Math.max(24, Math.min(72, (r * 0.5) | 0));
+    ctx.beginPath();
+    for (let i = 0; i <= n; i++) {
+      const a = (i / n) * 6.283;
+      const rr = r * (1 + 0.022 * Math.sin(a * 5 + t * 3 + p.id) + (p.boosting ? 0.025 * Math.sin(a * 9 - t * 16) : 0));
+      const px = x + Math.cos(a) * rr, py = y + Math.sin(a) * rr;
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.lineWidth = Math.max(2, r * 0.07);
+    ctx.strokeStyle = col.light;
+    ctx.stroke();
+    ctx.restore();
+    if (isMe) {
+      ctx.strokeStyle = 'rgba(255,255,255,0.55)'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(x, y, r + 5, 0, 6.283); ctx.stroke();
+    }
+    // spawn / universe shield
+    if (p.shieldT > 0) {
+      ctx.save();
+      ctx.strokeStyle = 'rgba(125,249,255,0.9)'; ctx.lineWidth = 3;
+      ctx.setLineDash([12, 9]); ctx.lineDashOffset = -t * 50;
+      ctx.beginPath(); ctx.arc(x, y, r + 10, 0, 6.283); ctx.stroke();
+      ctx.restore();
+    }
+    if (p.magnetT > 0) {
+      ctx.save();
+      ctx.globalAlpha = 0.3; ctx.strokeStyle = '#ff7bf2'; ctx.lineWidth = 2;
+      ctx.setLineDash([6, 14]); ctx.lineDashOffset = t * 60;
+      ctx.beginPath(); ctx.arc(x, y, r + 380, 0, 6.283); ctx.stroke();
+      ctx.restore();
+    }
+    // name + score
+    const fs = Math.max(12, r * 0.4);
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.font = `800 ${fs}px system-ui,sans-serif`;
+    ctx.lineWidth = fs * 0.18; ctx.strokeStyle = 'rgba(5,2,13,0.75)';
+    ctx.strokeText(p.name, x, y - fs * 0.18);
+    ctx.fillStyle = '#ffffff'; ctx.fillText(p.name, x, y - fs * 0.18);
+    const fs2 = fs * 0.58;
+    ctx.font = `700 ${fs2}px system-ui,sans-serif`;
+    ctx.lineWidth = fs2 * 0.2;
+    const sc = String(Math.floor(p.score));
+    ctx.strokeText(sc, x, y + fs * 0.62);
+    ctx.fillStyle = 'rgba(255,255,255,0.85)'; ctx.fillText(sc, x, y + fs * 0.62);
+  },
+
+  drawMinimap(world, focus) {
+    const m = this.mm, s = this.mmSize, dpr = this.dpr, sc = s / world.w;
+    m.setTransform(dpr, 0, 0, dpr, 0, 0);
+    m.clearRect(0, 0, s, s);
+    m.fillStyle = 'rgba(10,4,26,0.82)'; m.fillRect(0, 0, s, s);
+    m.strokeStyle = 'rgba(157,77,255,0.25)'; m.lineWidth = 1;
+    m.beginPath();
+    for (let i = 1; i < 4; i++) { m.moveTo(i * s / 4, 0); m.lineTo(i * s / 4, s); m.moveTo(0, i * s / 4); m.lineTo(s, i * s / 4); }
+    m.stroke();
+    for (const p of world.players) {
+      if (!p.alive || p === focus) continue;
+      m.fillStyle = p.color;
+      m.beginPath(); m.arc(p.x * sc, p.y * sc, Math.max(1.6, p.r * sc), 0, 6.283); m.fill();
+    }
+    const z = this.cam.zoom;
+    m.strokeStyle = 'rgba(0,240,255,0.6)';
+    m.strokeRect((this.cam.x - this.w / 2 / z) * sc, (this.cam.y - this.h / 2 / z) * sc, this.w / z * sc, this.h / z * sc);
+    if (focus && focus.alive) {
+      m.fillStyle = '#ffffff'; m.shadowColor = '#00f0ff'; m.shadowBlur = 8;
+      m.beginPath(); m.arc(focus.x * sc, focus.y * sc, Math.max(3, focus.r * sc), 0, 6.283); m.fill();
+      m.shadowBlur = 0;
+    }
+  }
+};
+
+/* ---------------- 7. UI ---------------- */
+const $ = id => document.getElementById(id);
+const UI = {
+  lastHud: 0, lastLb: 0,
+  init() {
+    this.feed = $('feed');
+    $('btnPlay').addEventListener('click', () => Game.start());
+    $('nameInput').addEventListener('keydown', e => { if (e.key === 'Enter') Game.start(); });
+    $('btnPause').addEventListener('click', () => Game.togglePause());
+    $('btnResume').addEventListener('click', () => Game.togglePause());
+    $('btnRestart').addEventListener('click', () => Game.restart());
+    $('btnPauseRestart').addEventListener('click', () => Game.restart());
+    $('btnDeathRestart').addEventListener('click', () => Game.restart());
+    $('btnRespawn').addEventListener('click', () => Game.respawnHuman());
+    $('btnGifts').addEventListener('click', () => $('giftPanel').classList.toggle('hidden'));
+    $('btnCloseGifts').addEventListener('click', () => $('giftPanel').classList.add('hidden'));
+    document.querySelectorAll('#giftPanel .gifts button').forEach(btn => {
+      btn.addEventListener('click', () => this.simulate(btn.dataset.evt));
+    });
+    $('btnSendComment').addEventListener('click', () => this.simulate('comment'));
+    $('commentText').addEventListener('keydown', e => { if (e.key === 'Enter') this.simulate('comment'); });
+    let saved = '';
+    try { saved = localStorage.getItem('cal_name') || ''; Game.best = +(localStorage.getItem('cal_best') || 0); } catch (e) { /* storage unavailable */ }
+    $('nameInput').value = saved;
+    if (Game.best > 0) $('bestLine').textContent = '🏆 Best score: ' + Game.best;
+    this.positionControls();
+  },
+
+  positionControls() {
+    const hud = $('hud').getBoundingClientRect(), c = $('controls').style;
+    if (window.innerHeight < 500 && window.innerWidth > window.innerHeight) {
+      // Landscape phone: put the buttons beside the HUD so they don't sit on the joystick.
+      c.top = hud.top + 'px'; c.left = (hud.right + 8) + 'px';
+    } else {
+      c.top = (hud.bottom + 8) + 'px'; c.left = '';
+    }
+  },
+
+  simulate(kind) {
+    if (!Game.world || Game.state === 'menu') { this.toast('⚠', 'Start the game first', '#ffd84d'); return; }
+    const user = ($('giftUser').value.trim() ? '@' + $('giftUser').value.trim().replace(/^@/, '') : undefined);
+    const target = $('giftTarget').value;
+    const base = user ? { user } : {};
+    if (['rose', 'heart', 'galaxy', 'universe'].includes(kind)) LiveEvents.emit(Object.assign(base, { type: 'gift', gift: kind, target }));
+    else if (kind === 'follow') LiveEvents.emit(Object.assign(base, { type: 'follow' }));
+    else if (kind === 'like') LiveEvents.emit(Object.assign(base, { type: 'like', count: 10 }));
+    else if (kind === 'join') LiveEvents.emit(Object.assign(base, { type: 'join' }));
+    else if (kind === 'comment') {
+      const text = $('commentText').value.trim();
+      LiveEvents.emit(Object.assign(base, { type: 'comment', comment: text, target }));
+      $('commentText').value = '';
+    }
+  },
+
+  toast(icon, text, color) {
+    const el = document.createElement('div');
+    el.className = 'toast';
+    el.style.setProperty('--c', color || '#00f0ff');
+    const b = document.createElement('b'); b.textContent = icon;
+    const s = document.createElement('span'); s.textContent = text;
+    el.append(b, s);
+    this.feed.appendChild(el);
+    while (this.feed.children.length > 4) this.feed.firstChild.remove();
+    setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 420); }, 3200);
+  },
+
+  show(id, on) { $(id).classList.toggle('hidden', !on); },
+
+  update(now) {
+    const w = Game.world;
+    if (!w) return;
+    if (now - this.lastHud > 120) {
+      this.lastHud = now;
+      const p = Game.human;
+      $('hudName').textContent = p ? p.name : 'Spectating';
+      $('hudScore').textContent = p ? Math.floor(p.score) : 0;
+      $('hudLevel').textContent = p ? p.level : 1;
+      $('hudSize').textContent = p ? Math.floor(p.mass) : 0;
+      $('hudPlayers').textContent = Sim.aliveCount(w);
+      $('meterFill').style.width = w.community + '%';
+      $('meterPct').textContent = Math.floor(w.community) + '%';
+      $('hudViewers').textContent = w.viewers;
+      $('hudLikes').textContent = w.likes;
+      const chips = [];
+      if (p && p.alive) {
+        if (p.speedT > 0) chips.push(['💗 SPEED ' + Math.ceil(p.speedT) + 's', '#ff5fa2']);
+        if (p.shieldT > 0) chips.push(['🛡 SHIELD ' + Math.ceil(p.shieldT) + 's', '#7df9ff']);
+        if (p.transformT > 0) chips.push(['🪐 COSMIC ' + Math.ceil(p.transformT) + 's', '#c77dff']);
+        if (p.magnetT > 0) chips.push(['🧲 MAGNET ' + Math.ceil(p.magnetT) + 's', '#ff7bf2']);
+      }
+      if (w.goldenT > 0) chips.push(['✨ GOLDEN x2 ' + Math.ceil(w.goldenT) + 's', '#ffd84d']);
+      const html = chips.map(c => `<span style="--c:${c[1]}">${c[0]}</span>`).join('');
+      const fx = $('effects');
+      if (fx.innerHTML !== html) { fx.innerHTML = html; this.positionControls(); }
+    }
+    if (now - this.lastLb > 500) {
+      this.lastLb = now;
+      const alive = w.players.filter(p => p.alive).sort((a, b) => b.score - a.score);
+      const N = window.innerWidth < 600 ? 5 : window.innerHeight < 500 ? 4 : 8;
+      const list = $('lbList');
+      list.textContent = '';
+      const add = (p, rank) => {
+        const li = document.createElement('li');
+        if (p === Game.human) li.className = 'me';
+        const rk = document.createElement('span'); rk.className = 'rk'; rk.textContent = rank;
+        const nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = p.name;
+        const sc = document.createElement('span'); sc.className = 'sc'; sc.textContent = Math.floor(p.score);
+        li.append(rk, nm, sc); list.appendChild(li);
+      };
+      alive.slice(0, N).forEach((p, i) => add(p, i + 1));
+      const myRank = alive.indexOf(Game.human);
+      if (myRank >= N) {
+        const gap = document.createElement('li'); gap.className = 'gap'; gap.textContent = '···'; list.appendChild(gap);
+        add(Game.human, myRank + 1);
+      }
+    }
+  }
+};
+
+/* ---------------- 8. GAME (main loop) ---------------- */
+const Game = {
+  world: null, human: null, state: 'menu', best: 0, acc: 0, last: 0, deathAt: 0,
+
+  focus() {
+    if (this.human && (this.human.alive || this.state === 'dead')) return this.human;
+    if (!this.world) return null;
+    let best = null;
+    for (const p of this.world.players) if (p.alive && (!best || p.mass > best.mass)) best = p;
+    return best;
+  },
+
+  buildWorld() {
+    const w = Sim.createWorld();
+    for (let i = 0; i < CONFIG.BOT_COUNT; i++) {
+      const m = CONFIG.START_MASS * (Math.random() < 0.3 ? rand(3, 7) : rand(0.9, 2.5));
+      Sim.addPlayer(w, { name: Sim.botName(w), isBot: true, mass: m });
+    }
+    // warm up so bots are spread out and moving
+    Sim.buildGrid(w);
+    for (let i = 0; i < 60; i++) Sim.step(w, CONFIG.TICK);
+    w.events.length = 0;
+    return w;
+  },
+
+  attract() {
+    this.world = this.buildWorld();
+    this.human = null;
+    this.state = 'menu';
+  },
+
+  start() {
+    let name = $('nameInput').value.trim().slice(0, 14);
+    if (!name) name = 'Player' + Math.floor(rand(10, 99));
+    try { localStorage.setItem('cal_name', name); } catch (e) { /* ignore */ }
+    this.playerName = name;
+    this.newGame();
+  },
+
+  newGame() {
+    this.world = this.buildWorld();
+    Renderer.reset();
+    this.human = Sim.addPlayer(this.world, { name: this.playerName, isHuman: true, color: '#00f0ff' });
+    Renderer.cam.x = this.human.x; Renderer.cam.y = this.human.y;
+    this.state = 'playing';
+    UI.show('startScreen', false); UI.show('pauseScreen', false); UI.show('deathScreen', false);
+    UI.toast('🎮', 'Welcome to the arena, ' + this.human.name + '!', '#00f0ff');
+  },
+
+  restart() {
+    if (!this.playerName) { this.start(); return; }
+    this.newGame();
+    UI.toast('↻', 'Arena restarted', '#9d4dff');
+  },
+
+  togglePause() {
+    if (this.state === 'playing') { this.state = 'paused'; UI.show('pauseScreen', true); Input.keys = {}; }
+    else if (this.state === 'paused') { this.state = 'playing'; UI.show('pauseScreen', false); this.last = performance.now(); }
+  },
+
+  respawnHuman() {
+    if (!this.human) return;
+    Sim.respawn(this.world, this.human);
+    this.state = 'playing';
+    UI.show('deathScreen', false);
+  },
+
+  onHumanDeath(by) {
+    const p = this.human;
+    this.state = 'dead';
+    this.deathAt = performance.now();
+    const score = Math.floor(p.score);
+    if (score > this.best) { this.best = score; try { localStorage.setItem('cal_best', String(score)); } catch (e) { /* ignore */ } }
+    $('deathBy').textContent = 'You were eaten by ' + by + '.';
+    $('dScore').textContent = score;
+    $('dLevel').textContent = p.peakLevel;
+    $('dTime').textContent = Math.floor(this.world.time - p.born) + 's';
+    $('dBest').textContent = this.best;
+    $('bestLine').textContent = '🏆 Best score: ' + this.best;
+    setTimeout(() => { if (this.state === 'dead') UI.show('deathScreen', true); }, 900);
+  },
+
+  handleEvents() {
+    const evs = this.world.events;
+    for (const e of evs) {
+      Renderer.onEvent(e, this.human);
+      if (e.type === 'eat' && this.human) {
+        if (e.victim === this.human) this.onHumanDeath(e.eater.name);
+        else if (e.eater === this.human) UI.toast('💥', 'You ate ' + e.victim.name + '!', '#ff2bd6');
+      }
+      if (e.type === 'levelup' && e.p === this.human) UI.toast('⬆', 'LEVEL UP! Level ' + e.level, '#ffd84d');
+    }
+    evs.length = 0;
+  },
+
+  loop(now) {
+    const dt = Math.min(0.1, (now - this.last) / 1000 || 0);
+    this.last = now;
+    const running = this.state === 'playing' || this.state === 'dead' || this.state === 'menu';
+    if (running) {
+      this.acc += dt;
+      let steps = 0;
+      while (this.acc >= CONFIG.TICK && steps < 6) {
+        if (this.human && this.human.alive && this.state === 'playing') {
+          const z = Renderer.cam.zoom;
+          const sx = Renderer.w / 2 + (this.human.x - Renderer.cam.x) * z, sy = Renderer.h / 2 + (this.human.y - Renderer.cam.y) * z;
+          const inp = Input.read(sx, sy);
+          Sim.setInput(this.human, inp.dx, inp.dy, inp.boost);
+        }
+        Sim.step(this.world, CONFIG.TICK);
+        this.acc -= CONFIG.TICK;
+        steps++;
+      }
+      if (steps === 6) this.acc = 0;
+      this.handleEvents();
+      Renderer.update(this.world, dt);
+    } else {
+      this.acc = 0;
+    }
+    Renderer.draw(this.world, this.focus(), running ? dt : 0);
+    UI.update(now);
+    requestAnimationFrame(t => this.loop(t));
+  },
+
+  init() {
+    Renderer.init();
+    Input.init();
+    UI.init();
+    this.attract();
+    const onResize = () => { Renderer.resize(); Input.layout(); UI.positionControls(); };
+    window.addEventListener('resize', onResize);
+    window.addEventListener('orientationchange', () => setTimeout(onResize, 250));
+    document.addEventListener('visibilitychange', () => { if (document.hidden && this.state === 'playing') this.togglePause(); });
+    this.last = performance.now();
+    requestAnimationFrame(t => this.loop(t));
+  }
+};
+
+// Handy for debugging in the browser console: CircleArena.world, CircleArena.LiveEvents.emit({...})
+window.CircleArena = { CONFIG, Sim, AI, LiveEvents, Game, Renderer, Input, UI };
+Game.init();
+})();
+</script>
+</body>
+</html>

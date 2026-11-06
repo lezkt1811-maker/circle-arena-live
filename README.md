@@ -10,7 +10,7 @@ A neon arena game made for TikTok LIVE-style streams. **The whole game plays on 
 
 The whole game is in **`index.html`**: plain HTML, CSS, and JavaScript with a Canvas. No frameworks, no installs, no paid services, no backend. It works on GitHub Pages and in any modern phone browser.
 
-> **Important:** there is **no real TikTok connection yet.** The 🎁 panel and the 🤖 auto viewers *simulate* LIVE events so you can test and show the game.
+> The 🎁 panel and 🤖 auto viewers **simulate** LIVE events for testing. For a real LIVE, connect through TikFinity. See **Going LIVE for real** below.
 
 ---
 
@@ -82,9 +82,47 @@ To edit on your phone: open the file on GitHub → ✏️ pencil → make the ch
 
 ---
 
-## 🔌 Future: connecting real TikTok LIVE events
+## 🔴 Going LIVE for real (laptop + TikFinity)
 
-The game listens for events in one place (`LiveEvents`). The simulator buttons and auto viewers already send events in the exact format a real connection would use:
+The game can now read your **real** TikTok LIVE through **TikFinity**, a free streaming tool. TikFinity connects to your LIVE using only your @username, not your password, and passes viewers' taps, comments, follows and gifts (with their **profile pictures**) to the game.
+
+**What you need:** a TikTok account that can go LIVE (1,000+ followers; 18+ to receive gifts), your laptop, **TikTok LIVE Studio** (TikTok's free PC streaming app), and the **TikFinity desktop app**.
+
+**Setup (one time)**
+1. Install **TikTok LIVE Studio** from TikTok's website and log in.
+2. Install the **TikFinity** desktop app, log in, and enter your TikTok **@username**.
+3. In LIVE Studio, set the layout to **portrait (vertical)** so it fills phones.
+4. In LIVE Studio, add a source → **Link**, and paste the overlay link:
+   **`https://lezkt1811-maker.github.io/circle-arena-live/?live=1`**
+   This is the clean version: no buttons, no pretend viewers, and it connects to TikFinity automatically.
+
+**Every time you stream**
+1. Open TikFinity.
+2. Go LIVE in LIVE Studio.
+3. In TikFinity, press **Connect** for your LIVE.
+4. The game connects within a few seconds. Viewers join by tapping, commenting or gifting.
+5. **Host it!** Talk, call out the leader, thank gifters, and hype the rounds.
+
+**Testing first (not live):** open the normal game link, tap 🎁, scroll to **REAL LIVE CONNECTION**, and press **CONNECT TO TIKFINITY**. It says ✅ Connected when TikFinity is running. If TikFinity shows a different local address in its settings, paste that into **Address**. The default is `ws://localhost:21213/`. If Chrome asks to allow access to devices on your local network, allow it.
+
+**How real gifts become abilities.** Any TikTok gift works, based on its coin value:
+
+| Gift value | Ability tier |
+|---|---|
+| 1–4 coins (Rose…) | 🌹 Speed burst, ⚡ = coins |
+| 5–99 coins | 💗 Shield, ⚡+3 |
+| 100–999 coins | 🌌 Shockwave, ⚡+10 |
+| 1,000+ coins (Universe…) | 🪐 Hunter mode, ⚡+30 |
+
+Gift streaks (like 10 Roses in a row) count once, when the streak ends.
+
+**Small laptop tips:** close other programs while streaming, and keep LIVE Studio at 720p if it's slow.
+
+> ⚠️ **TikTok's rules:** TikTok's in-app LIVE rules include a section on "Inauthentic gift requests." Read it before streaming: Profile → menu → Creator Tools → LIVE Center → Rules and Guidance. Host the game actively instead of leaving it running unattended, and don't promise prizes for gifts.
+
+## 🔌 How the connection works (for developers)
+
+The game listens for events in one place (`LiveEvents`). The TikFinity bridge (`Bridge` in the code) turns TikFinity / TikTok-Live-Connector style messages into these events. It also accepts this simpler format directly, so any relay can be used:
 
 ```js
 { "type": "like",    "user": "name", "count": 15 }
@@ -94,7 +132,7 @@ The game listens for events in one place (`LiveEvents`). The simulator buttons a
 { "type": "gift",    "user": "name", "gift": "rose" }   // rose | heart | galaxy | universe
 ```
 
-TikTok doesn't offer a free, official browser API for LIVE events. Connecting them would need a small relay server that you run and that complies with TikTok's terms. The relay would forward events as JSON to `CircleArena.LiveEvents.connectBridge("wss://your-relay")`, which is already in the code. Gameplay wouldn't need to change. More TikTok gift names can be added to `GIFTS`.
+TikTok doesn't offer an official public API for LIVE events. Tools like TikFinity read the public LIVE data. Use them in line with TikTok's terms.
 
 ## 🌐 Future: Cloudflare Workers
 

@@ -2,7 +2,7 @@
 
 A neon arcade arena game for phone and computer. Collect glowing energy pellets, grow bigger, eat smaller circles, and don't get eaten.
 
-- **One file:** the whole game is in `index.html`. It uses HTML, CSS, and plain JavaScript with a Canvas.
+- **Simple files:** `index.html` (LIVE Arena) and `classic.html` (joystick mode). It uses HTML, CSS, and plain JavaScript with a Canvas.
 - **Nothing to install:** no frameworks, no build tools, no paid services, no backend.
 - **Works on GitHub Pages** and in any modern phone browser.
 - **14 computer players** (AI) keep the arena busy even when you're alone.
@@ -10,7 +10,25 @@ A neon arcade arena game for phone and computer. Collect glowing energy pellets,
 
 ---
 
-## 🎮 How to play
+## 🎮 Two modes
+
+| File | Mode |
+|---|---|
+| `index.html` | **LIVE Arena (main game).** The whole arena fits on one screen. Every circle is a viewer. **Taps (likes) grow your circle**, gifts power it up, big circles eat small ones, and spinning saws cut you down. Last circle standing, or the biggest when the 3-minute timer ends, wins the round. |
+| `classic.html` | **Classic.** Steer your own circle around a big scrolling arena with a joystick. |
+
+### LIVE Arena: how to play
+- Tap **START**. Your circle has a ★ and your name.
+- **Tap anywhere on the screen** as fast as you can. Every tap is a like and makes your circle bigger. (On a computer, press Space.)
+- Circles drift around on their own. A circle can eat another that's at least 20% smaller.
+- ⚙ **Spinning saws** take 8% of a circle's score on each hit.
+- Top 3 wear **crowns**. The leaderboard (top-left) shows score and 💀 eats.
+- **🤖 Auto viewers** (in the 🎁 panel) are pretend viewers who join, tap, comment, and send gifts so the arena is busy. Turn them off to test by hand.
+- Gifts: 🌹 Rose +50 & speed · 💗 Heart +200 & shield · 🌌 Galaxy +1K & shockwave · 🪐 Universe +5K & **hunter mode** (green crosshair, chases and eats smaller circles) · ➕ Follow joins with +100 · 💬 Comment joins and shows a chat bubble.
+
+---
+
+## 🎮 Classic mode: how to play
 
 | | Phone | Computer |
 |---|---|---|

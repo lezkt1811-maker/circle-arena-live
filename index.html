@@ -6,1557 +6,948 @@
 <meta name="theme-color" content="#05020d">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="description" content="Circle Arena Live - a neon arcade arena game. Eat energy, grow, and dominate.">
 <title>Circle Arena Live</title>
 <style>
-:root{
-  --bg:#05020d; --cyan:#00f0ff; --pink:#ff2bd6; --violet:#9d4dff; --blue:#3d7bff;
-  --text:#ece8ff; --dim:#a79cd6; --panel:rgba(14,6,34,.74); --border:rgba(157,77,255,.5);
-  --sat:env(safe-area-inset-top,0px); --sab:env(safe-area-inset-bottom,0px);
-  --sal:env(safe-area-inset-left,0px); --sar:env(safe-area-inset-right,0px);
-}
+:root{--cyan:#00f0ff;--pink:#ff2bd6;--violet:#9d4dff;--blue:#3d7bff;--green:#39ff7a;--gold:#ffd84d;--text:#ece8ff;--dim:#a79cd6;
+  --panel:rgba(12,5,30,.72);--border:rgba(157,77,255,.5);
+  --sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px);--sal:env(safe-area-inset-left,0px);--sar:env(safe-area-inset-right,0px)}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{position:fixed;inset:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);
-  font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
-  overscroll-behavior:none;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+html,body{position:fixed;inset:0;overflow:hidden;background:#05020d;color:var(--text);
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;overscroll-behavior:none;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 canvas#game{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
-button{font-family:inherit;cursor:pointer;touch-action:manipulation;border:none;color:inherit}
+button{font-family:inherit;cursor:pointer;border:none;color:inherit;touch-action:manipulation}
 input,select{font-family:inherit;font-size:16px;user-select:text;-webkit-user-select:text}
 .hidden{display:none!important}
-.ui{position:fixed;z-index:5}
-.glass{background:var(--panel);border:1px solid var(--border);border-radius:14px;
-  box-shadow:0 0 18px rgba(157,77,255,.25),inset 0 0 14px rgba(0,240,255,.06);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.glass{background:var(--panel);border:1px solid var(--border);border-radius:12px;box-shadow:0 0 16px rgba(157,77,255,.25);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
+.ui{position:fixed;z-index:5;pointer-events:none}
+.ui button,.ui select,.ui input{pointer-events:auto}
 
-/* ---------- HUD ---------- */
-#hud{top:calc(8px + var(--sat));left:calc(8px + var(--sal));width:178px;padding:9px 11px;pointer-events:none}
-.logo{font-weight:900;letter-spacing:.12em;font-size:13px;line-height:1;white-space:nowrap;
-  background:linear-gradient(90deg,var(--cyan),var(--violet),var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent;
-  filter:drop-shadow(0 0 6px rgba(0,240,255,.55))}
-.logo b{font-weight:900}
-#hudName{margin-top:5px;font-size:12px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.stats{display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;margin-top:6px}
-.stats div{display:flex;flex-direction:column}
-.stats label{font-size:9px;letter-spacing:.14em;color:var(--dim);text-transform:uppercase}
-.stats span{font-size:16px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--cyan);text-shadow:0 0 8px rgba(0,240,255,.6)}
-.stats div:nth-child(2) span{color:var(--pink);text-shadow:0 0 8px rgba(255,43,214,.6)}
-.stats div:nth-child(3) span{color:#c77dff;text-shadow:0 0 8px rgba(157,77,255,.6)}
-.stats div:nth-child(4) span{color:#7da6ff;text-shadow:0 0 8px rgba(61,123,255,.6)}
-.meter{margin-top:7px}
-.meter .row{display:flex;justify-content:space-between;font-size:9px;letter-spacing:.1em;color:var(--dim);text-transform:uppercase}
-.meter .bar{height:7px;margin-top:3px;border-radius:6px;background:rgba(255,255,255,.08);overflow:hidden;border:1px solid rgba(0,240,255,.25)}
-.meter i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--blue),var(--cyan),var(--pink));box-shadow:0 0 10px var(--cyan);transition:width .25s}
-#effects{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
-#effects span{font-size:10px;font-weight:700;padding:2px 6px;border-radius:8px;background:rgba(255,255,255,.08);border:1px solid var(--c,#00f0ff);color:var(--c,#00f0ff)}
+#lb{top:calc(8px + var(--sat));left:calc(8px + var(--sal));width:min(200px,46vw);padding:7px 9px}
+.logo{font-weight:900;font-size:11px;letter-spacing:.14em;white-space:nowrap;background:linear-gradient(90deg,var(--cyan),var(--violet),var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent}
+#lbList{list-style:none;margin-top:4px}
+#lbList li{display:flex;gap:5px;font-size:11px;line-height:1.6;font-variant-numeric:tabular-nums;white-space:nowrap}
+#lbList .rk{width:13px;color:var(--gold);font-weight:800}
+#lbList .nm{flex:1;overflow:hidden;text-overflow:ellipsis}
+#lbList .sc{color:var(--green);font-weight:800}
+#lbList .kl{color:var(--pink);width:30px;text-align:right}
+#lbList li.me .nm{color:var(--cyan);font-weight:800}
 
-/* ---------- Top buttons ---------- */
-#controls{left:calc(8px + var(--sal));display:flex;gap:7px}
-.iconBtn{width:44px;height:44px;border-radius:12px;font-size:18px;font-weight:900;color:var(--cyan);
-  background:var(--panel);border:1px solid var(--border);box-shadow:0 0 12px rgba(0,240,255,.25)}
-.iconBtn:active{transform:scale(.92);box-shadow:0 0 18px rgba(255,43,214,.6)}
+#info{top:calc(8px + var(--sat));right:calc(8px + var(--sar));padding:7px 10px;text-align:right;font-size:12px;line-height:1.5}
+#info b{color:var(--gold);font-size:14px}
+#info .t{color:var(--cyan);font-weight:800;font-variant-numeric:tabular-nums}
+#btns{right:calc(8px + var(--sar));display:flex;gap:6px}
+.iconBtn{width:40px;height:40px;border-radius:11px;font-size:16px;font-weight:900;color:var(--cyan);background:var(--panel);border:1px solid var(--border);box-shadow:0 0 10px rgba(0,240,255,.25)}
+.iconBtn:active{transform:scale(.92)}
 #btnGifts{color:var(--pink)}
 
-/* ---------- Leaderboard + minimap ---------- */
-#side{top:calc(8px + var(--sat));right:calc(8px + var(--sar));width:170px;display:flex;flex-direction:column;gap:8px;align-items:flex-end;pointer-events:none}
-#leaderboard{width:100%;padding:8px 10px}
-#leaderboard h3{font-size:10px;letter-spacing:.2em;color:var(--pink);text-shadow:0 0 8px rgba(255,43,214,.7);margin-bottom:4px}
-#lbList{list-style:none}
-#lbList li{display:flex;gap:6px;font-size:11.5px;line-height:1.55;font-variant-numeric:tabular-nums}
-#lbList li .rk{width:16px;color:var(--dim)}
-#lbList li .nm{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#lbList li .sc{color:var(--cyan)}
-#lbList li.me{color:#fff;font-weight:800}
-#lbList li.me .nm{color:var(--pink)}
-#lbList li.gap{justify-content:center;color:var(--dim);line-height:1}
-#minimap{width:130px;height:130px;border-radius:12px;border:1px solid rgba(0,240,255,.45);box-shadow:0 0 14px rgba(0,240,255,.3)}
+#banner{position:fixed;z-index:7;left:50%;top:calc(64px + var(--sat));transform:translateX(-50%);max-width:92vw;padding:7px 16px;border-radius:20px;
+  background:linear-gradient(90deg,#d6246e,#ff2bd6);color:#fff;font-weight:800;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  box-shadow:0 0 22px rgba(255,43,214,.7);pointer-events:none;opacity:0;transition:opacity .3s}
+#banner.show{opacity:1}
 
-/* ---------- Joystick + boost ---------- */
-#joyBase{position:fixed;z-index:4;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;pointer-events:none;
-  border:2px solid rgba(0,240,255,.55);background:radial-gradient(circle,rgba(0,240,255,.10),rgba(157,77,255,.10) 60%,rgba(0,0,0,0) 72%);
-  box-shadow:0 0 22px rgba(0,240,255,.35),inset 0 0 22px rgba(157,77,255,.35);opacity:.55;transition:opacity .15s}
-#joyBase.active{opacity:1}
-#joyKnob{position:absolute;left:50%;top:50%;width:52px;height:52px;margin:-26px 0 0 -26px;border-radius:50%;
-  background:radial-gradient(circle at 35% 35%,#fff,var(--cyan) 35%,var(--blue));box-shadow:0 0 18px var(--cyan)}
-#btnBoost{position:fixed;z-index:5;right:calc(22px + var(--sar));bottom:calc(26px + var(--sab));width:92px;height:92px;border-radius:50%;
-  font-weight:900;font-size:13px;letter-spacing:.12em;color:#fff;
-  background:radial-gradient(circle at 35% 30%,#ff8af0,var(--pink) 45%,#6a0f8f);border:2px solid rgba(255,255,255,.35);
-  box-shadow:0 0 24px rgba(255,43,214,.7),inset 0 0 18px rgba(255,255,255,.25);touch-action:none}
-#btnBoost.on{transform:scale(.93);box-shadow:0 0 40px rgba(255,43,214,1),0 0 70px rgba(0,240,255,.5)}
+#giftFeed{right:calc(8px + var(--sar));top:34%;width:min(190px,48vw);display:flex;flex-direction:column;gap:5px}
+.gf{display:flex;align-items:center;gap:6px;padding:4px 9px 4px 4px;border-radius:20px;background:rgba(12,5,30,.6);font-size:12.5px;font-weight:800;
+  animation:gin .3s ease-out;transition:opacity .6s}
+.gf em{font-style:normal;font-size:22px}
+.gf span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gf.out{opacity:0}
+@keyframes gin{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:none}}
 
-/* ---------- Event feed ---------- */
-#feed{position:fixed;z-index:6;left:50%;transform:translateX(-50%);bottom:calc(150px + var(--sab));width:min(440px,72vw);
-  display:flex;flex-direction:column;gap:5px;align-items:center;pointer-events:none}
-.toast{display:flex;gap:7px;align-items:center;max-width:100%;padding:6px 11px;border-radius:12px;font-size:12.5px;font-weight:600;
-  background:rgba(12,4,30,.86);border:1px solid var(--c);box-shadow:0 0 14px color-mix(in srgb,var(--c) 45%,transparent);
-  animation:tin .25s ease-out;transition:opacity .4s,transform .4s}
-.toast b{font-size:15px}
-.toast span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.toast.out{opacity:0;transform:translateY(-10px)}
-@keyframes tin{from{opacity:0;transform:translateY(12px) scale(.95)}to{opacity:1;transform:none}}
+#chat{left:calc(8px + var(--sal));bottom:calc(64px + var(--sab));width:min(260px,62vw);display:flex;flex-direction:column;gap:3px}
+.cm{font-size:12.5px;line-height:1.3;text-shadow:0 1px 3px #000,0 0 2px #000;transition:opacity .6s}
+.cm b{color:var(--dim);margin-right:4px}
+.cm.out{opacity:0}
 
-/* ---------- Gift panel ---------- */
-#giftPanel{position:fixed;z-index:8;right:calc(8px + var(--sar));bottom:calc(128px + var(--sab));width:min(330px,calc(100vw - 16px));
-  max-height:calc(100% - 150px - var(--sab) - var(--sat));overflow-y:auto;padding:12px;touch-action:pan-y;-webkit-overflow-scrolling:touch}
-#giftPanel h2{font-size:13px;letter-spacing:.16em;color:var(--pink);display:flex;justify-content:space-between;align-items:center}
+#you{left:50%;transform:translateX(-50%);bottom:calc(10px + var(--sab));padding:8px 16px;border-radius:24px;text-align:center;white-space:nowrap}
+#you .v{font-weight:900;color:var(--green);font-size:15px}
+#you small{display:block;font-size:10.5px;color:var(--dim);letter-spacing:.05em}
+
+#giftPanel{position:fixed;z-index:8;right:calc(8px + var(--sar));top:calc(110px + var(--sat));width:min(330px,calc(100vw - 16px));
+  max-height:calc(100% - 180px - var(--sat) - var(--sab));overflow-y:auto;padding:12px;touch-action:pan-y}
+#giftPanel h2{font-size:12.5px;letter-spacing:.14em;color:var(--pink);display:flex;justify-content:space-between;align-items:center}
 #giftPanel h2 button{background:none;font-size:20px;color:var(--dim);width:32px;height:32px}
-#giftPanel .note{font-size:10.5px;color:var(--dim);margin:4px 0 9px;line-height:1.35}
+.note{font-size:10.5px;color:var(--dim);margin:3px 0 8px;line-height:1.35}
 .field{display:flex;gap:6px;margin-bottom:7px;align-items:center}
-.field label{font-size:10px;letter-spacing:.1em;color:var(--dim);width:52px;text-transform:uppercase}
+.field label{font-size:10px;letter-spacing:.1em;color:var(--dim);width:54px;text-transform:uppercase}
 .field input,.field select{flex:1;min-width:0;padding:7px 8px;border-radius:9px;background:rgba(255,255,255,.07);color:#fff;border:1px solid rgba(0,240,255,.35);outline:none}
 .field select option{background:#140726}
-.gifts{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:4px}
-.gifts button{padding:10px 6px;border-radius:11px;font-size:12.5px;font-weight:800;background:rgba(255,255,255,.06);
-  border:1px solid var(--c);color:#fff;box-shadow:0 0 10px color-mix(in srgb,var(--c) 35%,transparent);display:flex;flex-direction:column;align-items:center;gap:2px}
+.gifts{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.gifts button{padding:9px 6px;border-radius:11px;font-size:12.5px;font-weight:800;background:rgba(255,255,255,.06);border:1px solid var(--c);
+  display:flex;flex-direction:column;align-items:center;gap:1px}
 .gifts button em{font-style:normal;font-size:20px}
 .gifts button small{font-size:9.5px;font-weight:600;color:var(--dim)}
-.gifts button:active{transform:scale(.95);background:color-mix(in srgb,var(--c) 30%,transparent)}
-.commentRow{display:flex;gap:6px;margin-top:8px}
-.commentRow input{flex:1;min-width:0;padding:8px;border-radius:9px;background:rgba(255,255,255,.07);color:#fff;border:1px solid rgba(255,43,214,.45);outline:none}
-.commentRow button{padding:0 12px;border-radius:9px;font-weight:800;background:var(--pink);color:#fff}
+.gifts button:active{transform:scale(.95)}
+.row2{display:flex;gap:6px;margin-top:8px}
+.row2 input{flex:1;min-width:0;padding:8px;border-radius:9px;background:rgba(255,255,255,.07);color:#fff;border:1px solid rgba(255,43,214,.45);outline:none}
+.row2 button{padding:0 12px;border-radius:9px;font-weight:800;background:var(--pink);color:#fff}
+.toggle{width:100%;margin-top:9px;padding:10px;border-radius:10px;font-weight:800;background:rgba(57,255,122,.12);border:1px solid var(--green);color:var(--green)}
+.toggle.off{background:rgba(255,255,255,.05);border-color:var(--dim);color:var(--dim)}
 
-/* ---------- Overlays ---------- */
-.overlay{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:20px;
-  background:radial-gradient(ellipse at center,rgba(26,11,51,.55),rgba(5,2,13,.88))}
-.card{width:min(420px,100%);padding:26px 22px;text-align:center}
-.bigTitle{font-size:clamp(34px,10vw,54px);font-weight:900;line-height:.95;letter-spacing:.04em;
-  background:linear-gradient(90deg,var(--cyan),var(--violet),var(--pink),var(--cyan));background-size:300% 100%;
-  -webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 6s linear infinite;
-  filter:drop-shadow(0 0 14px rgba(0,240,255,.45))}
+.overlay{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:20px;background:radial-gradient(ellipse at center,rgba(26,11,51,.6),rgba(5,2,13,.9))}
+.card{width:min(420px,100%);padding:24px 20px;text-align:center}
+.bigTitle{font-size:clamp(34px,10vw,52px);font-weight:900;line-height:.95;background:linear-gradient(90deg,var(--cyan),var(--violet),var(--pink),var(--cyan));background-size:300% 100%;
+  -webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 6s linear infinite;filter:drop-shadow(0 0 14px rgba(0,240,255,.45))}
 .bigTitle small{display:block;font-size:.42em;letter-spacing:.55em;margin-top:6px}
 @keyframes shine{to{background-position:300% 0}}
-.sub{color:var(--dim);margin:12px 0 18px;font-size:14px}
-.card input{width:100%;padding:13px 14px;border-radius:12px;text-align:center;font-weight:700;background:rgba(255,255,255,.07);color:#fff;
-  border:1px solid rgba(0,240,255,.5);outline:none;box-shadow:inset 0 0 12px rgba(0,240,255,.12)}
-.card input:focus{border-color:var(--pink)}
-.btn{display:block;width:100%;margin-top:12px;padding:14px;border-radius:12px;font-size:17px;font-weight:900;letter-spacing:.18em;color:#fff;
+.sub{color:var(--dim);margin:12px 0 16px;font-size:14px;line-height:1.45}
+.card input{width:100%;padding:13px;border-radius:12px;text-align:center;font-weight:700;background:rgba(255,255,255,.07);color:#fff;border:1px solid rgba(0,240,255,.5);outline:none}
+.btn{display:block;width:100%;margin-top:12px;padding:14px;border-radius:12px;font-size:17px;font-weight:900;letter-spacing:.16em;color:#fff;
   background:linear-gradient(90deg,var(--blue),var(--violet),var(--pink));box-shadow:0 0 22px rgba(255,43,214,.5)}
 .btn:active{transform:scale(.97)}
-.btn.alt{background:rgba(255,255,255,.07);border:1px solid var(--border);box-shadow:none;font-size:14px}
-.help{margin-top:16px;font-size:12px;color:var(--dim);line-height:1.6}
+.help{margin-top:14px;font-size:12.5px;color:var(--dim);line-height:1.6;text-align:left}
 .help b{color:var(--cyan)}
-.deadTitle{font-size:34px;font-weight:900;letter-spacing:.12em;color:var(--pink);text-shadow:0 0 18px var(--pink)}
-.deadGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0 6px}
-.deadGrid div{padding:9px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid rgba(157,77,255,.35)}
-.deadGrid label{display:block;font-size:10px;letter-spacing:.14em;color:var(--dim);text-transform:uppercase}
-.deadGrid span{font-size:20px;font-weight:800;color:var(--cyan)}
+.help a{color:var(--pink)}
 
-/* ---------- Small screens ---------- */
-@media (max-width:600px){
-  #hud{width:150px;padding:7px 9px}
-  .logo{font-size:11px}
-  .stats span{font-size:14px}
-  #side{width:128px}
-  #leaderboard{padding:6px 8px}
-  #lbList li{font-size:10.5px}
-  #minimap{width:96px;height:96px}
-  #btnBoost{width:80px;height:80px;font-size:12px}
-}
+#winBox{position:fixed;z-index:15;left:50%;top:50%;transform:translate(-50%,-50%);padding:20px 28px;text-align:center;pointer-events:none}
+#winBox .w1{font-size:13px;letter-spacing:.3em;color:var(--gold)}
+#winBox .w2{font-size:30px;font-weight:900;margin:6px 0;color:#fff;text-shadow:0 0 18px var(--pink)}
+#winBox .w3{font-size:13px;color:var(--dim)}
+#pauseBox{position:fixed;z-index:15;left:50%;top:50%;transform:translate(-50%,-50%);padding:16px 28px;font-weight:900;letter-spacing:.2em;color:var(--cyan);pointer-events:none}
+
 @media (max-height:500px){
-  #minimap{width:80px;height:80px}
-  #feed{bottom:calc(100px + var(--sab))}
-  #giftPanel{bottom:calc(8px + var(--sab));right:calc(110px + var(--sar));max-height:calc(100% - 16px)}
+  #giftFeed{top:28%}
+  #chat{bottom:calc(8px + var(--sab));width:min(240px,34vw)}
+  #you{left:auto;right:calc(8px + var(--sar));transform:none}
+  #giftPanel{top:calc(8px + var(--sat));max-height:calc(100% - 16px);right:calc(64px + var(--sar))}
 }
 </style>
 </head>
 <body>
 <canvas id="game"></canvas>
 
-<!-- HUD -->
-<div id="hud" class="ui glass">
-  <div class="logo">CIRCLE ARENA <b>LIVE</b></div>
-  <div id="hudName">Player</div>
-  <div class="stats">
-    <div><label>Score</label><span id="hudScore">0</span></div>
-    <div><label>Level</label><span id="hudLevel">1</span></div>
-    <div><label>Size</label><span id="hudSize">0</span></div>
-    <div><label>Players</label><span id="hudPlayers">0</span></div>
-  </div>
-  <div class="meter">
-    <div class="row"><span>⚡ Community</span><span id="meterPct">0%</span></div>
-    <div class="bar"><i id="meterFill"></i></div>
-    <div class="row" style="margin-top:3px"><span>👁 Viewers <b id="hudViewers">0</b></span><span>❤ <b id="hudLikes">0</b></span></div>
-  </div>
-  <div id="effects"></div>
+<div id="lb" class="ui glass"><div class="logo">CIRCLE ARENA LIVE</div><ol id="lbList"></ol></div>
+<div id="info" class="ui glass">
+  <div>Players Left: <b id="left">0</b></div>
+  <div>Round <span id="roundNum">1</span> · <span class="t" id="timer">3:00</span></div>
 </div>
-
-<div id="controls" class="ui">
+<div id="btns" class="ui">
   <button id="btnPause" class="iconBtn" aria-label="Pause">❚❚</button>
   <button id="btnRestart" class="iconBtn" aria-label="Restart">↻</button>
   <button id="btnGifts" class="iconBtn" aria-label="Live event simulator">🎁</button>
 </div>
+<div id="banner"></div>
+<div id="giftFeed" class="ui"></div>
+<div id="chat" class="ui"></div>
+<div id="you" class="ui glass"><span class="v" id="youScore">0</span> <span id="youLv">LV 1</span><small id="youHint">TAP ANYWHERE TO GROW YOUR CIRCLE</small></div>
 
-<div id="side" class="ui">
-  <div id="leaderboard" class="glass"><h3>LEADERBOARD</h3><ol id="lbList"></ol></div>
-  <canvas id="minimap"></canvas>
-</div>
-
-<div id="feed"></div>
-<div id="joyBase"><div id="joyKnob"></div></div>
-<button id="btnBoost" aria-label="Boost">BOOST</button>
-
-<!-- Simulated LIVE event panel (development only) -->
 <div id="giftPanel" class="glass hidden">
   <h2>LIVE EVENT SIMULATOR <button id="btnCloseGifts" aria-label="Close">✕</button></h2>
-  <p class="note">Development tool. These buttons SIMULATE TikTok LIVE events — there is no real TikTok connection yet.</p>
-  <div class="field"><label>Sender</label><input id="giftUser" maxlength="20" placeholder="random viewer"></div>
-  <div class="field"><label>Target</label>
+  <p class="note">Development tool. These buttons SIMULATE TikTok LIVE events. There is no real TikTok connection yet.</p>
+  <div class="field"><label>Sender</label><input id="giftUser" maxlength="18" placeholder="random viewer"></div>
+  <div class="field"><label>Gift goes to</label>
     <select id="giftTarget">
-      <option value="me">You</option>
+      <option value="sender">Sender's circle</option>
+      <option value="me">You (host)</option>
       <option value="leader">Leader</option>
-      <option value="random">Random player</option>
-      <option value="smallest">Smallest player</option>
     </select>
   </div>
   <div class="gifts">
-    <button data-evt="rose" style="--c:#ff2bd6"><em>🌹</em>Rose<small>+15 energy</small></button>
-    <button data-evt="heart" style="--c:#ff5fa2"><em>💗</em>Heart<small>speed boost</small></button>
-    <button data-evt="galaxy" style="--c:#9d4dff"><em>🌌</em>Galaxy<small>energy explosion</small></button>
-    <button data-evt="universe" style="--c:#00f0ff"><em>🪐</em>Universe<small>transformation</small></button>
-    <button data-evt="follow" style="--c:#3d7bff"><em>➕</em>New Follower<small>spawns a player</small></button>
-    <button data-evt="like" style="--c:#ff7bf2"><em>👍</em>Likes ×10<small>community meter</small></button>
-    <button data-evt="join" style="--c:#7df9ff"><em>👋</em>Viewer Joins<small>energy drop</small></button>
-    <button data-evt="comment" style="--c:#ffd84d"><em>💬</em>Special Comment<small>random event</small></button>
+    <button data-evt="rose" style="--c:#ff2bd6"><em>🌹</em>Rose<small>+50 · speed</small></button>
+    <button data-evt="heart" style="--c:#ff5fa2"><em>💗</em>Heart<small>+200 · shield</small></button>
+    <button data-evt="galaxy" style="--c:#9d4dff"><em>🌌</em>Galaxy<small>+1K · shockwave</small></button>
+    <button data-evt="universe" style="--c:#00f0ff"><em>🪐</em>Universe<small>+5K · hunter mode</small></button>
+    <button data-evt="follow" style="--c:#3d7bff"><em>➕</em>New Follower<small>joins with +100</small></button>
+    <button data-evt="like" style="--c:#ff7bf2"><em>👆</em>Taps ×15<small>likes = growth</small></button>
+    <button data-evt="join" style="--c:#7df9ff"><em>👋</em>Viewer Joins<small>new circle</small></button>
+    <button data-evt="comment" style="--c:#ffd84d"><em>💬</em>Comment<small>joins + chat bubble</small></button>
   </div>
-  <div class="commentRow">
-    <input id="commentText" maxlength="60" placeholder="Comment: rain, gold, shrink, magnet…">
-    <button id="btnSendComment">SEND</button>
-  </div>
+  <div class="row2"><input id="commentText" maxlength="50" placeholder="Type a comment…"><button id="btnSendComment">SEND</button></div>
+  <button id="btnAuto" class="toggle">🤖 AUTO VIEWERS: ON</button>
 </div>
 
-<!-- Start screen -->
 <div id="startScreen" class="overlay">
   <div class="card glass">
     <div class="bigTitle">CIRCLE ARENA<small>LIVE</small></div>
-    <p class="sub">Collect energy. Grow bigger. Eat smaller circles.<br>Don't get eaten.</p>
-    <input id="nameInput" maxlength="14" placeholder="Enter your username" autocomplete="off">
-    <button id="btnPlay" class="btn">PLAY</button>
+    <p class="sub">Every tap makes your circle bigger.<br>Big circles eat small ones. Dodge the spinning saws.<br>Last circle standing wins the round!</p>
+    <input id="nameInput" maxlength="14" placeholder="Your name" autocomplete="off">
+    <button id="btnPlay" class="btn">START</button>
     <div class="help">
-      📱 <b>Phone:</b> drag on the left side to move · hold <b>BOOST</b> to dash<br>
-      🖱 <b>Computer:</b> move the mouse · or <b>WASD / Arrows</b> · <b>Space</b> boost · <b>P</b> pause
+      👆 <b>Tap the screen</b> as fast as you can. Every tap is a like that grows <b>your</b> circle.<br>
+      🤖 Pretend viewers join and tap too, so the arena stays busy.<br>
+      🎁 Send test gifts with the gift button.<br>
+      ⚙ <a href="classic.html">Classic mode (steer with a joystick)</a>
     </div>
-    <div class="help" id="bestLine"></div>
   </div>
 </div>
-
-<!-- Pause screen -->
-<div id="pauseScreen" class="overlay hidden">
-  <div class="card glass">
-    <div class="deadTitle" style="color:var(--cyan);text-shadow:0 0 18px var(--cyan)">PAUSED</div>
-    <button id="btnResume" class="btn">RESUME</button>
-    <button id="btnPauseRestart" class="btn alt">RESTART ARENA</button>
-  </div>
-</div>
-
-<!-- Death screen -->
-<div id="deathScreen" class="overlay hidden">
-  <div class="card glass">
-    <div class="deadTitle">ELIMINATED</div>
-    <p class="sub" id="deathBy">You were eaten.</p>
-    <div class="deadGrid">
-      <div><label>Score</label><span id="dScore">0</span></div>
-      <div><label>Level</label><span id="dLevel">1</span></div>
-      <div><label>Time alive</label><span id="dTime">0s</span></div>
-      <div><label>Best score</label><span id="dBest">0</span></div>
-    </div>
-    <button id="btnRespawn" class="btn">RESPAWN</button>
-    <button id="btnDeathRestart" class="btn alt">RESTART ARENA</button>
-  </div>
-</div>
+<div id="winBox" class="glass hidden"><div class="w1">🏆 ROUND WINNER 🏆</div><div class="w2" id="winName">-</div><div class="w3" id="winSub">Next round starting…</div></div>
+<div id="pauseBox" class="glass hidden">PAUSED</div>
 
 <script>
 (function () {
 'use strict';
+/* ================================================================
+   CIRCLE ARENA LIVE (one-screen LIVE mode)
+   - The whole arena fits on the screen. Every circle is a viewer.
+   - Taps (likes) grow a circle. Gifts power it up.
+   - Circles drift on their own; big ones eat small ones; spinning saws cut.
+   - All viewer actions come through LiveEvents, so a real LIVE
+     relay can plug in later without changing the game.
+   ================================================================ */
 
-/* =====================================================================
-   CIRCLE ARENA LIVE
-   File layout (all in this one file so it runs on GitHub Pages as-is):
-     1. CONFIG + helpers
-     2. Sim      - pure game logic. No DOM, no canvas. (Portable to a server.)
-     3. AI       - computer opponents (also pure logic)
-     4. LiveEvents - event bus for TikTok-style LIVE events (simulated for now)
-     5. Input    - joystick / boost / mouse / keyboard
-     6. Renderer - canvas drawing only, reads the world
-     7. UI       - HUD, leaderboard, menus, toasts
-     8. Game     - main loop that ties everything together
-   ===================================================================== */
-
-/* ---------------- 1. CONFIG ---------------- */
 const CONFIG = {
-  WORLD_W: 4000, WORLD_H: 4000,
-  GRID: 100,               // spatial grid cell size for pellets
-  PELLET_TARGET: 900,      // normal number of energy pellets
-  PELLET_MAX: 2600,        // hard cap (gift effects can add more)
-  START_MASS: 20,
-  MIN_MASS: 10,
-  MAX_MASS: 6000,
-  BOT_COUNT: 14,
-  MAX_PLAYERS: 40,
-  EAT_RATIO: 1.15,         // must be 15% bigger to eat (equal size can never eat)
-  EAT_OVERLAP: 0.3,        // how deep the small circle must be inside the big one
-  BASE_SPEED: 640,
-  MIN_SPEED: 48,
-  ACCEL: 7,                // higher = snappier steering
-  BOOST_MULT: 1.75,
-  BOOST_COST: 0.035,       // fraction of mass burned per second while boosting
-  BOOST_MIN_MASS: 26,
-  DECAY_START: 350,        // very big players slowly shrink
-  DECAY_RATE: 0.0025,
-  SPAWN_SHIELD: 2.5,       // seconds of spawn protection
-  BOT_RESPAWN: 3,
-  TICK: 1 / 60
+  ROUND_TIME: 180,     // seconds per round
+  MAX_PLAYERS: 60,
+  START_SCORE: 10,
+  TAP_SCORE: 3,        // score per like/tap
+  EAT_RATIO: 1.2,      // must be 20% bigger to eat
+  EAT_GAIN: 0.6,       // share of the victim's score you get
+  SAW_COUNT: 6,
+  SAW_DAMAGE: 0.08,    // fraction of score a saw takes
+  HOST_RESPAWN: 3,
+  WIN_PAUSE: 5
 };
-
-const PALETTE = ['#00f0ff', '#ff2bd6', '#9d4dff', '#3d7bff', '#00ffc8', '#ff5fa2', '#7df9ff', '#c77dff', '#4d9dff', '#ff7bf2', '#5cffa8', '#ffd84d'];
-const PELLET_COLORS = ['#00f0ff', '#ff2bd6', '#9d4dff', '#3d7bff', '#7df9ff', '#ff7bf2', '#c77dff'];
-const BOT_NAMES = ['Nova', 'Pixel', 'Zap', 'Orbit', 'Glitch', 'Luna', 'Vortex', 'Neon', 'Blip', 'Quasar', 'Echo', 'Spark', 'Rogue', 'Comet', 'Flux', 'Byte', 'Halo', 'Nyx', 'Prism', 'Volt', 'Astra', 'Drift', 'Kilo', 'Mochi', 'Rift', 'Sol', 'Tango', 'Vega', 'Wisp', 'Zenith', 'Ion', 'Jinx'];
-const VIEWER_A = ['neon', 'star', 'pixel', 'cosmic', 'glow', 'hyper', 'lunar', 'turbo', 'retro', 'astro'];
-const VIEWER_B = ['fox', 'queen', 'pup', 'rider', 'cat', 'wave', 'ghost', 'king', 'bean', 'bot'];
+const PALETTE = ['#00f0ff', '#ff2bd6', '#9d4dff', '#3d7bff', '#00ffc8', '#ff5fa2', '#7df9ff', '#c77dff', '#4d9dff', '#ff7bf2', '#5cffa8', '#ffd84d', '#ff8a3d'];
+const EMOJI = ['🐱', '🦊', '🐼', '🐸', '👾', '🤖', '🦄', '🐯', '🐵', '🐙', '🌸', '⭐', '🐺', '🐲', '🍩', '👻', '🐧', '🦋', '🍓', '🌙'];
+const NAME_A = ['neon', 'star', 'pixel', 'cosmic', 'glow', 'hyper', 'lunar', 'turbo', 'retro', 'astro', 'dash', 'zeus', 'dragon', 'saw', 'velvet', 'kiki', 'mama', 'lil'];
+const NAME_B = ['fox', 'queen', 'pup', 'rider', 'cat', 'wave', 'ghost', 'king', 'bean', 'fire', 'thunder', 'boo', 'jay', 'rose', 'kid', 'babe'];
+const CHAT_LINES = ['hi!!', 'lets gooo', 'tap tap tap', 'im winning', 'help me 😭', 'GG', 'eat him!', 'so big lol', 'run!!', 'hello from Texas', 'my circle 💕', 'who is #1?', 'wow', 'again!'];
 
 const rand = (a, b) => a + Math.random() * (b - a);
+const pick = a => a[Math.floor(Math.random() * a.length)];
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
-const pick = arr => arr[Math.floor(Math.random() * arr.length)];
-const massToRadius = m => Math.sqrt(m) * 6;
-const levelFor = m => 1 + Math.floor(Math.sqrt(Math.max(0, m - CONFIG.START_MASS) / 12));
-const randomViewer = () => '@' + pick(VIEWER_A) + pick(VIEWER_B) + Math.floor(rand(1, 99));
+const fmt = n => { n = Math.max(0, Math.floor(n)); if (n < 1000) return String(n); const k = n / 1000; return (k < 10 ? k.toFixed(1).replace(/\.0$/, '') : Math.floor(k)) + 'K'; };
+const levelFor = s => 1 + Math.floor(Math.log2(1 + Math.max(0, s) / 40));
+const fakeName = () => pick(NAME_A) + '_' + pick(NAME_B) + (Math.random() < 0.5 ? Math.floor(rand(1, 999)) : '');
 
-/* ---------------- 2. SIM (pure game logic) ----------------
-   Everything that changes the game state lives here.
-   It never touches the DOM, so a future Cloudflare Worker could run
-   this same code as the authoritative multiplayer server.
-   Things the screen should react to are pushed into world.events. */
-const Sim = {
-  createWorld() {
-    const cols = Math.ceil(CONFIG.WORLD_W / CONFIG.GRID), rows = Math.ceil(CONFIG.WORLD_H / CONFIG.GRID);
-    const grid = new Array(cols * rows);
-    for (let i = 0; i < grid.length; i++) grid[i] = [];
-    const world = {
-      w: CONFIG.WORLD_W, h: CONFIG.WORLD_H, players: [], pellets: [], grid, cols, rows,
-      time: 0, nextId: 1, events: [], goldenT: 0, community: 0, viewers: 0, likes: 0
-    };
-    for (let i = 0; i < CONFIG.PELLET_TARGET; i++) Sim.spawnPellet(world);
-    return world;
-  },
+/* ---------------- screen ---------------- */
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+let W = 0, H = 0, S = 1, DPR = 1, bg = null;
 
-  spawnPellet(world, x, y, mass, vx, vy) {
-    if (world.pellets.length >= CONFIG.PELLET_MAX) return null;
-    const m = mass || 1;
-    const pe = {
-      x: x == null ? rand(20, world.w - 20) : clamp(x, 8, world.w - 8),
-      y: y == null ? rand(20, world.h - 20) : clamp(y, 8, world.h - 8),
-      mass: m, r: 4 + m * 1.6, vx: vx || 0, vy: vy || 0,
-      color: pick(PELLET_COLORS), phase: Math.random() * 6.283, dead: false
-    };
-    world.pellets.push(pe);
-    return pe;
-  },
+function resize() {
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  W = window.innerWidth; H = window.innerHeight;
+  canvas.width = Math.round(W * DPR); canvas.height = Math.round(H * DPR);
+  S = clamp(Math.min(W, H) / 400, 0.8, 1.8);
+  bg = buildBackground();
+  for (const p of G.players) { p.x = clamp(p.x, p.r, W - p.r); p.y = clamp(p.y, p.r, H - p.r); }
+  for (const s of G.saws) { s.r = 20 * S; s.x = clamp(s.x, s.r, W - s.r); s.y = clamp(s.y, s.r, H - s.r); }
+  positionButtons();
+}
 
-  botName(world) {
-    const used = new Set(world.players.map(p => p.name));
-    const free = BOT_NAMES.filter(n => !used.has(n));
-    return free.length ? pick(free) : pick(BOT_NAMES) + Math.floor(rand(2, 99));
-  },
-
-  addPlayer(world, o) {
-    const mass = o.mass || CONFIG.START_MASS;
-    const r = massToRadius(mass);
-    const pos = o.x != null ? { x: o.x, y: o.y } : Sim.safeSpawnPoint(world, r);
-    const L = levelFor(mass);
-    const p = {
-      id: world.nextId++, name: o.name || 'Player', color: o.color || pick(PALETTE),
-      x: pos.x, y: pos.y, vx: 0, vy: 0, mass, r,
-      isBot: !!o.isBot, isHuman: !!o.isHuman, keepName: !!o.keepName, alive: true,
-      input: { dx: 0, dy: 0, boost: false },
-      speedT: 0, shieldT: CONFIG.SPAWN_SHIELD, transformT: 0, magnetT: 0, respawnT: 0,
-      level: L, peakLevel: L, score: 0, kills: 0, boosting: false, born: world.time, killedBy: null,
-      bot: o.isBot ? AI.createBrain() : null
-    };
-    world.players.push(p);
-    return p;
-  },
-
-  safeSpawnPoint(world, r) {
-    let best = { x: world.w / 2, y: world.h / 2 }, bestD = -1;
-    for (let i = 0; i < 30; i++) {
-      const x = rand(150, world.w - 150), y = rand(150, world.h - 150);
-      let minD = Infinity;
-      for (const o of world.players) {
-        if (!o.alive || o.mass < CONFIG.START_MASS * 1.1) continue;
-        const d = Math.hypot(o.x - x, o.y - y) - o.r - r;
-        if (d < minD) minD = d;
-      }
-      if (minD > 550) return { x, y };
-      if (minD > bestD) { bestD = minD; best = { x, y }; }
-    }
-    return best;
-  },
-
-  respawn(world, p) {
-    if (p.isBot && !p.keepName) { p.name = Sim.botName(world); p.color = pick(PALETTE); }
-    p.mass = p.isBot ? CONFIG.START_MASS * rand(0.9, 1.8) : CONFIG.START_MASS;
-    p.r = massToRadius(p.mass);
-    const pos = Sim.safeSpawnPoint(world, p.r);
-    p.x = pos.x; p.y = pos.y; p.vx = 0; p.vy = 0;
-    p.alive = true; p.shieldT = CONFIG.SPAWN_SHIELD; p.speedT = 0; p.transformT = 0; p.magnetT = 0;
-    p.score = 0; p.kills = 0; p.level = p.peakLevel = levelFor(p.mass); p.born = world.time; p.killedBy = null;
-    p.input = { dx: 0, dy: 0, boost: false };
-    if (p.isBot) p.bot = AI.createBrain();
-    world.events.push({ type: 'spawn', p, x: p.x, y: p.y });
-  },
-
-  setInput(p, dx, dy, boost) {
-    p.input.dx = dx; p.input.dy = dy; p.input.boost = !!boost;
-  },
-
-  clampPlayer(world, p) {
-    const r = p.r;
-    if (p.x < r) { p.x = r; if (p.vx < 0) p.vx = 0; }
-    if (p.x > world.w - r) { p.x = world.w - r; if (p.vx > 0) p.vx = 0; }
-    if (p.y < r) { p.y = r; if (p.vy < 0) p.vy = 0; }
-    if (p.y > world.h - r) { p.y = world.h - r; if (p.vy > 0) p.vy = 0; }
-  },
-
-  step(world, dt) {
-    world.time += dt;
-    if (world.goldenT > 0) world.goldenT = Math.max(0, world.goldenT - dt);
-    const P = world.players;
-    for (const p of P) {
-      if (!p.alive) {
-        if (p.isBot) { p.respawnT -= dt; if (p.respawnT <= 0) Sim.respawn(world, p); }
-        continue;
-      }
-      if (p.isBot) AI.think(world, p, dt);
-    }
-    for (const p of P) if (p.alive) Sim.movePlayer(world, p, dt);
-    Sim.updatePellets(world, dt);
-    Sim.buildGrid(world);
-    Sim.eatPellets(world);
-    Sim.resolvePlayers(world);
-    const need = CONFIG.PELLET_TARGET - world.pellets.length;
-    for (let i = 0; i < Math.min(need, 12); i++) Sim.spawnPellet(world);
-    for (const p of P) {
-      if (!p.alive) continue;
-      if (p.mass > CONFIG.MAX_MASS) p.mass = CONFIG.MAX_MASS;
-      p.r = massToRadius(p.mass);
-      const L = levelFor(p.mass);
-      p.level = L;
-      if (L > p.peakLevel) { p.peakLevel = L; world.events.push({ type: 'levelup', p, level: L }); }
-    }
-  },
-
-  movePlayer(world, p, dt) {
-    p.speedT = Math.max(0, p.speedT - dt);
-    p.shieldT = Math.max(0, p.shieldT - dt);
-    p.transformT = Math.max(0, p.transformT - dt);
-    p.magnetT = Math.max(0, p.magnetT - dt);
-    let dx = p.input.dx || 0, dy = p.input.dy || 0;
-    const mag = Math.hypot(dx, dy);
-    if (mag > 1) { dx /= mag; dy /= mag; }
-    let speed = Math.max(CONFIG.MIN_SPEED, CONFIG.BASE_SPEED / Math.pow(p.mass, 0.3));
-    p.boosting = false;
-    if (p.input.boost && mag > 0.15 && p.mass > CONFIG.BOOST_MIN_MASS) {
-      speed *= CONFIG.BOOST_MULT;
-      p.mass -= p.mass * CONFIG.BOOST_COST * dt;
-      p.boosting = true;
-    }
-    if (p.speedT > 0) speed *= 1.6;
-    if (p.transformT > 0) speed *= 1.2;
-    const k = 1 - Math.exp(-CONFIG.ACCEL * dt);
-    p.vx += (dx * speed - p.vx) * k;
-    p.vy += (dy * speed - p.vy) * k;
-    p.x += p.vx * dt;
-    p.y += p.vy * dt;
-    if (p.mass > CONFIG.DECAY_START) p.mass -= p.mass * CONFIG.DECAY_RATE * dt;
-    if (p.mass < CONFIG.MIN_MASS) p.mass = CONFIG.MIN_MASS;
-    p.r = massToRadius(p.mass);
-    Sim.clampPlayer(world, p);
-  },
-
-  updatePellets(world, dt) {
-    const fr = Math.exp(-2.2 * dt);
-    for (const pe of world.pellets) {
-      if (pe.vx !== 0 || pe.vy !== 0) {
-        pe.x += pe.vx * dt; pe.y += pe.vy * dt;
-        pe.vx *= fr; pe.vy *= fr;
-        if (pe.x < 8) { pe.x = 8; pe.vx = Math.abs(pe.vx); }
-        if (pe.x > world.w - 8) { pe.x = world.w - 8; pe.vx = -Math.abs(pe.vx); }
-        if (pe.y < 8) { pe.y = 8; pe.vy = Math.abs(pe.vy); }
-        if (pe.y > world.h - 8) { pe.y = world.h - 8; pe.vy = -Math.abs(pe.vy); }
-        if (Math.abs(pe.vx) + Math.abs(pe.vy) < 6) { pe.vx = 0; pe.vy = 0; }
+// Original neon city background, drawn once per resize.
+function buildBackground() {
+  const c = document.createElement('canvas');
+  c.width = canvas.width; c.height = canvas.height;
+  const g = c.getContext('2d');
+  g.scale(DPR, DPR);
+  const horizon = H * 0.55;
+  const sky = g.createLinearGradient(0, 0, 0, horizon);
+  sky.addColorStop(0, '#07021a'); sky.addColorStop(0.55, '#2a0b4d'); sky.addColorStop(1, '#8a1a7a');
+  g.fillStyle = sky; g.fillRect(0, 0, W, horizon);
+  for (let i = 0; i < 90; i++) { g.globalAlpha = rand(0.2, 0.9); g.fillStyle = '#ffffff'; g.fillRect(rand(0, W), rand(0, horizon * 0.7), 1.4, 1.4); }
+  g.globalAlpha = 1;
+  // sun
+  const sr = Math.min(W, H) * 0.2, sx = W * 0.5, sy = horizon - sr * 0.35;
+  const sun = g.createLinearGradient(0, sy - sr, 0, sy + sr);
+  sun.addColorStop(0, '#ffd84d'); sun.addColorStop(0.5, '#ff5fa2'); sun.addColorStop(1, '#9d4dff');
+  g.save(); g.shadowColor = '#ff2bd6'; g.shadowBlur = 40; g.fillStyle = sun;
+  g.beginPath(); g.arc(sx, sy, sr, 0, Math.PI * 2); g.fill(); g.restore();
+  g.fillStyle = '#2a0b4d';
+  for (let i = 0; i < 6; i++) { const y = sy + i * sr * 0.16; g.fillRect(sx - sr, y, sr * 2, sr * 0.05 + i * 1.2); }
+  // skyline
+  let x = -10;
+  while (x < W) {
+    const bw = rand(18, 55) * S, bh = rand(H * 0.08, H * 0.32);
+    g.fillStyle = Math.random() < 0.5 ? '#12052a' : '#180838';
+    g.fillRect(x, horizon - bh, bw, bh);
+    g.strokeStyle = Math.random() < 0.5 ? 'rgba(0,240,255,.5)' : 'rgba(255,43,214,.5)';
+    g.lineWidth = 1; g.strokeRect(x + 0.5, horizon - bh + 0.5, bw - 1, bh);
+    for (let wy = horizon - bh + 6; wy < horizon - 6; wy += 9 * S) {
+      for (let wx = x + 4; wx < x + bw - 4; wx += 7 * S) {
+        if (Math.random() < 0.35) { g.fillStyle = pick(['rgba(255,216,77,.7)', 'rgba(0,240,255,.6)', 'rgba(255,95,162,.6)']); g.fillRect(wx, wy, 2.5 * S, 3.5 * S); }
       }
     }
-    for (const p of world.players) {
-      if (!p.alive || p.magnetT <= 0) continue;
-      const R = p.r + 380, R2 = R * R, s = 520 * dt;
-      for (const pe of world.pellets) {
-        const dx = p.x - pe.x, dy = p.y - pe.y, d2 = dx * dx + dy * dy;
-        if (d2 < R2 && d2 > 1) {
-          const d = Math.sqrt(d2), st = Math.min(s, d);
-          pe.x += dx / d * st; pe.y += dy / d * st;
-        }
-      }
-    }
-  },
-
-  buildGrid(world) {
-    const g = world.grid, G = CONFIG.GRID, cols = world.cols, rows = world.rows;
-    for (let i = 0; i < g.length; i++) g[i].length = 0;
-    for (const pe of world.pellets) {
-      const cx = clamp((pe.x / G) | 0, 0, cols - 1), cy = clamp((pe.y / G) | 0, 0, rows - 1);
-      g[cy * cols + cx].push(pe);
-    }
-  },
-
-  eatPellets(world) {
-    const G = CONFIG.GRID, cols = world.cols, rows = world.rows, g = world.grid;
-    const mult = world.goldenT > 0 ? 2 : 1;
-    let any = false;
-    for (const p of world.players) {
-      if (!p.alive) continue;
-      const r = p.r, r2 = r * r;
-      const x0 = clamp(((p.x - r) / G) | 0, 0, cols - 1), x1 = clamp(((p.x + r) / G) | 0, 0, cols - 1);
-      const y0 = clamp(((p.y - r) / G) | 0, 0, rows - 1), y1 = clamp(((p.y + r) / G) | 0, 0, rows - 1);
-      for (let cy = y0; cy <= y1; cy++) {
-        for (let cx = x0; cx <= x1; cx++) {
-          const cell = g[cy * cols + cx];
-          for (let i = 0; i < cell.length; i++) {
-            const pe = cell[i];
-            if (pe.dead) continue;
-            const dx = pe.x - p.x, dy = pe.y - p.y;
-            if (dx * dx + dy * dy < r2) {
-              pe.dead = true; any = true;
-              const gain = pe.mass * mult;
-              p.mass += gain; p.score += gain;
-              if (p.isHuman) world.events.push({ type: 'pellet', p, x: pe.x, y: pe.y, color: pe.color });
-            }
-          }
-        }
-      }
-    }
-    if (any) world.pellets = world.pellets.filter(pe => !pe.dead);
-  },
-
-  resolvePlayers(world) {
-    const A = world.players.filter(p => p.alive);
-    for (let i = 0; i < A.length; i++) {
-      const a = A[i];
-      for (let j = i + 1; j < A.length; j++) {
-        const b = A[j];
-        if (!a.alive) break;
-        if (!b.alive) continue;
-        const dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy), rs = a.r + b.r;
-        if (d >= rs) continue;
-        const big = a.mass >= b.mass ? a : b, small = big === a ? b : a;
-        const canEat = big.mass >= small.mass * CONFIG.EAT_RATIO && small.shieldT <= 0;
-        if (canEat) {
-          if (d < big.r - small.r * CONFIG.EAT_OVERLAP) Sim.consume(world, big, small);
-        } else {
-          // Similar size (or shielded): circles bump instead of overlapping.
-          let nx, ny;
-          if (d < 0.01) { const an = Math.random() * 6.283; nx = Math.cos(an); ny = Math.sin(an); }
-          else { nx = dx / d; ny = dy / d; }
-          const push = (rs - d) * 0.5, tot = a.mass + b.mass;
-          a.x -= nx * push * (b.mass / tot); a.y -= ny * push * (b.mass / tot);
-          b.x += nx * push * (a.mass / tot); b.y += ny * push * (a.mass / tot);
-          Sim.clampPlayer(world, a); Sim.clampPlayer(world, b);
-        }
-      }
-    }
-  },
-
-  consume(world, big, small) {
-    small.alive = false;
-    small.respawnT = CONFIG.BOT_RESPAWN;
-    small.killedBy = big.name;
-    const gain = small.mass;
-    big.mass = Math.min(CONFIG.MAX_MASS, big.mass + gain);
-    big.score += gain + 10;
-    big.kills++;
-    world.events.push({ type: 'eat', eater: big, victim: small, x: small.x, y: small.y, color: small.color, mass: gain });
-  },
-
-  aliveCount(world) { let n = 0; for (const p of world.players) if (p.alive) n++; return n; },
-
-  /* ---- LIVE effects (called by the LIVE event handler) ---- */
-  giftEnergy(world, p, amt) {
-    p.mass = Math.min(CONFIG.MAX_MASS, p.mass + amt); p.score += amt;
-    world.events.push({ type: 'rose', p, x: p.x, y: p.y, amt });
-  },
-  giftSpeed(world, p, secs) {
-    p.speedT = Math.min(15, p.speedT + secs);
-    world.events.push({ type: 'heart', p, x: p.x, y: p.y });
-  },
-  galaxyBurst(world, p) {
-    const n = 70;
-    for (let i = 0; i < n; i++) {
-      const an = (i / n) * 6.283 + rand(-0.05, 0.05), spd = rand(260, 680), d = p.r + 14;
-      Sim.spawnPellet(world, p.x + Math.cos(an) * d, p.y + Math.sin(an) * d, 2, Math.cos(an) * spd, Math.sin(an) * spd);
-    }
-    const R = p.r + 460;
-    for (const o of world.players) {
-      if (o === p || !o.alive) continue;
-      const dx = o.x - p.x, dy = o.y - p.y, d = Math.hypot(dx, dy) || 1;
-      if (d < R) { const imp = 900 * (1 - d / R); o.vx += dx / d * imp; o.vy += dy / d * imp; }
-    }
-    world.events.push({ type: 'galaxy', p, x: p.x, y: p.y });
-  },
-  transform(world, p) {
-    const gain = Math.min(p.mass * 0.5, 400) + 25;
-    p.mass = Math.min(CONFIG.MAX_MASS, p.mass + gain); p.score += gain;
-    p.transformT = 12; p.shieldT = Math.max(p.shieldT, 12);
-    world.events.push({ type: 'universe', p, x: p.x, y: p.y });
-  },
-  spawnBot(world, name, near) {
-    if (world.players.length >= CONFIG.MAX_PLAYERS) return null;
-    const o = { name, isBot: true, keepName: true, mass: rand(22, 45) };
-    if (near) {
-      const an = Math.random() * 6.283, d = rand(400, 650);
-      o.x = clamp(near.x + Math.cos(an) * d, 100, world.w - 100);
-      o.y = clamp(near.y + Math.sin(an) * d, 100, world.h - 100);
-    }
-    const p = Sim.addPlayer(world, o);
-    world.events.push({ type: 'spawn', p, x: p.x, y: p.y });
-    return p;
-  },
-  pelletDrop(world, x, y, n, mass) {
-    for (let i = 0; i < n; i++) {
-      const an = (i / n) * 6.283, d = rand(40, 90);
-      Sim.spawnPellet(world, x + Math.cos(an) * d, y + Math.sin(an) * d, mass || 2, Math.cos(an) * 120, Math.sin(an) * 120);
-    }
-    world.events.push({ type: 'drop', x, y });
-  },
-  pelletRain(world, cx, cy, n) {
-    for (let i = 0; i < n; i++) {
-      const an = Math.random() * 6.283, d = Math.sqrt(Math.random()) * 900;
-      Sim.spawnPellet(world, cx + Math.cos(an) * d, cy + Math.sin(an) * d, 1);
-    }
-    for (let i = 0; i < n / 2; i++) Sim.spawnPellet(world);
-    world.events.push({ type: 'rain', x: cx, y: cy });
-  },
-  shrink(world, p, frac) {
-    const lost = (p.mass - CONFIG.MIN_MASS) * frac;
-    if (lost <= 0) return 0;
-    p.mass -= lost;
-    p.r = massToRadius(p.mass);
-    const n = Math.min(40, Math.max(6, Math.floor(lost / 4)));
-    for (let i = 0; i < n; i++) {
-      const an = Math.random() * 6.283, spd = rand(300, 600), d = p.r + 20;
-      Sim.spawnPellet(world, p.x + Math.cos(an) * d, p.y + Math.sin(an) * d, 2, Math.cos(an) * spd, Math.sin(an) * spd);
-    }
-    world.events.push({ type: 'shrink', p, x: p.x, y: p.y, lost });
-    return lost;
-  },
-  magnet(world, p, secs) { p.magnetT = secs; world.events.push({ type: 'magnet', p, x: p.x, y: p.y }); },
-  golden(world, secs) { world.goldenT = secs; world.events.push({ type: 'golden' }); },
-  storm(world, cx, cy) {
-    Sim.pelletRain(world, cx, cy, 260);
-    for (const p of world.players) if (p.alive) { p.mass += 8; p.score += 8; }
-    world.events.push({ type: 'storm', x: cx, y: cy });
+    x += bw + rand(0, 6);
   }
+  // floor grid
+  const fl = g.createLinearGradient(0, horizon, 0, H);
+  fl.addColorStop(0, '#1a0638'); fl.addColorStop(1, '#05020d');
+  g.fillStyle = fl; g.fillRect(0, horizon, W, H - horizon);
+  g.strokeStyle = 'rgba(255,43,214,.35)'; g.lineWidth = 1.2;
+  for (let i = 0; i < 14; i++) { const t = i / 13, y = horizon + Math.pow(t, 2.2) * (H - horizon); g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke(); }
+  g.strokeStyle = 'rgba(0,240,255,.3)';
+  for (let i = -12; i <= 12; i++) { g.beginPath(); g.moveTo(W / 2 + i * W * 0.04, horizon); g.lineTo(W / 2 + i * W * 0.28, H); g.stroke(); }
+  // dim it so circles stand out
+  g.fillStyle = 'rgba(5,2,13,.35)'; g.fillRect(0, 0, W, H);
+  return c;
+}
+
+/* ---------------- game state ---------------- */
+const G = {
+  players: [], byName: new Map(), saws: [], pellets: [],
+  parts: [], texts: [], rings: [], bubbles: [],
+  host: null, hostName: 'You', round: 1, timeLeft: CONFIG.ROUND_TIME,
+  phase: 'menu', winT: 0, paused: false, auto: true, autoT: 0, time: 0, nextId: 1
 };
 
-/* ---------------- 3. AI ---------------- */
-const AI = {
-  createBrain() {
-    return { t: Math.random() * 0.3, target: null, targetUntil: 0, wx: rand(300, 3700), wy: rand(300, 3700), wanderUntil: 0,
-      aggression: rand(0.6, 1.3), caution: rand(0.8, 1.4) };
-  },
+const radiusFor = s => Math.min((11 + 6.5 * Math.log2(1 + Math.max(0, s) / 8)) * S, Math.min(W, H) * 0.2);
+const aliveList = () => G.players.filter(p => p.alive);
 
-  think(world, p, dt) {
-    const b = p.bot;
-    b.t -= dt;
-    if (b.t > 0) return;
-    b.t = rand(0.1, 0.25);
-    const view = 380 + p.r * 4;
-    let fx = 0, fy = 0, threatD = Infinity, prey = null, preyScore = 0, preyD = 0;
-    for (const o of world.players) {
-      if (o === p || !o.alive) continue;
-      const dx = o.x - p.x, dy = o.y - p.y, dist = Math.hypot(dx, dy) || 1, edge = dist - o.r - p.r;
-      if (edge > view) continue;
-      if (o.mass >= p.mass * CONFIG.EAT_RATIO && p.shieldT <= 0.3) {
-        const wgt = 1 / Math.max(edge, 15);
-        fx -= dx / dist * wgt; fy -= dy / dist * wgt;
-        if (edge < threatD) threatD = edge;
-      } else if (p.mass >= o.mass * CONFIG.EAT_RATIO && o.shieldT <= 0) {
-        const s = (o.mass / Math.max(edge, 20)) * b.aggression;
-        if (s > preyScore) { preyScore = s; prey = o; preyD = edge; }
-      }
-    }
-    // Wall avoidance (so bots don't get cornered)
-    const margin = 140 + p.r;
-    let wx = 0, wy = 0;
-    if (p.x < margin) wx += (margin - p.x) / margin;
-    if (p.x > world.w - margin) wx -= (p.x - (world.w - margin)) / margin;
-    if (p.y < margin) wy += (margin - p.y) / margin;
-    if (p.y > world.h - margin) wy -= (p.y - (world.h - margin)) / margin;
-
-    let dx = 0, dy = 0, boost = false;
-    if (threatD < view * 0.55 * b.caution) {
-      const m = Math.hypot(fx, fy) || 1;
-      dx = fx / m + wx * 1.6; dy = fy / m + wy * 1.6;
-      boost = threatD < 90 && p.mass > CONFIG.BOOST_MIN_MASS + 10 && Math.random() < 0.6;
-      b.target = null;
-    } else if (prey && preyScore > 0.03) {
-      const tx = prey.x + prey.vx * 0.35, ty = prey.y + prey.vy * 0.35;
-      dx = tx - p.x; dy = ty - p.y;
-      const m = Math.hypot(dx, dy) || 1; dx /= m; dy /= m;
-      dx += wx * 0.5; dy += wy * 0.5;
-      boost = preyD < p.r * 1.5 + 60 && p.mass > 60 && prey.mass > p.mass * 0.15 && Math.random() < b.aggression * 0.5;
-    } else {
-      if (!b.target || b.target.dead || world.time > b.targetUntil) {
-        b.target = AI.findPellet(world, p);
-        b.targetUntil = world.time + 2.5;
-      }
-      if (b.target) { dx = b.target.x - p.x; dy = b.target.y - p.y; }
-      else {
-        if (world.time > b.wanderUntil || Math.hypot(b.wx - p.x, b.wy - p.y) < 80) {
-          b.wx = rand(300, world.w - 300); b.wy = rand(300, world.h - 300); b.wanderUntil = world.time + rand(3, 7);
-        }
-        dx = b.wx - p.x; dy = b.wy - p.y;
-      }
-      const m = Math.hypot(dx, dy) || 1; dx = dx / m + wx * 0.6; dy = dy / m + wy * 0.6;
-    }
-    const m = Math.hypot(dx, dy) || 1;
-    Sim.setInput(p, dx / m, dy / m, boost);
-  },
-
-  findPellet(world, p) {
-    const G = CONFIG.GRID, cols = world.cols, rows = world.rows;
-    const cx = (p.x / G) | 0, cy = (p.y / G) | 0, R = 3 + Math.min(3, (p.r / G) | 0);
-    let best = null, bd = Infinity;
-    for (let y = Math.max(0, cy - R); y <= Math.min(rows - 1, cy + R); y++) {
-      for (let x = Math.max(0, cx - R); x <= Math.min(cols - 1, cx + R); x++) {
-        const cell = world.grid[y * cols + x];
-        for (let i = 0; i < cell.length; i++) {
-          const pe = cell[i];
-          if (pe.dead) continue;
-          const d = Math.hypot(pe.x - p.x, pe.y - p.y) * rand(0.8, 1.2) / pe.mass;
-          if (d < bd) { bd = d; best = pe; }
-        }
-      }
-    }
-    return best;
+function spawnPoint(r) {
+  let best = { x: W / 2, y: H / 2 }, bestD = -1;
+  for (let i = 0; i < 25; i++) {
+    const x = rand(r + 10, W - r - 10), y = rand(r + 10, H - r - 10);
+    let d = Infinity;
+    for (const p of G.players) if (p.alive) d = Math.min(d, Math.hypot(p.x - x, p.y - y) - p.r - r);
+    for (const s of G.saws) d = Math.min(d, Math.hypot(s.x - x, s.y - y) - s.r - r);
+    if (d > 60 * S) return { x, y };
+    if (d > bestD) { bestD = d; best = { x, y }; }
   }
-};
+  return best;
+}
 
-/* ---------------- 4. LIVE EVENTS ----------------
-   One small event bus. Anything (the simulator panel today, a real
-   LIVE bridge later) calls LiveEvents.emit({...}) with this shape:
-     { type:'gift',    gift:'rose'|'heart'|'galaxy'|'universe', user, target }
-     { type:'follow',  user }
-     { type:'like',    user, count }
-     { type:'join',    user }
-     { type:'comment', user, comment }
-   The game only listens to the bus, so swapping the source later does
-   not require touching gameplay code. */
+function addPlayer(name, opts) {
+  opts = opts || {};
+  const score = opts.score || CONFIG.START_SCORE;
+  const r = radiusFor(score), pos = spawnPoint(r), a = Math.random() * Math.PI * 2;
+  const p = { id: G.nextId++, name, score, kills: 0, r, x: pos.x, y: pos.y, vx: Math.cos(a) * 40, vy: Math.sin(a) * 40,
+    color: opts.color || pick(PALETTE), emoji: opts.emoji || pick(EMOJI), alive: true, isHost: !!opts.isHost,
+    shieldT: 1.5, hunterT: 0, boostT: 0, hitCD: 0, newT: opts.isNew ? 6 : 0, wa: a, spin: rand(0.6, 1.4) * (Math.random() < 0.5 ? -1 : 1), deadT: 0, pulse: 0 };
+  G.players.push(p);
+  G.byName.set(name, p);
+  ring(p.x, p.y, 4, p.r + 40 * S, 0.6, p.color, 3);
+  return p;
+}
+
+function revive(p, score) {
+  p.score = score || CONFIG.START_SCORE; p.kills = p.kills || 0; p.r = radiusFor(p.score);
+  const pos = spawnPoint(p.r); p.x = pos.x; p.y = pos.y; p.vx = 0; p.vy = 0;
+  p.alive = true; p.shieldT = 1.5; p.hunterT = 0; p.boostT = 0; p.hitCD = 0;
+  ring(p.x, p.y, 4, p.r + 40 * S, 0.6, p.color, 3);
+}
+
+// Find a viewer's circle; join or rejoin them if needed.
+function getOrJoin(name, opts) {
+  let p = G.byName.get(name);
+  if (p && p.alive) return p;
+  if (G.phase !== 'play') return p || null;
+  if (aliveList().length >= CONFIG.MAX_PLAYERS) return null;
+  if (p) { revive(p); return p; }
+  return addPlayer(name, opts);
+}
+
+function addScore(p, n, label, color) {
+  if (!p || !p.alive) return;
+  p.score += n; p.pulse = 1;
+  if (label) text(p.x, p.y - p.r - 8 * S, label, color || '#39ff7a', 15);
+}
+
+function eliminate(p, by) {
+  p.alive = false; p.deadT = 0;
+  burst(p.x, p.y, p.color, 30 + Math.min(40, p.r), 220 * S);
+  ring(p.x, p.y, p.r, p.r * 2.5, 0.5, p.color, 4);
+  if (p.isHost) toast('💀', 'You were ' + (by ? 'eaten by ' + by : 'cut by a saw') + '! Back in ' + CONFIG.HOST_RESPAWN + 's', '#ff2bd6');
+}
+
+function makeSaw() {
+  const r = 20 * S, a = Math.random() * Math.PI * 2, sp = rand(35, 70) * S;
+  const pos = { x: rand(r + 20, W - r - 20), y: rand(r + 20, H - r - 20) };
+  return { x: pos.x, y: pos.y, r, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, ang: 0, spin: rand(5, 9) };
+}
+
+function newRound(keepRoster) {
+  const roster = keepRoster ? G.players.slice() : [];
+  G.players = []; G.byName.clear(); G.pellets = []; G.parts = []; G.texts = []; G.rings = []; G.bubbles = [];
+  G.saws = []; for (let i = 0; i < CONFIG.SAW_COUNT; i++) G.saws.push(makeSaw());
+  G.timeLeft = CONFIG.ROUND_TIME; G.phase = 'play';
+  for (const old of roster) {
+    const p = addPlayer(old.name, { color: old.color, emoji: old.emoji, isHost: old.isHost });
+    if (old.isHost) G.host = p;
+  }
+  if (!G.host || !G.byName.has(G.hostName)) G.host = addPlayer(G.hostName, { isHost: true, color: '#00f0ff', emoji: '⭐' });
+  if (!keepRoster && G.auto) for (let i = 0; i < 15; i++) addPlayer(fakeName());
+  for (let i = 0; i < 40; i++) addPellet();
+  document.getElementById('roundNum').textContent = G.round;
+  document.getElementById('winBox').classList.add('hidden');
+}
+
+function addPellet() { G.pellets.push({ x: rand(10, W - 10), y: rand(10, H - 10), c: pick(PALETTE), ph: Math.random() * 6.28 }); }
+
+/* ---------------- simulation ---------------- */
+function step(dt) {
+  G.time += dt;
+  if (G.phase === 'win') {
+    G.winT -= dt;
+    if (G.winT <= 0) { G.round++; newRound(true); }
+  } else if (G.phase === 'play') {
+    G.timeLeft -= dt;
+    const alive = aliveList();
+    if (G.timeLeft <= 0 || (alive.length <= 1 && G.players.length >= 2 && G.time > 3)) endRound();
+  }
+  if (G.auto && G.phase === 'play') autoViewers(dt);
+
+  const alive = aliveList();
+  const target = 30 + Math.min(60, alive.length * 2);
+  if (G.pellets.length < target && Math.random() < 0.5) addPellet();
+
+  // host respawn
+  if (G.host && !G.host.alive && G.phase === 'play') { G.host.deadT += dt; if (G.host.deadT > CONFIG.HOST_RESPAWN) revive(G.host); }
+
+  for (const p of alive) {
+    p.shieldT = Math.max(0, p.shieldT - dt); p.hunterT = Math.max(0, p.hunterT - dt);
+    p.boostT = Math.max(0, p.boostT - dt); p.hitCD = Math.max(0, p.hitCD - dt); p.newT = Math.max(0, p.newT - dt);
+    p.pulse = Math.max(0, p.pulse - dt * 4);
+    // grow smoothly toward the size that matches the score
+    p.r += (radiusFor(p.score) - p.r) * Math.min(1, dt * 6);
+
+    // steering: wander + chase smaller + flee bigger + collect pellets
+    p.wa += rand(-2, 2) * dt;
+    let dx = Math.cos(p.wa), dy = Math.sin(p.wa);
+    const view = p.r * 4 + 70 * S;
+    let threat = null, td = Infinity, prey = null, pd = Infinity;
+    for (const o of alive) {
+      if (o === p) continue;
+      const d = Math.hypot(o.x - p.x, o.y - p.y) - o.r - p.r;
+      if (o.score >= p.score * CONFIG.EAT_RATIO && p.shieldT <= 0 && d < view && d < td) { threat = o; td = d; }
+      else if (p.score >= o.score * CONFIG.EAT_RATIO && o.shieldT <= 0 && (d < view * 1.2 || p.hunterT > 0) && d < pd) { prey = o; pd = d; }
+    }
+    if (threat) { const d = Math.hypot(p.x - threat.x, p.y - threat.y) || 1; dx += (p.x - threat.x) / d * 2.2; dy += (p.y - threat.y) / d * 2.2; }
+    if (prey) { const d = Math.hypot(prey.x - p.x, prey.y - p.y) || 1, w = p.hunterT > 0 ? 3 : 1.4; dx += (prey.x - p.x) / d * w; dy += (prey.y - p.y) / d * w; }
+    if (!threat && !prey) {
+      let best = null, bd = view * 1.5;
+      for (const f of G.pellets) { const d = Math.hypot(f.x - p.x, f.y - p.y); if (d < bd) { bd = d; best = f; } }
+      if (best) { dx += (best.x - p.x) / bd * 1.2; dy += (best.y - p.y) / bd * 1.2; }
+    }
+    // keep away from walls
+    const m = p.r + 30 * S;
+    if (p.x < m) dx += 1.5; if (p.x > W - m) dx -= 1.5; if (p.y < m) dy += 1.5; if (p.y > H - m) dy -= 1.5;
+    const dl = Math.hypot(dx, dy) || 1;
+    let speed = (45 + 80 / (1 + p.r / (25 * S))) * S;
+    if (p.boostT > 0) speed *= 1.6;
+    if (p.hunterT > 0) speed *= 1.7;
+    const k = 1 - Math.exp(-2.2 * dt);
+    p.vx += (dx / dl * speed - p.vx) * k; p.vy += (dy / dl * speed - p.vy) * k;
+    p.x += p.vx * dt; p.y += p.vy * dt;
+    if (p.x < p.r) { p.x = p.r; p.vx = Math.abs(p.vx); } if (p.x > W - p.r) { p.x = W - p.r; p.vx = -Math.abs(p.vx); }
+    if (p.y < p.r) { p.y = p.r; p.vy = Math.abs(p.vy); } if (p.y > H - p.r) { p.y = H - p.r; p.vy = -Math.abs(p.vy); }
+
+    // pellets
+    for (let i = G.pellets.length - 1; i >= 0; i--) {
+      const f = G.pellets[i];
+      if ((f.x - p.x) ** 2 + (f.y - p.y) ** 2 < p.r * p.r) { G.pellets.splice(i, 1); p.score += 2; }
+    }
+  }
+
+  // circles vs circles
+  for (let i = 0; i < alive.length; i++) {
+    const a = alive[i];
+    for (let j = i + 1; j < alive.length; j++) {
+      const b = alive[j];
+      if (!a.alive) break;
+      if (!b.alive) continue;
+      const dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy) || 0.01, rs = a.r + b.r;
+      if (d >= rs) continue;
+      const big = a.score >= b.score ? a : b, small = big === a ? b : a;
+      const canEat = big.score >= small.score * CONFIG.EAT_RATIO && small.shieldT <= 0;
+      if (canEat) {
+        if (d < big.r - small.r * 0.25) {
+          big.score += small.score * CONFIG.EAT_GAIN; big.kills++; big.pulse = 1;
+          text(big.x, big.y - big.r - 8 * S, '+' + fmt(small.score * CONFIG.EAT_GAIN), '#39ff7a', 16);
+          eliminate(small, big.name);
+        }
+      } else {
+        // bounce like bumper balls
+        const nx = dx / d, ny = dy / d, overlap = rs - d, ma = a.r * a.r, mb = b.r * b.r, tot = ma + mb;
+        a.x -= nx * overlap * (mb / tot); a.y -= ny * overlap * (mb / tot);
+        b.x += nx * overlap * (ma / tot); b.y += ny * overlap * (ma / tot);
+        const rv = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny;
+        if (rv < 0) { const imp = -1.8 * rv / tot; a.vx -= imp * mb * nx; a.vy -= imp * mb * ny; b.vx += imp * ma * nx; b.vy += imp * ma * ny; }
+      }
+    }
+  }
+
+  // spinning saws
+  for (const s of G.saws) {
+    s.ang += s.spin * dt;
+    s.x += s.vx * dt; s.y += s.vy * dt;
+    if (s.x < s.r || s.x > W - s.r) { s.vx *= -1; s.x = clamp(s.x, s.r, W - s.r); }
+    if (s.y < s.r || s.y > H - s.r) { s.vy *= -1; s.y = clamp(s.y, s.r, H - s.r); }
+    for (const p of alive) {
+      if (!p.alive || p.hitCD > 0) continue;
+      const dx = p.x - s.x, dy = p.y - s.y, d = Math.hypot(dx, dy) || 1;
+      if (d < p.r + s.r * 0.85) {
+        p.hitCD = 0.6;
+        const nx = dx / d, ny = dy / d;
+        p.vx += nx * 260 * S; p.vy += ny * 260 * S;
+        if (p.shieldT > 0) { ring(p.x, p.y, p.r, p.r + 20 * S, 0.3, '#7df9ff', 3); continue; }
+        const dmg = Math.max(1, p.score * CONFIG.SAW_DAMAGE);
+        p.score -= dmg;
+        text(p.x + nx * p.r * 0.5, p.y - p.r * 0.3, '-' + fmt(dmg), '#ff4d6d', 15);
+        burst(s.x + (p.x - s.x) * 0.5, s.y + (p.y - s.y) * 0.5, '#ffffff', 10, 200 * S);
+        if (p.score < 2) eliminate(p, null);
+      }
+    }
+  }
+
+  // effects
+  for (let i = G.parts.length - 1; i >= 0; i--) { const q = G.parts[i]; q.x += q.vx * dt; q.y += q.vy * dt; q.vx *= 0.94; q.vy *= 0.94; q.life -= dt; if (q.life <= 0) G.parts.splice(i, 1); }
+  for (let i = G.texts.length - 1; i >= 0; i--) { const t = G.texts[i]; t.y -= 30 * S * dt; t.life -= dt; if (t.life <= 0) G.texts.splice(i, 1); }
+  for (let i = G.rings.length - 1; i >= 0; i--) { const r = G.rings[i]; r.t += dt; if (r.t >= r.dur) G.rings.splice(i, 1); }
+  for (let i = G.bubbles.length - 1; i >= 0; i--) { const b = G.bubbles[i]; b.life -= dt; if (b.life <= 0 || !b.p.alive) G.bubbles.splice(i, 1); }
+}
+
+function endRound() {
+  const alive = aliveList();
+  const pool = alive.length ? alive : G.players;
+  const winner = pool.reduce((a, b) => (b.score > a.score ? b : a), pool[0]);
+  G.phase = 'win'; G.winT = CONFIG.WIN_PAUSE;
+  document.getElementById('winName').textContent = winner ? winner.name + ' · ' + fmt(winner.score) : 'Nobody';
+  document.getElementById('winSub').textContent = winner && winner.isHost ? 'That\'s YOU! Next round starting…' : 'Next round starting…';
+  document.getElementById('winBox').classList.remove('hidden');
+  if (winner) { burst(winner.x, winner.y, null, 120, 500 * S); for (let i = 0; i < 4; i++) ring(winner.x, winner.y, winner.r, winner.r + 80 * S + i * 60 * S, 0.8 + i * 0.2, PALETTE[i], 5); }
+}
+
+/* ---------------- pretend viewers (auto demo) ---------------- */
+function autoViewers(dt) {
+  G.autoT -= dt;
+  if (G.autoT > 0) return;
+  G.autoT = rand(0.15, 0.6);
+  const names = G.players.filter(p => !p.isHost).map(p => p.name);
+  const existing = () => (names.length ? pick(names) : fakeName());
+  const r = Math.random();
+  if (r < 0.62) LiveEvents.emit({ type: 'like', user: existing(), count: Math.floor(rand(1, 8)), quiet: true });
+  else if (r < 0.70) LiveEvents.emit({ type: 'join', user: fakeName() });
+  else if (r < 0.80) LiveEvents.emit({ type: 'comment', user: existing(), comment: pick(CHAT_LINES) });
+  else if (r < 0.90) LiveEvents.emit({ type: 'gift', gift: 'rose', user: existing() });
+  else if (r < 0.95) LiveEvents.emit({ type: 'gift', gift: 'heart', user: existing() });
+  else if (r < 0.975) LiveEvents.emit({ type: 'follow', user: fakeName() });
+  else if (r < 0.993) LiveEvents.emit({ type: 'gift', gift: 'galaxy', user: existing() });
+  else LiveEvents.emit({ type: 'gift', gift: 'universe', user: existing() });
+}
+
+/* ---------------- LIVE events ----------------
+   Shape (same as a future real relay would send):
+   {type:'like', user, count} {type:'join', user} {type:'follow', user}
+   {type:'comment', user, comment} {type:'gift', gift:'rose'|'heart'|'galaxy'|'universe', user, target}
+*/
 const LiveEvents = {
   listeners: [],
   on(fn) { this.listeners.push(fn); },
-  emit(evt) {
-    const e = Object.assign({ user: randomViewer(), count: 1, at: Date.now() }, evt);
-    for (const fn of this.listeners) { try { fn(e); } catch (err) { console.error('Live event error', err); } }
+  emit(e) {
+    e = Object.assign({ user: fakeName(), count: 1 }, e);
+    for (const fn of this.listeners) { try { fn(e); } catch (err) { console.error(err); } }
   },
-  /* Future use: connect to YOUR OWN relay server that forwards LIVE
-     events as JSON in the shape above. Not used anywhere yet. */
+  // Future: connect to your own relay that forwards real LIVE events as JSON. Not used yet.
   connectBridge(url) {
     const ws = new WebSocket(url);
-    ws.onmessage = m => { try { this.emit(JSON.parse(m.data)); } catch (e) { console.warn('Bad bridge message', e); } };
-    ws.onopen = () => UI.toast('🔌', 'Live bridge connected', '#00f0ff');
-    ws.onclose = () => UI.toast('🔌', 'Live bridge disconnected', '#ff2bd6');
+    ws.onmessage = m => { try { this.emit(JSON.parse(m.data)); } catch (err) { console.warn('bad message', err); } };
     return ws;
   }
 };
 
-const COMMENT_EVENTS = {
-  rain:   { label: 'PELLET RAIN',  icon: '🌧' },
-  gold:   { label: 'GOLDEN HOUR',  icon: '✨' },
-  shrink: { label: 'SHRINK RAY',   icon: '📉' },
-  magnet: { label: 'MAGNET',       icon: '🧲' }
+const GIFTS = {
+  rose:     { icon: '🌹', name: 'Rose',     score: 50 },
+  heart:    { icon: '💗', name: 'Heart',    score: 200 },
+  galaxy:   { icon: '🌌', name: 'Galaxy',   score: 1000 },
+  universe: { icon: '🪐', name: 'Universe', score: 5000 }
 };
 
-function resolveTarget(sel) {
-  const w = Game.world, alive = w.players.filter(p => p.alive);
-  if (!alive.length) return null;
-  const human = Game.human && Game.human.alive ? Game.human : null;
-  if (sel === 'me') return human || alive.reduce((a, b) => (b.mass > a.mass ? b : a));
-  if (sel === 'leader') return alive.reduce((a, b) => (b.mass > a.mass ? b : a));
-  if (sel === 'smallest') return alive.reduce((a, b) => (b.mass < a.mass ? b : a));
-  return pick(alive);
-}
-
-function focusPoint() {
-  const f = Game.focus();
-  return f ? { x: f.x, y: f.y } : { x: Game.world.w / 2, y: Game.world.h / 2 };
-}
-
-function applyLiveEvent(e) {
-  const w = Game.world;
-  if (!w) return;
-  const user = e.user;
+LiveEvents.on(e => {
+  if (G.phase === 'menu') return;
+  const user = String(e.user).slice(0, 18);
   switch (e.type) {
-    case 'gift': {
-      const t = resolveTarget(e.target || 'me');
-      if (!t) return;
-      if (e.gift === 'rose') { Sim.giftEnergy(w, t, 15); UI.toast('🌹', `${user} sent a Rose → ${t.name} +15 energy`, '#ff2bd6'); }
-      else if (e.gift === 'heart') { Sim.giftSpeed(w, t, 6); UI.toast('💗', `${user} sent a Heart → ${t.name} speed boost!`, '#ff5fa2'); }
-      else if (e.gift === 'galaxy') { Sim.galaxyBurst(w, t); UI.toast('🌌', `${user} sent a Galaxy → energy explosion!`, '#9d4dff'); }
-      else if (e.gift === 'universe') { Sim.transform(w, t); UI.toast('🪐', `${user} sent a UNIVERSE → ${t.name} TRANSFORMED!`, '#00f0ff'); }
-      break;
-    }
-    case 'follow': {
-      const name = user.replace(/^@/, '').slice(0, 14) || 'Follower';
-      const p = Sim.spawnBot(w, name, Game.focus());
-      if (p) UI.toast('➕', `${user} followed → ${name} entered the arena`, '#3d7bff');
-      else UI.toast('⚠', `Arena full (${CONFIG.MAX_PLAYERS} players)`, '#ffd84d');
-      break;
-    }
     case 'like': {
-      w.likes += e.count;
-      w.community = Math.min(100, w.community + e.count);
-      if (w.community >= 100) {
-        w.community = 0;
-        const c = focusPoint();
-        Sim.storm(w, c.x, c.y);
-        UI.toast('⚡', 'COMMUNITY METER FULL → ENERGY STORM! Everyone +8', '#00f0ff');
-      } else {
-        UI.toast('👍', `${user} sent ${e.count} likes`, '#ff7bf2');
-      }
+      const p = getOrJoin(user);
+      if (!p) return;
+      const n = CONFIG.TAP_SCORE * (e.count || 1);
+      addScore(p, n, e.quiet ? null : '+' + n, '#ff7bf2');
+      heartsAt(p, Math.min(4, e.count || 1));
       break;
     }
     case 'join': {
-      w.viewers++;
-      const c = focusPoint();
-      const an = Math.random() * 6.283, d = rand(160, 320);
-      Sim.pelletDrop(w, clamp(c.x + Math.cos(an) * d, 100, w.w - 100), clamp(c.y + Math.sin(an) * d, 100, w.h - 100), 14, 2);
-      UI.toast('👋', `${user} joined the LIVE → energy drop nearby`, '#7df9ff');
+      const p = getOrJoin(user);
+      if (p) chatLine(user, 'joined 👋', '#7df9ff');
+      break;
+    }
+    case 'follow': {
+      const p = getOrJoin(user, { isNew: true });
+      if (!p) return;
+      p.newT = 6; addScore(p, 100, '+100 NEW FAN', '#3d7bff');
+      chatLine(user, 'followed the LIVE ➕', '#3d7bff');
       break;
     }
     case 'comment': {
-      const text = (e.comment || '').toLowerCase();
-      let kind = Object.keys(COMMENT_EVENTS).find(k => text.includes(k));
-      if (!kind) kind = pick(Object.keys(COMMENT_EVENTS));
-      const info = COMMENT_EVENTS[kind];
-      const said = e.comment ? `“${e.comment.slice(0, 40)}” ` : '';
-      if (kind === 'rain') { const c = focusPoint(); Sim.pelletRain(w, c.x, c.y, 220); }
-      else if (kind === 'gold') { Sim.golden(w, 15); }
-      else if (kind === 'shrink') {
-        const alive = w.players.filter(p => p.alive);
-        const leader = alive.reduce((a, b) => (b.mass > a.mass ? b : a), alive[0]);
-        if (leader) Sim.shrink(w, leader, 0.35);
+      const p = getOrJoin(user);
+      const msg = String(e.comment || 'hi').slice(0, 50);
+      chatLine(user, msg);
+      if (p) { addScore(p, 5); G.bubbles = G.bubbles.filter(b => b.p !== p); G.bubbles.push({ p, msg, life: 3.5 }); }
+      break;
+    }
+    case 'gift': {
+      const g = GIFTS[e.gift];
+      if (!g) return;
+      let p;
+      if (e.target === 'me') p = G.host && G.host.alive ? G.host : getOrJoin(G.hostName);
+      else if (e.target === 'leader') { const al = aliveList(); p = al.reduce((a, b) => (b.score > a.score ? b : a), al[0]); }
+      else p = getOrJoin(user);
+      if (!p) return;
+      giftFeed(g.icon, user);
+      addScore(p, g.score, '+' + fmt(g.score), '#ffd84d');
+      if (e.gift === 'rose') { p.boostT = 4; burst(p.x, p.y, '#ff2bd6', 18, 160 * S); }
+      if (e.gift === 'heart') { p.shieldT = Math.max(p.shieldT, 10); burst(p.x, p.y, '#ff5fa2', 24, 180 * S); }
+      if (e.gift === 'galaxy') { shockwave(p); banner(`${user} sent a Galaxy 🌌`); }
+      if (e.gift === 'universe') {
+        p.hunterT = 15; p.shieldT = Math.max(p.shieldT, 15);
+        burst(p.x, p.y, null, 140, 520 * S); for (let i = 0; i < 5; i++) ring(p.x, p.y, p.r, p.r + 70 * S + i * 55 * S, 0.6 + i * 0.15, PALETTE[i], 6);
+        banner(`${user} sent Universe 🪐 → HUNTER MODE`);
+        flashA = 0.5;
       }
-      else if (kind === 'magnet') { const t = resolveTarget(e.target || 'me'); if (t) Sim.magnet(w, t, 10); }
-      UI.toast(info.icon, `${user}: ${said}→ ${info.label}`, '#ffd84d');
       break;
     }
   }
-}
-LiveEvents.on(applyLiveEvent);
+});
 
-/* ---------------- 5. INPUT ---------------- */
-const Input = {
-  keys: {}, mouse: { x: 0, y: 0, active: false }, mouseBoost: false,
-  joy: { id: null, cx: 0, cy: 0, x: 0, y: 0 }, touchBoost: false, touchMode: false, R: 55,
-
-  init() {
-    const canvas = document.getElementById('game');
-    this.touchMode = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
-    this.base = document.getElementById('joyBase');
-    this.knob = document.getElementById('joyKnob');
-    this.layout();
-
-    canvas.addEventListener('pointerdown', e => {
-      if (e.pointerType === 'mouse') {
-        if (e.button === 0) this.mouseBoost = true;
-        this.mouse.x = e.clientX; this.mouse.y = e.clientY; this.mouse.active = true;
-        return;
-      }
-      this.setTouchMode(true);
-      if (this.joy.id === null && e.clientX < window.innerWidth * 0.6) {
-        this.joy.id = e.pointerId;
-        this.joy.cx = this.joy.x = e.clientX;
-        this.joy.cy = this.joy.y = e.clientY;
-        try { canvas.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
-        this.base.classList.add('active');
-        this.drawJoy();
-      }
-      e.preventDefault();
-    });
-    canvas.addEventListener('pointermove', e => {
-      if (e.pointerId === this.joy.id) { this.joy.x = e.clientX; this.joy.y = e.clientY; this.drawJoy(); }
-    });
-    const endJoy = e => {
-      if (e.pointerType === 'mouse') { this.mouseBoost = false; return; }
-      if (e.pointerId === this.joy.id) { this.joy.id = null; this.base.classList.remove('active'); this.layout(); }
-    };
-    canvas.addEventListener('pointerup', endJoy);
-    canvas.addEventListener('pointercancel', endJoy);
-    window.addEventListener('pointermove', e => {
-      if (e.pointerType === 'mouse') { this.mouse.x = e.clientX; this.mouse.y = e.clientY; this.mouse.active = true; this.setTouchMode(false); }
-    });
-    window.addEventListener('mouseup', () => { this.mouseBoost = false; });
-    canvas.addEventListener('contextmenu', e => e.preventDefault());
-
-    const boost = document.getElementById('btnBoost');
-    boost.addEventListener('pointerdown', e => {
-      e.preventDefault(); this.touchBoost = true; boost.classList.add('on');
-      try { boost.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
-    });
-    const endBoost = () => { this.touchBoost = false; boost.classList.remove('on'); };
-    boost.addEventListener('pointerup', endBoost);
-    boost.addEventListener('pointercancel', endBoost);
-    boost.addEventListener('lostpointercapture', endBoost);
-
-    const typing = e => e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT');
-    window.addEventListener('keydown', e => {
-      if (typing(e)) return;
-      const k = e.key.toLowerCase();
-      this.keys[k] = true;
-      if ([' ', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(k)) e.preventDefault();
-      if (k === 'p' || k === 'escape') Game.togglePause();
-    });
-    window.addEventListener('keyup', e => { this.keys[e.key.toLowerCase()] = false; });
-    window.addEventListener('blur', () => { this.keys = {}; this.mouseBoost = false; this.touchBoost = false; boost.classList.remove('on'); });
-
-    // Stop the page from scrolling / zooming while playing (the gift panel may still scroll).
-    document.addEventListener('touchmove', e => { if (!e.target.closest('#giftPanel')) e.preventDefault(); }, { passive: false });
-    document.addEventListener('gesturestart', e => e.preventDefault());
-    document.addEventListener('dblclick', e => e.preventDefault());
-  },
-
-  setTouchMode(on) {
-    if (this.touchMode === on) return;
-    this.touchMode = on;
-    this.layout();
-  },
-
-  layout() {
-    // Resting joystick position: bottom-left corner.
-    const h = window.innerHeight;
-    this.restX = 30 + 60; this.restY = h - 34 - 60;
-    this.base.style.display = this.touchMode ? 'block' : 'none';
-    if (this.joy.id === null) {
-      this.base.style.left = this.restX + 'px';
-      this.base.style.top = this.restY + 'px';
-      this.knob.style.transform = 'translate(0px,0px)';
-    }
-  },
-
-  drawJoy() {
-    let dx = this.joy.x - this.joy.cx, dy = this.joy.y - this.joy.cy;
-    const d = Math.hypot(dx, dy);
-    if (d > this.R) { dx = dx / d * this.R; dy = dy / d * this.R; }
-    this.base.style.left = this.joy.cx + 'px';
-    this.base.style.top = this.joy.cy + 'px';
-    this.knob.style.transform = `translate(${dx}px,${dy}px)`;
-  },
-
-  // Returns {dx, dy, boost}; dx/dy are -1..1. (sx, sy) = player position on screen.
-  read(sx, sy) {
-    const k = this.keys;
-    let dx = (k.d || k.arrowright ? 1 : 0) - (k.a || k.arrowleft ? 1 : 0);
-    let dy = (k.s || k.arrowdown ? 1 : 0) - (k.w || k.arrowup ? 1 : 0);
-    const boost = !!(k[' '] || k.shift || this.touchBoost || this.mouseBoost);
-    if (dx || dy) { const m = Math.hypot(dx, dy); return { dx: dx / m, dy: dy / m, boost }; }
-    if (this.joy.id !== null) {
-      let jx = (this.joy.x - this.joy.cx) / this.R, jy = (this.joy.y - this.joy.cy) / this.R;
-      const m = Math.hypot(jx, jy);
-      if (m < 0.12) return { dx: 0, dy: 0, boost };
-      if (m > 1) { jx /= m; jy /= m; }
-      return { dx: jx, dy: jy, boost };
-    }
-    if (this.mouse.active && !this.touchMode) {
-      const mx = this.mouse.x - sx, my = this.mouse.y - sy, m = Math.hypot(mx, my);
-      if (m < 6) return { dx: 0, dy: 0, boost };
-      const s = Math.min(1, m / 140);
-      return { dx: mx / m * s, dy: my / m * s, boost };
-    }
-    return { dx: 0, dy: 0, boost };
-  }
-};
-
-/* ---------------- 6. RENDERER ---------------- */
-function hexToRgb(h) { const n = parseInt(h.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
-function mixHex(h, target, t) {
-  const a = hexToRgb(h), b = hexToRgb(target);
-  return `rgb(${Math.round(a[0] + (b[0] - a[0]) * t)},${Math.round(a[1] + (b[1] - a[1]) * t)},${Math.round(a[2] + (b[2] - a[2]) * t)})`;
-}
-
-const Renderer = {
-  init() {
-    this.c = document.getElementById('game');
-    this.ctx = this.c.getContext('2d');
-    this.mmC = document.getElementById('minimap');
-    this.mm = this.mmC.getContext('2d');
-    this.cam = { x: CONFIG.WORLD_W / 2, y: CONFIG.WORLD_H / 2, zoom: 0.8 };
-    this.sprites = {};
-    this.colorCache = {};
-    this.particles = []; this.texts = []; this.rings = [];
-    this.flashA = 0; this.flashColor = '#ffffff'; this.shake = 0; this.frame = 0;
-    this.stars = [];
-    for (let i = 0; i < 140; i++) this.stars.push({ x: Math.random(), y: Math.random(), s: rand(0.4, 1.8), d: rand(0.03, 0.15), a: rand(0.2, 0.8) });
-    this.resize();
-  },
-
-  reset() { this.particles.length = 0; this.texts.length = 0; this.rings.length = 0; this.flashA = 0; this.shake = 0; },
-
-  resize() {
-    this.dpr = Math.min(window.devicePixelRatio || 1, 2);
-    this.w = window.innerWidth; this.h = window.innerHeight;
-    this.c.width = Math.round(this.w * this.dpr); this.c.height = Math.round(this.h * this.dpr);
-    const r = this.mmC.getBoundingClientRect();
-    this.mmSize = Math.max(60, Math.round(r.width || 120));
-    this.mmC.width = this.mmSize * this.dpr; this.mmC.height = this.mmSize * this.dpr;
-    this.baseScale = clamp(Math.sqrt(this.w * this.h) / 900, 0.74, 1.25);
-    const ctx = this.ctx;
-    this.vignette = ctx.createRadialGradient(this.w / 2, this.h / 2, Math.min(this.w, this.h) * 0.35, this.w / 2, this.h / 2, Math.max(this.w, this.h) * 0.75);
-    this.vignette.addColorStop(0, 'rgba(0,0,0,0)');
-    this.vignette.addColorStop(1, 'rgba(10,0,25,0.55)');
-    this.arenaGrad = ctx.createRadialGradient(CONFIG.WORLD_W / 2, CONFIG.WORLD_H / 2, 0, CONFIG.WORLD_W / 2, CONFIG.WORLD_H / 2, CONFIG.WORLD_W * 0.72);
-    this.arenaGrad.addColorStop(0, '#1a0b33');
-    this.arenaGrad.addColorStop(0.6, '#0e0522');
-    this.arenaGrad.addColorStop(1, '#07020f');
-  },
-
-  sprite(color) {
-    let s = this.sprites[color];
-    if (s) return s;
-    s = document.createElement('canvas'); s.width = s.height = 64;
-    const g = s.getContext('2d'), gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);
-    gr.addColorStop(0, '#ffffff'); gr.addColorStop(0.16, color); gr.addColorStop(0.42, color + '66'); gr.addColorStop(1, color + '00');
-    g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
-    this.sprites[color] = s;
-    return s;
-  },
-
-  colors(hex) {
-    let c = this.colorCache[hex];
-    if (!c) { c = { light: mixHex(hex, '#ffffff', 0.55), dark: mixHex(hex, '#05020d', 0.55) }; this.colorCache[hex] = c; }
-    return c;
-  },
-
-  /* --- effects --- */
-  burst(x, y, color, n, speed) {
-    for (let i = 0; i < n && this.particles.length < 600; i++) {
-      const an = Math.random() * 6.283, sp = rand(0.3, 1) * speed;
-      this.particles.push({ x, y, vx: Math.cos(an) * sp, vy: Math.sin(an) * sp, life: rand(0.4, 1), max: 1, size: rand(6, 16), color: color || pick(PALETTE) });
-    }
-  },
-  ring(x, y, r0, r1, dur, color, width) { this.rings.push({ x, y, r0, r1, t: 0, dur, color, width: width || 6 }); },
-  text(x, y, str, color, size) { this.texts.push({ x, y, str, color, size: size || 26, life: 1.3, max: 1.3 }); },
-  flash(color, a) { this.flashColor = color; this.flashA = Math.max(this.flashA, a); },
-
-  onEvent(e, human) {
-    switch (e.type) {
-      case 'eat':
-        this.burst(e.x, e.y, e.color, Math.min(70, 12 + e.mass * 0.4), 160 + e.victim.r * 2);
-        this.ring(e.x, e.y, e.victim.r, e.victim.r * 2.4 + 30, 0.5, e.color, 5);
-        if (e.eater === human) this.text(e.eater.x, e.eater.y - e.eater.r - 10, '+' + Math.round(e.mass), '#00f0ff', 30);
-        if (e.victim === human) { this.shake = 14; this.flash('#ff2bd6', 0.4); }
-        break;
-      case 'pellet': this.burst(e.x, e.y, e.color, 2, 70); break;
-      case 'levelup':
-        if (e.p === human) { this.ring(e.p.x, e.p.y, e.p.r, e.p.r + 160, 0.8, '#ffd84d', 6); this.text(e.p.x, e.p.y - e.p.r - 20, 'LEVEL ' + e.level, '#ffd84d', 34); }
-        break;
-      case 'rose': this.burst(e.x, e.y, '#ff2bd6', 24, 220); this.text(e.x, e.y - e.p.r - 10, '🌹 +' + e.amt, '#ff7bf2', 30); break;
-      case 'heart': this.burst(e.x, e.y, '#ff5fa2', 24, 240); this.text(e.x, e.y - e.p.r - 10, '💗 SPEED!', '#ff5fa2', 30); break;
-      case 'galaxy':
-        this.ring(e.x, e.y, e.p.r, e.p.r + 520, 0.9, '#9d4dff', 14);
-        this.ring(e.x, e.y, e.p.r, e.p.r + 380, 0.7, '#00f0ff', 8);
-        this.ring(e.x, e.y, e.p.r, e.p.r + 260, 0.55, '#ff2bd6', 6);
-        this.burst(e.x, e.y, null, 110, 700);
-        this.shake = 10; this.flash('#9d4dff', 0.28);
-        break;
-      case 'universe':
-        for (let i = 0; i < 6; i++) this.ring(e.x, e.y, e.p.r, e.p.r + 200 + i * 90, 0.6 + i * 0.15, PALETTE[i], 10);
-        this.burst(e.x, e.y, null, 160, 800);
-        this.text(e.x, e.y - e.p.r - 30, '✦ TRANSFORMED ✦', '#ffffff', 40);
-        this.shake = 18; this.flash('#ffffff', 0.65);
-        break;
-      case 'spawn': this.ring(e.x, e.y, 10, 120, 0.6, '#00f0ff', 4); break;
-      case 'drop': this.ring(e.x, e.y, 10, 140, 0.7, '#7df9ff', 5); this.burst(e.x, e.y, '#7df9ff', 20, 200); break;
-      case 'rain': this.flash('#00f0ff', 0.18); break;
-      case 'storm': this.flash('#00f0ff', 0.45); this.shake = 8; break;
-      case 'shrink': this.ring(e.x, e.y, e.p.r, e.p.r + 200, 0.6, '#ff2bd6', 8); this.text(e.x, e.y - e.p.r - 10, '-' + Math.round(e.lost), '#ff2bd6', 34); break;
-      case 'magnet': this.ring(e.x, e.y, e.p.r, e.p.r + 380, 0.8, '#ff7bf2', 5); break;
-      case 'golden': this.flash('#ffd84d', 0.3); break;
-    }
-  },
-
-  update(world, dt) {
-    for (const p of world.players) {
-      if (!p.alive) continue;
-      if ((p.boosting || p.speedT > 0 || p.transformT > 0) && this.particles.length < 600 && Math.random() < 0.7) {
-        const sp = Math.hypot(p.vx, p.vy) || 1;
-        this.particles.push({ x: p.x - p.vx / sp * p.r * 0.9 + rand(-p.r, p.r) * 0.3, y: p.y - p.vy / sp * p.r * 0.9 + rand(-p.r, p.r) * 0.3,
-          vx: -p.vx * 0.2 + rand(-30, 30), vy: -p.vy * 0.2 + rand(-30, 30), life: 0.5, max: 0.5, size: Math.min(28, 6 + p.r * 0.25),
-          color: p.transformT > 0 ? pick(PALETTE) : p.color });
-      }
-    }
-    const fr = Math.exp(-2.5 * dt);
-    for (let i = this.particles.length - 1; i >= 0; i--) {
-      const q = this.particles[i];
-      q.x += q.vx * dt; q.y += q.vy * dt; q.vx *= fr; q.vy *= fr; q.life -= dt;
-      if (q.life <= 0) this.particles.splice(i, 1);
-    }
-    for (let i = this.texts.length - 1; i >= 0; i--) { const t = this.texts[i]; t.y -= 45 * dt; t.life -= dt; if (t.life <= 0) this.texts.splice(i, 1); }
-    for (let i = this.rings.length - 1; i >= 0; i--) { const r = this.rings[i]; r.t += dt; if (r.t >= r.dur) this.rings.splice(i, 1); }
-    this.flashA = Math.max(0, this.flashA - dt * 1.6);
-    this.shake *= Math.exp(-6 * dt);
-  },
-
-  draw(world, focus, dt) {
-    const ctx = this.ctx, w = this.w, h = this.h, dpr = this.dpr, cam = this.cam;
-    this.frame++;
-    if (focus) {
-      const tz = this.baseScale * Math.min(1.05, Math.pow(32 / focus.r, 0.42));
-      cam.zoom += (tz - cam.zoom) * (1 - Math.exp(-3 * dt));
-      const k = 1 - Math.exp(-9 * dt);
-      cam.x += (focus.x - cam.x) * k; cam.y += (focus.y - cam.y) * k;
-    }
-    const z = cam.zoom;
-    const sx = (Math.random() - 0.5) * this.shake, sy = (Math.random() - 0.5) * this.shake;
-
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.fillStyle = '#05020d';
-    ctx.fillRect(0, 0, w, h);
-    // parallax stars (screen space)
-    for (const s of this.stars) {
-      const x = ((s.x * w - cam.x * s.d) % w + w) % w, y = ((s.y * h - cam.y * s.d) % h + h) % h;
-      ctx.globalAlpha = s.a * (0.7 + 0.3 * Math.sin(world.time * 2 + s.x * 50));
-      ctx.fillStyle = s.d > 0.1 ? '#7df9ff' : '#c77dff';
-      ctx.fillRect(x, y, s.s, s.s);
-    }
-    ctx.globalAlpha = 1;
-
-    const ox = w / 2 - cam.x * z + sx, oy = h / 2 - cam.y * z + sy;
-    ctx.setTransform(dpr * z, 0, 0, dpr * z, dpr * ox, dpr * oy);
-    const vl = -ox / z, vt = -oy / z, vr = (w - ox) / z, vb = (h - oy) / z;
-
-    // arena floor
-    ctx.fillStyle = this.arenaGrad;
-    ctx.fillRect(0, 0, world.w, world.h);
-    // grid
-    const step = 100;
-    ctx.beginPath();
-    for (let x = Math.max(0, Math.floor(vl / step) * step); x <= Math.min(world.w, vr); x += step) { ctx.moveTo(x, Math.max(0, vt)); ctx.lineTo(x, Math.min(world.h, vb)); }
-    for (let y = Math.max(0, Math.floor(vt / step) * step); y <= Math.min(world.h, vb); y += step) { ctx.moveTo(Math.max(0, vl), y); ctx.lineTo(Math.min(world.w, vr), y); }
-    ctx.strokeStyle = 'rgba(157,77,255,0.14)';
-    ctx.lineWidth = 1.5 / z;
-    ctx.stroke();
-    // glowing border
-    ctx.save();
-    ctx.shadowColor = '#00f0ff'; ctx.shadowBlur = 25;
-    ctx.strokeStyle = '#00f0ff'; ctx.lineWidth = 8;
-    ctx.strokeRect(0, 0, world.w, world.h);
-    ctx.shadowColor = '#ff2bd6'; ctx.strokeStyle = 'rgba(255,43,214,0.6)'; ctx.lineWidth = 3;
-    ctx.strokeRect(-14, -14, world.w + 28, world.h + 28);
-    ctx.restore();
-
-    // pellets
-    const t = world.time, gold = world.goldenT > 0, pad = 40;
-    const goldSpr = gold ? this.sprite('#ffd84d') : null;
-    for (const pe of world.pellets) {
-      if (pe.x < vl - pad || pe.x > vr + pad || pe.y < vt - pad || pe.y > vb + pad) continue;
-      const s = pe.r * 3.4 * (1 + 0.14 * Math.sin(t * 3 + pe.phase));
-      ctx.drawImage(goldSpr || this.sprite(pe.color), pe.x - s / 2, pe.y - s / 2, s, s);
-    }
-
-    // shock rings
-    for (const r of this.rings) {
-      const k = r.t / r.dur, e = 1 - Math.pow(1 - k, 3);
-      ctx.globalAlpha = 1 - k;
-      ctx.strokeStyle = r.color; ctx.lineWidth = r.width * (1 - k * 0.5);
-      ctx.beginPath(); ctx.arc(r.x, r.y, r.r0 + (r.r1 - r.r0) * e, 0, 6.283); ctx.stroke();
-    }
-    ctx.globalAlpha = 1;
-
-    // players (small first so big ones draw on top)
-    const list = world.players.filter(p => p.alive && p.x + p.r > vl && p.x - p.r < vr && p.y + p.r > vt && p.y - p.r < vb);
-    list.sort((a, b) => a.mass - b.mass);
-    for (const p of list) this.drawPlayer(ctx, p, t, p === focus);
-
-    // particles (additive glow)
-    ctx.globalCompositeOperation = 'lighter';
-    for (const q of this.particles) {
-      if (q.x < vl - 30 || q.x > vr + 30 || q.y < vt - 30 || q.y > vb + 30) continue;
-      ctx.globalAlpha = Math.max(0, q.life / q.max);
-      const s = q.size;
-      ctx.drawImage(this.sprite(q.color), q.x - s / 2, q.y - s / 2, s, s);
-    }
-    ctx.globalCompositeOperation = 'source-over';
-    ctx.globalAlpha = 1;
-
-    // floating texts
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    for (const tx of this.texts) {
-      const fs = tx.size / Math.max(0.5, z) * 0.75;
-      ctx.globalAlpha = Math.min(1, tx.life / tx.max * 1.5);
-      ctx.font = `900 ${fs}px system-ui,sans-serif`;
-      ctx.lineWidth = fs * 0.15; ctx.strokeStyle = 'rgba(5,2,13,0.8)';
-      ctx.strokeText(tx.str, tx.x, tx.y);
-      ctx.fillStyle = tx.color; ctx.fillText(tx.str, tx.x, tx.y);
-    }
-    ctx.globalAlpha = 1;
-
-    // screen overlays
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.fillStyle = this.vignette; ctx.fillRect(0, 0, w, h);
-    if (gold) { ctx.fillStyle = `rgba(255,216,77,${0.05 + 0.03 * Math.sin(t * 4)})`; ctx.fillRect(0, 0, w, h); }
-    if (this.flashA > 0) { ctx.globalAlpha = this.flashA; ctx.fillStyle = this.flashColor; ctx.fillRect(0, 0, w, h); ctx.globalAlpha = 1; }
-
-    if (this.frame % 3 === 0) this.drawMinimap(world, focus);
-  },
-
-  drawPlayer(ctx, p, t, isMe) {
-    const r = p.r, x = p.x, y = p.y, col = this.colors(p.color);
-    // Universe transformation aura
-    if (p.transformT > 0) {
-      ctx.lineWidth = Math.max(4, r * 0.08);
-      for (let i = 0; i < 6; i++) {
-        const a0 = t * 2.2 + i * 1.047;
-        ctx.strokeStyle = `hsl(${(t * 140 + i * 60) % 360},100%,62%)`;
-        ctx.beginPath(); ctx.arc(x, y, r * 1.22 + 6 + Math.sin(t * 6 + i) * 4, a0, a0 + 0.75); ctx.stroke();
-      }
-    }
-    // body
-    ctx.save();
-    ctx.shadowColor = p.transformT > 0 ? `hsl(${(t * 140) % 360},100%,60%)` : p.color;
-    ctx.shadowBlur = Math.min(42, 16 + r * 0.12);
-    const g = ctx.createRadialGradient(x - r * 0.35, y - r * 0.35, r * 0.08, x, y, r);
-    g.addColorStop(0, col.light); g.addColorStop(0.55, p.color); g.addColorStop(1, col.dark);
-    ctx.fillStyle = g;
-    const n = Math.max(24, Math.min(72, (r * 0.5) | 0));
-    ctx.beginPath();
-    for (let i = 0; i <= n; i++) {
-      const a = (i / n) * 6.283;
-      const rr = r * (1 + 0.022 * Math.sin(a * 5 + t * 3 + p.id) + (p.boosting ? 0.025 * Math.sin(a * 9 - t * 16) : 0));
-      const px = x + Math.cos(a) * rr, py = y + Math.sin(a) * rr;
-      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-    }
-    ctx.closePath();
-    ctx.fill();
-    ctx.shadowBlur = 0;
-    ctx.lineWidth = Math.max(2, r * 0.07);
-    ctx.strokeStyle = col.light;
-    ctx.stroke();
-    ctx.restore();
-    if (isMe) {
-      ctx.strokeStyle = 'rgba(255,255,255,0.55)'; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.arc(x, y, r + 5, 0, 6.283); ctx.stroke();
-    }
-    // spawn / universe shield
-    if (p.shieldT > 0) {
-      ctx.save();
-      ctx.strokeStyle = 'rgba(125,249,255,0.9)'; ctx.lineWidth = 3;
-      ctx.setLineDash([12, 9]); ctx.lineDashOffset = -t * 50;
-      ctx.beginPath(); ctx.arc(x, y, r + 10, 0, 6.283); ctx.stroke();
-      ctx.restore();
-    }
-    if (p.magnetT > 0) {
-      ctx.save();
-      ctx.globalAlpha = 0.3; ctx.strokeStyle = '#ff7bf2'; ctx.lineWidth = 2;
-      ctx.setLineDash([6, 14]); ctx.lineDashOffset = t * 60;
-      ctx.beginPath(); ctx.arc(x, y, r + 380, 0, 6.283); ctx.stroke();
-      ctx.restore();
-    }
-    // name + score
-    const fs = Math.max(12, r * 0.4);
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.font = `800 ${fs}px system-ui,sans-serif`;
-    ctx.lineWidth = fs * 0.18; ctx.strokeStyle = 'rgba(5,2,13,0.75)';
-    ctx.strokeText(p.name, x, y - fs * 0.18);
-    ctx.fillStyle = '#ffffff'; ctx.fillText(p.name, x, y - fs * 0.18);
-    const fs2 = fs * 0.58;
-    ctx.font = `700 ${fs2}px system-ui,sans-serif`;
-    ctx.lineWidth = fs2 * 0.2;
-    const sc = String(Math.floor(p.score));
-    ctx.strokeText(sc, x, y + fs * 0.62);
-    ctx.fillStyle = 'rgba(255,255,255,0.85)'; ctx.fillText(sc, x, y + fs * 0.62);
-  },
-
-  drawMinimap(world, focus) {
-    const m = this.mm, s = this.mmSize, dpr = this.dpr, sc = s / world.w;
-    m.setTransform(dpr, 0, 0, dpr, 0, 0);
-    m.clearRect(0, 0, s, s);
-    m.fillStyle = 'rgba(10,4,26,0.82)'; m.fillRect(0, 0, s, s);
-    m.strokeStyle = 'rgba(157,77,255,0.25)'; m.lineWidth = 1;
-    m.beginPath();
-    for (let i = 1; i < 4; i++) { m.moveTo(i * s / 4, 0); m.lineTo(i * s / 4, s); m.moveTo(0, i * s / 4); m.lineTo(s, i * s / 4); }
-    m.stroke();
-    for (const p of world.players) {
-      if (!p.alive || p === focus) continue;
-      m.fillStyle = p.color;
-      m.beginPath(); m.arc(p.x * sc, p.y * sc, Math.max(1.6, p.r * sc), 0, 6.283); m.fill();
-    }
-    const z = this.cam.zoom;
-    m.strokeStyle = 'rgba(0,240,255,0.6)';
-    m.strokeRect((this.cam.x - this.w / 2 / z) * sc, (this.cam.y - this.h / 2 / z) * sc, this.w / z * sc, this.h / z * sc);
-    if (focus && focus.alive) {
-      m.fillStyle = '#ffffff'; m.shadowColor = '#00f0ff'; m.shadowBlur = 8;
-      m.beginPath(); m.arc(focus.x * sc, focus.y * sc, Math.max(3, focus.r * sc), 0, 6.283); m.fill();
-      m.shadowBlur = 0;
+function shockwave(p) {
+  const R = p.r + 150 * S;
+  ring(p.x, p.y, p.r, R + 60 * S, 0.8, '#9d4dff', 10); ring(p.x, p.y, p.r, R, 0.6, '#00f0ff', 6);
+  burst(p.x, p.y, null, 90, 420 * S);
+  for (const o of aliveList()) {
+    if (o === p) continue;
+    const dx = o.x - p.x, dy = o.y - p.y, d = Math.hypot(dx, dy) || 1;
+    if (d < R + o.r) {
+      o.vx += dx / d * 500 * S; o.vy += dy / d * 500 * S;
+      if (o.shieldT <= 0 && o.score < p.score) { const lost = o.score * 0.15; o.score -= lost; text(o.x, o.y - o.r, '-' + fmt(lost), '#ff4d6d', 14); }
     }
   }
-};
+  flashA = 0.3;
+}
 
-/* ---------------- 7. UI ---------------- */
+/* ---------------- effects helpers ---------------- */
+let flashA = 0;
+function burst(x, y, color, n, sp) {
+  for (let i = 0; i < n && G.parts.length < 700; i++) {
+    const a = Math.random() * 6.283, v = rand(0.25, 1) * sp;
+    G.parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: rand(0.4, 1), max: 1, s: rand(2, 4.5) * S, c: color || pick(PALETTE) });
+  }
+}
+function ring(x, y, r0, r1, dur, c, w) { G.rings.push({ x, y, r0, r1, t: 0, dur, c, w: (w || 4) * S }); }
+function text(x, y, str, c, size) { G.texts.push({ x, y, str, c, size: (size || 15) * S, life: 1.1, max: 1.1 }); }
+function heartsAt(p, n) {
+  for (let i = 0; i < n && G.parts.length < 700; i++) G.parts.push({ x: p.x + rand(-p.r, p.r) * 0.6, y: p.y - p.r * 0.6, vx: rand(-20, 20), vy: -rand(50, 110) * S, life: 0.9, max: 0.9, s: 0, heart: true, c: pick(['#ff2bd6', '#ff5fa2', '#ff7bf2']) });
+}
+
+/* ---------------- drawing ---------------- */
+const spriteCache = {};
+function glow(c) {
+  if (spriteCache[c]) return spriteCache[c];
+  const s = document.createElement('canvas'); s.width = s.height = 32;
+  const g = s.getContext('2d'), gr = g.createRadialGradient(16, 16, 0, 16, 16, 16);
+  gr.addColorStop(0, '#fff'); gr.addColorStop(0.25, c); gr.addColorStop(1, c + '00');
+  g.fillStyle = gr; g.fillRect(0, 0, 32, 32);
+  return (spriteCache[c] = s);
+}
+
+function drawCrown(x, y, w, gold) {
+  const h = w * 0.6;
+  ctx.save();
+  ctx.shadowColor = gold ? '#ffd84d' : '#c8d6ff'; ctx.shadowBlur = 12;
+  const g = ctx.createLinearGradient(0, y - h, 0, y);
+  g.addColorStop(0, gold ? '#fff3a6' : '#ffffff'); g.addColorStop(1, gold ? '#e0a400' : '#8fa3d9');
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.moveTo(x - w / 2, y); ctx.lineTo(x - w / 2, y - h * 0.55); ctx.lineTo(x - w / 4, y - h * 0.25); ctx.lineTo(x, y - h);
+  ctx.lineTo(x + w / 4, y - h * 0.25); ctx.lineTo(x + w / 2, y - h * 0.55); ctx.lineTo(x + w / 2, y); ctx.closePath(); ctx.fill();
+  ctx.shadowBlur = 0; ctx.fillStyle = '#ff2bd6';
+  ctx.beginPath(); ctx.arc(x, y - h * 0.3, w * 0.07, 0, 6.283); ctx.fill();
+  ctx.restore();
+}
+
+function drawSaw(s) {
+  ctx.save();
+  ctx.translate(s.x, s.y); ctx.rotate(s.ang);
+  ctx.shadowColor = '#ffffff'; ctx.shadowBlur = 10;
+  ctx.strokeStyle = 'rgba(235,240,255,.95)'; ctx.lineWidth = 2.2 * S;
+  // teeth
+  ctx.beginPath();
+  const teeth = 12;
+  for (let i = 0; i <= teeth * 2; i++) {
+    const a = (i / (teeth * 2)) * Math.PI * 2, rr = i % 2 ? s.r : s.r * 0.8;
+    const x = Math.cos(a) * rr, y = Math.sin(a) * rr;
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.closePath(); ctx.stroke();
+  ctx.shadowBlur = 0;
+  ctx.lineWidth = 1.6 * S;
+  for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2; ctx.beginPath(); ctx.moveTo(Math.cos(a) * s.r * 0.18, Math.sin(a) * s.r * 0.18); ctx.lineTo(Math.cos(a) * s.r * 0.72, Math.sin(a) * s.r * 0.72); ctx.stroke(); }
+  ctx.beginPath(); ctx.arc(0, 0, s.r * 0.72, 0, 6.283); ctx.stroke();
+  ctx.fillStyle = '#ff2bd6'; ctx.beginPath(); ctx.arc(0, 0, s.r * 0.16, 0, 6.283); ctx.fill();
+  ctx.restore();
+}
+
+function drawPlayer(p, rank) {
+  const r = p.r * (1 + p.pulse * 0.06), x = p.x, y = p.y, t = G.time;
+  ctx.save();
+  ctx.shadowColor = p.hunterT > 0 ? '#39ff7a' : p.color; ctx.shadowBlur = 14 + Math.min(20, r * 0.2);
+  const g = ctx.createRadialGradient(x - r * 0.35, y - r * 0.4, r * 0.1, x, y, r);
+  g.addColorStop(0, '#ffffff'); g.addColorStop(0.25, p.color); g.addColorStop(1, '#14052e');
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(x, y, r, 0, 6.283); ctx.fill();
+  ctx.restore();
+  // avatar emoji
+  ctx.globalAlpha = 0.5;
+  ctx.font = `${r * 1.05}px system-ui,"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(p.emoji, x, y + r * 0.05);
+  ctx.globalAlpha = 1;
+  // spinning ring
+  ctx.save();
+  ctx.translate(x, y); ctx.rotate(t * p.spin * 2);
+  ctx.strokeStyle = p.isHost ? '#ffffff' : p.color; ctx.lineWidth = Math.max(2, r * 0.07);
+  ctx.setLineDash([r * 0.5, r * 0.28]);
+  ctx.beginPath(); ctx.arc(0, 0, r + 3 * S, 0, 6.283); ctx.stroke();
+  ctx.restore();
+  // shield
+  if (p.shieldT > 0) {
+    ctx.strokeStyle = 'rgba(125,249,255,.85)'; ctx.lineWidth = 2 * S;
+    ctx.beginPath(); ctx.arc(x, y, r + 8 * S + Math.sin(t * 6) * 1.5, 0, 6.283); ctx.stroke();
+    ctx.fillStyle = 'rgba(125,249,255,.08)'; ctx.fill();
+  }
+  // hunter crosshair
+  if (p.hunterT > 0) {
+    const R = r + 12 * S;
+    ctx.save(); ctx.translate(x, y); ctx.rotate(-t * 1.5);
+    ctx.strokeStyle = '#39ff7a'; ctx.lineWidth = 3 * S; ctx.shadowColor = '#39ff7a'; ctx.shadowBlur = 12;
+    ctx.beginPath(); ctx.arc(0, 0, R, 0, 6.283); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-R - 6 * S, 0); ctx.lineTo(R + 6 * S, 0); ctx.moveTo(0, -R - 6 * S); ctx.lineTo(0, R + 6 * S); ctx.stroke();
+    ctx.restore();
+  }
+  // score + level
+  const fs = Math.max(11 * S, r * 0.55);
+  ctx.font = `900 ${fs}px system-ui,sans-serif`;
+  ctx.lineWidth = fs * 0.2; ctx.strokeStyle = 'rgba(0,0,0,.8)'; ctx.lineJoin = 'round';
+  const sc = fmt(p.score);
+  ctx.strokeText(sc, x, y - fs * 0.08); ctx.fillStyle = '#39ff7a'; ctx.fillText(sc, x, y - fs * 0.08);
+  const fl = Math.max(8 * S, fs * 0.36);
+  ctx.font = `800 ${fl}px system-ui,sans-serif`; ctx.lineWidth = fl * 0.25;
+  const lv = 'LV ' + levelFor(p.score);
+  ctx.strokeText(lv, x, y + fs * 0.62); ctx.fillStyle = '#ffffff'; ctx.fillText(lv, x, y + fs * 0.62);
+  // name
+  const fn = Math.max(9 * S, Math.min(14 * S, r * 0.32));
+  ctx.font = `700 ${fn}px system-ui,sans-serif`; ctx.lineWidth = fn * 0.3;
+  const ny = y + r + fn * 0.95;
+  const nm = p.isHost ? '★ ' + p.name : p.name;
+  const half = ctx.measureText(nm).width / 2 + 3;
+  const nx = clamp(x, half, W - half), nyy = Math.min(ny, H - fn * 0.7);
+  ctx.strokeText(nm, nx, nyy); ctx.fillStyle = p.isHost ? '#00f0ff' : 'rgba(255,255,255,.9)'; ctx.fillText(nm, nx, nyy);
+  // NEW badge
+  if (p.newT > 0) {
+    ctx.font = `900 ${9 * S}px system-ui,sans-serif`;
+    ctx.fillStyle = '#3d7bff'; const bw = 30 * S;
+    ctx.fillRect(x + r * 0.5, y - r - 2 * S, bw, 13 * S);
+    ctx.fillStyle = '#fff'; ctx.fillText('NEW', x + r * 0.5 + bw / 2, y - r + 4.5 * S);
+  }
+  // crowns for the top 3
+  if (rank < 3) drawCrown(x, y - r - 2 * S, Math.max(18 * S, r * (rank === 0 ? 0.9 : 0.6)), rank === 0);
+}
+
+function draw() {
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  if (bg) ctx.drawImage(bg, 0, 0); else { ctx.fillStyle = '#05020d'; ctx.fillRect(0, 0, canvas.width, canvas.height); }
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  const t = G.time;
+  // arena border
+  ctx.save(); ctx.shadowColor = '#00f0ff'; ctx.shadowBlur = 16; ctx.strokeStyle = 'rgba(0,240,255,.8)'; ctx.lineWidth = 3;
+  ctx.strokeRect(1.5, 1.5, W - 3, H - 3); ctx.restore();
+  // pellets
+  for (const f of G.pellets) { const s = (9 + Math.sin(t * 4 + f.ph) * 2) * S; ctx.drawImage(glow(f.c), f.x - s / 2, f.y - s / 2, s, s); }
+  // rings
+  for (const r of G.rings) {
+    const k = r.t / r.dur, e = 1 - Math.pow(1 - k, 3);
+    ctx.globalAlpha = 1 - k; ctx.strokeStyle = r.c; ctx.lineWidth = r.w * (1 - k * 0.5);
+    ctx.beginPath(); ctx.arc(r.x, r.y, r.r0 + (r.r1 - r.r0) * e, 0, 6.283); ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+  // players, small first; crowns go to the top 3 scores
+  const alive = aliveList();
+  const ranked = alive.slice().sort((a, b) => b.score - a.score);
+  const rankOf = new Map(ranked.map((p, i) => [p, i]));
+  alive.sort((a, b) => a.r - b.r);
+  for (const p of alive) drawPlayer(p, rankOf.get(p));
+  for (const s of G.saws) drawSaw(s);
+  // particles
+  ctx.globalCompositeOperation = 'lighter';
+  for (const q of G.parts) {
+    ctx.globalAlpha = Math.max(0, q.life / q.max);
+    if (q.heart) continue;
+    const s = q.s * 3; ctx.drawImage(glow(q.c), q.x - s / 2, q.y - s / 2, s, s);
+  }
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.font = `${14 * S}px system-ui,sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  for (const q of G.parts) { if (!q.heart) continue; ctx.globalAlpha = Math.max(0, q.life / q.max); ctx.fillStyle = q.c; ctx.fillText('♥', q.x, q.y); }
+  ctx.globalAlpha = 1;
+  // chat bubbles
+  for (const b of G.bubbles) {
+    const p = b.p, fs = 11 * S;
+    ctx.font = `700 ${fs}px system-ui,sans-serif`;
+    const w = ctx.measureText(b.msg).width + 14 * S, h = fs + 10 * S;
+    const bx = clamp(p.x - w / 2, 4, W - w - 4), by = clamp(p.y - p.r - h - 18 * S, 4, H - h - 4);
+    ctx.globalAlpha = Math.min(1, b.life);
+    ctx.fillStyle = 'rgba(255,255,255,.92)';
+    ctx.beginPath(); ctx.moveTo(bx + 8, by); ctx.arcTo(bx + w, by, bx + w, by + h, 8); ctx.arcTo(bx + w, by + h, bx, by + h, 8); ctx.arcTo(bx, by + h, bx, by, 8); ctx.arcTo(bx, by, bx + w, by, 8); ctx.fill();
+    ctx.fillStyle = '#14052e'; ctx.fillText(b.msg, bx + w / 2, by + h / 2 + 0.5);
+    ctx.globalAlpha = 1;
+  }
+  // floating texts
+  for (const tx of G.texts) {
+    ctx.globalAlpha = Math.min(1, tx.life / tx.max * 1.6);
+    ctx.font = `900 ${tx.size}px system-ui,sans-serif`; ctx.lineWidth = tx.size * 0.2; ctx.strokeStyle = 'rgba(0,0,0,.8)';
+    ctx.strokeText(tx.str, tx.x, tx.y); ctx.fillStyle = tx.c; ctx.fillText(tx.str, tx.x, tx.y);
+  }
+  ctx.globalAlpha = 1;
+  if (flashA > 0) { ctx.fillStyle = `rgba(255,255,255,${flashA})`; ctx.fillRect(0, 0, W, H); }
+}
+
+/* ---------------- HUD / UI ---------------- */
 const $ = id => document.getElementById(id);
-const UI = {
-  lastHud: 0, lastLb: 0,
-  init() {
-    this.feed = $('feed');
-    $('btnPlay').addEventListener('click', () => Game.start());
-    $('nameInput').addEventListener('keydown', e => { if (e.key === 'Enter') Game.start(); });
-    $('btnPause').addEventListener('click', () => Game.togglePause());
-    $('btnResume').addEventListener('click', () => Game.togglePause());
-    $('btnRestart').addEventListener('click', () => Game.restart());
-    $('btnPauseRestart').addEventListener('click', () => Game.restart());
-    $('btnDeathRestart').addEventListener('click', () => Game.restart());
-    $('btnRespawn').addEventListener('click', () => Game.respawnHuman());
-    $('btnGifts').addEventListener('click', () => $('giftPanel').classList.toggle('hidden'));
-    $('btnCloseGifts').addEventListener('click', () => $('giftPanel').classList.add('hidden'));
-    document.querySelectorAll('#giftPanel .gifts button').forEach(btn => {
-      btn.addEventListener('click', () => this.simulate(btn.dataset.evt));
-    });
-    $('btnSendComment').addEventListener('click', () => this.simulate('comment'));
-    $('commentText').addEventListener('keydown', e => { if (e.key === 'Enter') this.simulate('comment'); });
-    let saved = '';
-    try { saved = localStorage.getItem('cal_name') || ''; Game.best = +(localStorage.getItem('cal_best') || 0); } catch (e) { /* storage unavailable */ }
-    $('nameInput').value = saved;
-    if (Game.best > 0) $('bestLine').textContent = '🏆 Best score: ' + Game.best;
-    this.positionControls();
-  },
+let hudT = 0;
+function updateHud(dt) {
+  hudT -= dt;
+  if (hudT > 0) return;
+  hudT = 0.25;
+  const alive = aliveList().sort((a, b) => b.score - a.score);
+  $('left').textContent = alive.length;
+  const tl = Math.max(0, Math.ceil(G.timeLeft));
+  $('timer').textContent = Math.floor(tl / 60) + ':' + String(tl % 60).padStart(2, '0');
+  const N = H < 500 ? 4 : 5;
+  const list = $('lbList'); list.textContent = '';
+  alive.slice(0, N).forEach((p, i) => {
+    const li = document.createElement('li'); if (p.isHost) li.className = 'me';
+    const a = document.createElement('span'); a.className = 'rk'; a.textContent = i + 1;
+    const b = document.createElement('span'); b.className = 'nm'; b.textContent = p.name;
+    const c = document.createElement('span'); c.className = 'sc'; c.textContent = fmt(p.score);
+    const d = document.createElement('span'); d.className = 'kl'; d.textContent = p.kills ? p.kills + '💀' : '';
+    li.append(a, b, c, d); list.appendChild(li);
+  });
+  const h = G.host;
+  if (h && h.alive) { $('youScore').textContent = fmt(h.score); $('youLv').textContent = 'LV ' + levelFor(h.score) + ' · #' + (alive.indexOf(h) + 1); }
+  else if (h) { $('youScore').textContent = '💀'; $('youLv').textContent = 'respawning…'; }
+}
 
-  positionControls() {
-    const hud = $('hud').getBoundingClientRect(), c = $('controls').style;
-    if (window.innerHeight < 500 && window.innerWidth > window.innerHeight) {
-      // Landscape phone: put the buttons beside the HUD so they don't sit on the joystick.
-      c.top = hud.top + 'px'; c.left = (hud.right + 8) + 'px';
-    } else {
-      c.top = (hud.bottom + 8) + 'px'; c.left = '';
-    }
-  },
+function positionButtons() {
+  const r = $('info').getBoundingClientRect();
+  $('btns').style.top = (r.bottom + 6) + 'px';
+}
 
-  simulate(kind) {
-    if (!Game.world || Game.state === 'menu') { this.toast('⚠', 'Start the game first', '#ffd84d'); return; }
-    const user = ($('giftUser').value.trim() ? '@' + $('giftUser').value.trim().replace(/^@/, '') : undefined);
-    const target = $('giftTarget').value;
-    const base = user ? { user } : {};
-    if (['rose', 'heart', 'galaxy', 'universe'].includes(kind)) LiveEvents.emit(Object.assign(base, { type: 'gift', gift: kind, target }));
-    else if (kind === 'follow') LiveEvents.emit(Object.assign(base, { type: 'follow' }));
-    else if (kind === 'like') LiveEvents.emit(Object.assign(base, { type: 'like', count: 10 }));
-    else if (kind === 'join') LiveEvents.emit(Object.assign(base, { type: 'join' }));
-    else if (kind === 'comment') {
-      const text = $('commentText').value.trim();
-      LiveEvents.emit(Object.assign(base, { type: 'comment', comment: text, target }));
-      $('commentText').value = '';
-    }
-  },
+let bannerTimer = 0;
+function banner(msg) {
+  const b = $('banner'); b.textContent = msg; b.classList.add('show');
+  clearTimeout(bannerTimer); bannerTimer = setTimeout(() => b.classList.remove('show'), 3000);
+}
+function giftFeed(icon, user) {
+  const box = $('giftFeed'), el = document.createElement('div');
+  el.className = 'gf';
+  const e = document.createElement('em'); e.textContent = icon;
+  const s = document.createElement('span'); s.textContent = user;
+  el.append(e, s); box.prepend(el);
+  while (box.children.length > 5) box.lastChild.remove();
+  setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 650); }, 6000);
+}
+function chatLine(user, msg, color) {
+  const box = $('chat'), el = document.createElement('div');
+  el.className = 'cm';
+  const b = document.createElement('b'); b.textContent = user;
+  const s = document.createElement('span'); s.textContent = msg; if (color) s.style.color = color;
+  el.append(b, s); box.appendChild(el);
+  while (box.children.length > 5) box.firstChild.remove();
+  setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 650); }, 7000);
+}
+function toast(icon, msg, color) { chatLine(icon, msg, color); }
 
-  toast(icon, text, color) {
-    const el = document.createElement('div');
-    el.className = 'toast';
-    el.style.setProperty('--c', color || '#00f0ff');
-    const b = document.createElement('b'); b.textContent = icon;
-    const s = document.createElement('span'); s.textContent = text;
-    el.append(b, s);
-    this.feed.appendChild(el);
-    while (this.feed.children.length > 4) this.feed.firstChild.remove();
-    setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 420); }, 3200);
-  },
+/* ---------------- input: taps = likes ---------------- */
+function hostTap(x, y) {
+  if (G.phase !== 'play' || G.paused) return;
+  const h = G.host;
+  if (!h) return;
+  if (!h.alive) return;
+  addScore(h, CONFIG.TAP_SCORE, null);
+  heartsAt(h, 1);
+  // a little heart where your finger is
+  G.parts.push({ x, y, vx: rand(-15, 15), vy: -60 * S, life: 0.7, max: 0.7, s: 0, heart: true, c: '#ff2bd6' });
+}
+canvas.addEventListener('pointerdown', e => { e.preventDefault(); hostTap(e.clientX, e.clientY); });
+canvas.addEventListener('contextmenu', e => e.preventDefault());
+window.addEventListener('keydown', e => {
+  if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT')) return;
+  if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); if (!e.repeat) hostTap(W / 2, H / 2); }
+  if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') togglePause();
+});
+document.addEventListener('touchmove', e => { if (!e.target.closest('#giftPanel')) e.preventDefault(); }, { passive: false });
+document.addEventListener('gesturestart', e => e.preventDefault());
+document.addEventListener('dblclick', e => e.preventDefault());
 
-  show(id, on) { $(id).classList.toggle('hidden', !on); },
+function togglePause() {
+  if (G.phase === 'menu') return;
+  G.paused = !G.paused;
+  $('pauseBox').classList.toggle('hidden', !G.paused);
+  $('btnPause').textContent = G.paused ? '▶' : '❚❚';
+}
 
-  update(now) {
-    const w = Game.world;
-    if (!w) return;
-    if (now - this.lastHud > 120) {
-      this.lastHud = now;
-      const p = Game.human;
-      $('hudName').textContent = p ? p.name : 'Spectating';
-      $('hudScore').textContent = p ? Math.floor(p.score) : 0;
-      $('hudLevel').textContent = p ? p.level : 1;
-      $('hudSize').textContent = p ? Math.floor(p.mass) : 0;
-      $('hudPlayers').textContent = Sim.aliveCount(w);
-      $('meterFill').style.width = w.community + '%';
-      $('meterPct').textContent = Math.floor(w.community) + '%';
-      $('hudViewers').textContent = w.viewers;
-      $('hudLikes').textContent = w.likes;
-      const chips = [];
-      if (p && p.alive) {
-        if (p.speedT > 0) chips.push(['💗 SPEED ' + Math.ceil(p.speedT) + 's', '#ff5fa2']);
-        if (p.shieldT > 0) chips.push(['🛡 SHIELD ' + Math.ceil(p.shieldT) + 's', '#7df9ff']);
-        if (p.transformT > 0) chips.push(['🪐 COSMIC ' + Math.ceil(p.transformT) + 's', '#c77dff']);
-        if (p.magnetT > 0) chips.push(['🧲 MAGNET ' + Math.ceil(p.magnetT) + 's', '#ff7bf2']);
-      }
-      if (w.goldenT > 0) chips.push(['✨ GOLDEN x2 ' + Math.ceil(w.goldenT) + 's', '#ffd84d']);
-      const html = chips.map(c => `<span style="--c:${c[1]}">${c[0]}</span>`).join('');
-      const fx = $('effects');
-      if (fx.innerHTML !== html) { fx.innerHTML = html; this.positionControls(); }
-    }
-    if (now - this.lastLb > 500) {
-      this.lastLb = now;
-      const alive = w.players.filter(p => p.alive).sort((a, b) => b.score - a.score);
-      const N = window.innerWidth < 600 ? 5 : window.innerHeight < 500 ? 4 : 8;
-      const list = $('lbList');
-      list.textContent = '';
-      const add = (p, rank) => {
-        const li = document.createElement('li');
-        if (p === Game.human) li.className = 'me';
-        const rk = document.createElement('span'); rk.className = 'rk'; rk.textContent = rank;
-        const nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = p.name;
-        const sc = document.createElement('span'); sc.className = 'sc'; sc.textContent = Math.floor(p.score);
-        li.append(rk, nm, sc); list.appendChild(li);
-      };
-      alive.slice(0, N).forEach((p, i) => add(p, i + 1));
-      const myRank = alive.indexOf(Game.human);
-      if (myRank >= N) {
-        const gap = document.createElement('li'); gap.className = 'gap'; gap.textContent = '···'; list.appendChild(gap);
-        add(Game.human, myRank + 1);
-      }
-    }
+function startGame() {
+  let name = $('nameInput').value.trim().slice(0, 14);
+  if (!name) name = 'Host';
+  try { localStorage.setItem('cal_name', name); } catch (err) { /* ignore */ }
+  G.hostName = name; G.host = null; G.round = 1;
+  newRound(false);
+  $('startScreen').classList.add('hidden');
+  chatLine('🎮', 'Tap the screen to grow your circle!', '#00f0ff');
+}
+
+$('btnPlay').addEventListener('click', startGame);
+$('nameInput').addEventListener('keydown', e => { if (e.key === 'Enter') startGame(); });
+$('btnPause').addEventListener('click', togglePause);
+$('btnRestart').addEventListener('click', () => { if (G.phase === 'menu') return; G.round = 1; G.host = null; newRound(false); if (G.paused) togglePause(); chatLine('↻', 'New game started', '#9d4dff'); });
+$('btnGifts').addEventListener('click', () => $('giftPanel').classList.toggle('hidden'));
+$('btnCloseGifts').addEventListener('click', () => $('giftPanel').classList.add('hidden'));
+$('btnAuto').addEventListener('click', () => {
+  G.auto = !G.auto;
+  $('btnAuto').textContent = '🤖 AUTO VIEWERS: ' + (G.auto ? 'ON' : 'OFF');
+  $('btnAuto').classList.toggle('off', !G.auto);
+});
+function simulate(kind) {
+  if (G.phase === 'menu') return;
+  const typed = $('giftUser').value.trim().replace(/^@/, '');
+  const user = typed || fakeName();
+  const target = $('giftTarget').value;
+  if (GIFTS[kind]) LiveEvents.emit({ type: 'gift', gift: kind, user, target });
+  else if (kind === 'like') LiveEvents.emit({ type: 'like', user, count: 15 });
+  else if (kind === 'comment') { LiveEvents.emit({ type: 'comment', user, comment: $('commentText').value.trim() || pick(CHAT_LINES) }); $('commentText').value = ''; }
+  else LiveEvents.emit({ type: kind, user });
+}
+document.querySelectorAll('#giftPanel .gifts button').forEach(b => b.addEventListener('click', () => simulate(b.dataset.evt)));
+$('btnSendComment').addEventListener('click', () => simulate('comment'));
+$('commentText').addEventListener('keydown', e => { if (e.key === 'Enter') simulate('comment'); });
+try { $('nameInput').value = localStorage.getItem('cal_name') || ''; } catch (err) { /* ignore */ }
+
+window.addEventListener('resize', resize);
+window.addEventListener('orientationchange', () => setTimeout(resize, 250));
+document.addEventListener('visibilitychange', () => { if (document.hidden && !G.paused && G.phase !== 'menu') togglePause(); });
+
+/* ---------------- main loop ---------------- */
+let last = performance.now();
+function loop(now) {
+  const dt = Math.min(0.05, (now - last) / 1000 || 0);
+  last = now;
+  if (!G.paused) {
+    step(dt);
+    flashA = Math.max(0, flashA - dt * 1.5);
   }
-};
+  draw();
+  if (G.phase !== 'menu') updateHud(dt);
+  requestAnimationFrame(loop);
+}
 
-/* ---------------- 8. GAME (main loop) ---------------- */
-const Game = {
-  world: null, human: null, state: 'menu', best: 0, acc: 0, last: 0, deathAt: 0,
+// Behind the start screen: a demo arena so it looks alive.
+resize();
+(function demo() {
+  G.saws = []; for (let i = 0; i < CONFIG.SAW_COUNT; i++) G.saws.push(makeSaw());
+  for (let i = 0; i < 14; i++) addPlayer(fakeName(), { score: Math.floor(rand(10, 2500)) });
+  for (let i = 0; i < 40; i++) addPellet();
+  G.phase = 'demo';
+})();
+requestAnimationFrame(loop);
 
-  focus() {
-    if (this.human && (this.human.alive || this.state === 'dead')) return this.human;
-    if (!this.world) return null;
-    let best = null;
-    for (const p of this.world.players) if (p.alive && (!best || p.mass > best.mass)) best = p;
-    return best;
-  },
-
-  buildWorld() {
-    const w = Sim.createWorld();
-    for (let i = 0; i < CONFIG.BOT_COUNT; i++) {
-      const m = CONFIG.START_MASS * (Math.random() < 0.3 ? rand(3, 7) : rand(0.9, 2.5));
-      Sim.addPlayer(w, { name: Sim.botName(w), isBot: true, mass: m });
-    }
-    // warm up so bots are spread out and moving
-    Sim.buildGrid(w);
-    for (let i = 0; i < 60; i++) Sim.step(w, CONFIG.TICK);
-    w.events.length = 0;
-    return w;
-  },
-
-  attract() {
-    this.world = this.buildWorld();
-    this.human = null;
-    this.state = 'menu';
-  },
-
-  start() {
-    let name = $('nameInput').value.trim().slice(0, 14);
-    if (!name) name = 'Player' + Math.floor(rand(10, 99));
-    try { localStorage.setItem('cal_name', name); } catch (e) { /* ignore */ }
-    this.playerName = name;
-    this.newGame();
-  },
-
-  newGame() {
-    this.world = this.buildWorld();
-    Renderer.reset();
-    this.human = Sim.addPlayer(this.world, { name: this.playerName, isHuman: true, color: '#00f0ff' });
-    Renderer.cam.x = this.human.x; Renderer.cam.y = this.human.y;
-    this.state = 'playing';
-    UI.show('startScreen', false); UI.show('pauseScreen', false); UI.show('deathScreen', false);
-    UI.toast('🎮', 'Welcome to the arena, ' + this.human.name + '!', '#00f0ff');
-  },
-
-  restart() {
-    if (!this.playerName) { this.start(); return; }
-    this.newGame();
-    UI.toast('↻', 'Arena restarted', '#9d4dff');
-  },
-
-  togglePause() {
-    if (this.state === 'playing') { this.state = 'paused'; UI.show('pauseScreen', true); Input.keys = {}; }
-    else if (this.state === 'paused') { this.state = 'playing'; UI.show('pauseScreen', false); this.last = performance.now(); }
-  },
-
-  respawnHuman() {
-    if (!this.human) return;
-    Sim.respawn(this.world, this.human);
-    this.state = 'playing';
-    UI.show('deathScreen', false);
-  },
-
-  onHumanDeath(by) {
-    const p = this.human;
-    this.state = 'dead';
-    this.deathAt = performance.now();
-    const score = Math.floor(p.score);
-    if (score > this.best) { this.best = score; try { localStorage.setItem('cal_best', String(score)); } catch (e) { /* ignore */ } }
-    $('deathBy').textContent = 'You were eaten by ' + by + '.';
-    $('dScore').textContent = score;
-    $('dLevel').textContent = p.peakLevel;
-    $('dTime').textContent = Math.floor(this.world.time - p.born) + 's';
-    $('dBest').textContent = this.best;
-    $('bestLine').textContent = '🏆 Best score: ' + this.best;
-    setTimeout(() => { if (this.state === 'dead') UI.show('deathScreen', true); }, 900);
-  },
-
-  handleEvents() {
-    const evs = this.world.events;
-    for (const e of evs) {
-      Renderer.onEvent(e, this.human);
-      if (e.type === 'eat' && this.human) {
-        if (e.victim === this.human) this.onHumanDeath(e.eater.name);
-        else if (e.eater === this.human) UI.toast('💥', 'You ate ' + e.victim.name + '!', '#ff2bd6');
-      }
-      if (e.type === 'levelup' && e.p === this.human) UI.toast('⬆', 'LEVEL UP! Level ' + e.level, '#ffd84d');
-    }
-    evs.length = 0;
-  },
-
-  loop(now) {
-    const dt = Math.min(0.1, (now - this.last) / 1000 || 0);
-    this.last = now;
-    const running = this.state === 'playing' || this.state === 'dead' || this.state === 'menu';
-    if (running) {
-      this.acc += dt;
-      let steps = 0;
-      while (this.acc >= CONFIG.TICK && steps < 6) {
-        if (this.human && this.human.alive && this.state === 'playing') {
-          const z = Renderer.cam.zoom;
-          const sx = Renderer.w / 2 + (this.human.x - Renderer.cam.x) * z, sy = Renderer.h / 2 + (this.human.y - Renderer.cam.y) * z;
-          const inp = Input.read(sx, sy);
-          Sim.setInput(this.human, inp.dx, inp.dy, inp.boost);
-        }
-        Sim.step(this.world, CONFIG.TICK);
-        this.acc -= CONFIG.TICK;
-        steps++;
-      }
-      if (steps === 6) this.acc = 0;
-      this.handleEvents();
-      Renderer.update(this.world, dt);
-    } else {
-      this.acc = 0;
-    }
-    Renderer.draw(this.world, this.focus(), running ? dt : 0);
-    UI.update(now);
-    requestAnimationFrame(t => this.loop(t));
-  },
-
-  init() {
-    Renderer.init();
-    Input.init();
-    UI.init();
-    this.attract();
-    const onResize = () => { Renderer.resize(); Input.layout(); UI.positionControls(); };
-    window.addEventListener('resize', onResize);
-    window.addEventListener('orientationchange', () => setTimeout(onResize, 250));
-    document.addEventListener('visibilitychange', () => { if (document.hidden && this.state === 'playing') this.togglePause(); });
-    this.last = performance.now();
-    requestAnimationFrame(t => this.loop(t));
-  }
-};
-
-// Handy for debugging in the browser console: CircleArena.world, CircleArena.LiveEvents.emit({...})
-window.CircleArena = { CONFIG, Sim, AI, LiveEvents, Game, Renderer, Input, UI };
-Game.init();
+window.CircleArena = { G, CONFIG, LiveEvents };
 })();
 </script>
 </body>

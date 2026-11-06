@@ -142,10 +142,10 @@ input,select{font-family:inherit;font-size:16px;user-select:text;-webkit-user-se
     </select>
   </div>
   <div class="gifts">
-    <button data-evt="rose" style="--c:#ff2bd6"><em>🌹</em>Rose<small>+50 · speed</small></button>
-    <button data-evt="heart" style="--c:#ff5fa2"><em>💗</em>Heart<small>+200 · shield</small></button>
-    <button data-evt="galaxy" style="--c:#9d4dff"><em>🌌</em>Galaxy<small>+1K · shockwave</small></button>
-    <button data-evt="universe" style="--c:#00f0ff"><em>🪐</em>Universe<small>+5K · hunter mode</small></button>
+    <button data-evt="rose" style="--c:#ff2bd6"><em>🌹</em>Rose<small>+50 · ⚡+1 · speed</small></button>
+    <button data-evt="heart" style="--c:#ff5fa2"><em>💗</em>Heart<small>+200 · ⚡+3 · shield</small></button>
+    <button data-evt="galaxy" style="--c:#9d4dff"><em>🌌</em>Galaxy<small>+1K · ⚡+10 · shockwave</small></button>
+    <button data-evt="universe" style="--c:#00f0ff"><em>🪐</em>Universe<small>+5K · ⚡+30 · hunter</small></button>
     <button data-evt="follow" style="--c:#3d7bff"><em>➕</em>New Follower<small>joins with +100</small></button>
     <button data-evt="like" style="--c:#ff7bf2"><em>👆</em>Taps ×15<small>likes = growth</small></button>
     <button data-evt="join" style="--c:#7df9ff"><em>👋</em>Viewer Joins<small>new circle</small></button>
@@ -158,14 +158,13 @@ input,select{font-family:inherit;font-size:16px;user-select:text;-webkit-user-se
 <div id="startScreen" class="overlay">
   <div class="card glass">
     <div class="bigTitle">CIRCLE ARENA<small>LIVE</small></div>
-    <p class="sub">Every tap makes your circle bigger.<br>Big circles eat small ones. Dodge the spinning saws.<br>Last circle standing wins the round!</p>
+    <p class="sub">Every viewer gets a circle.<br>The more they tap, the bigger they grow.<br>The more gifts they send, the stronger they get.<br>Last circle standing wins the round!</p>
     <input id="nameInput" maxlength="14" placeholder="Your name" autocomplete="off">
     <button id="btnPlay" class="btn">START</button>
     <div class="help">
       👆 <b>Tap the screen</b> as fast as you can. Every tap is a like that grows <b>your</b> circle.<br>
       🤖 Pretend viewers join and tap too, so the arena stays busy.<br>
-      🎁 Send test gifts with the gift button.<br>
-      ⚙ <a href="classic.html">Classic mode (steer with a joystick)</a>
+      🎁 Gifts give a circle <b>⚡ power</b>: more speed, armor against saws, stealing points when bumping, and at ⚡10 <b>Giant Jaws</b> (eat almost anyone smaller).
     </div>
   </div>
 </div>
@@ -283,6 +282,13 @@ const G = {
 
 const radiusFor = s => Math.min((11 + 6.5 * Math.log2(1 + Math.max(0, s) / 8)) * S, Math.min(W, H) * 0.2);
 const aliveList = () => G.players.filter(p => p.alive);
+/* ---- Gift POWER abilities (stack for the whole round) ----
+   ⚡ power comes from gifts. Each point gives:
+     +2% speed (max +40%), saw armor, and bump-stealing.
+   At ⚡10+ the circle unlocks GIANT JAWS: it can eat circles only 5% smaller. */
+const JAWS_POWER = 10;
+const eatRatio = p => (p.power >= JAWS_POWER ? 1.05 : CONFIG.EAT_RATIO);
+const canEat = (big, small) => small.shieldT <= 0 && big.score >= small.score * eatRatio(big);
 
 function spawnPoint(r) {
   let best = { x: W / 2, y: H / 2 }, bestD = -1;
@@ -303,7 +309,7 @@ function addPlayer(name, opts) {
   const r = radiusFor(score), pos = spawnPoint(r), a = Math.random() * Math.PI * 2;
   const p = { id: G.nextId++, name, score, kills: 0, r, x: pos.x, y: pos.y, vx: Math.cos(a) * 40, vy: Math.sin(a) * 40,
     color: opts.color || pick(PALETTE), emoji: opts.emoji || pick(EMOJI), alive: true, isHost: !!opts.isHost,
-    shieldT: 1.5, hunterT: 0, boostT: 0, hitCD: 0, newT: opts.isNew ? 6 : 0, wa: a, spin: rand(0.6, 1.4) * (Math.random() < 0.5 ? -1 : 1), deadT: 0, pulse: 0 };
+    power: 0, shieldT: 1.5, hunterT: 0, boostT: 0, hitCD: 0, newT: opts.isNew ? 6 : 0, wa: a, spin: rand(0.6, 1.4) * (Math.random() < 0.5 ? -1 : 1), deadT: 0, pulse: 0 };
   G.players.push(p);
   G.byName.set(name, p);
   ring(p.x, p.y, 4, p.r + 40 * S, 0.6, p.color, 3);
@@ -399,8 +405,8 @@ function step(dt) {
     for (const o of alive) {
       if (o === p) continue;
       const d = Math.hypot(o.x - p.x, o.y - p.y) - o.r - p.r;
-      if (o.score >= p.score * CONFIG.EAT_RATIO && p.shieldT <= 0 && d < view && d < td) { threat = o; td = d; }
-      else if (p.score >= o.score * CONFIG.EAT_RATIO && o.shieldT <= 0 && (d < view * 1.2 || p.hunterT > 0) && d < pd) { prey = o; pd = d; }
+      if (canEat(o, p) && d < view && d < td) { threat = o; td = d; }
+      else if (canEat(p, o) && (d < view * 1.2 || p.hunterT > 0) && d < pd) { prey = o; pd = d; }
     }
     if (threat) { const d = Math.hypot(p.x - threat.x, p.y - threat.y) || 1; dx += (p.x - threat.x) / d * 2.2; dy += (p.y - threat.y) / d * 2.2; }
     if (prey) { const d = Math.hypot(prey.x - p.x, prey.y - p.y) || 1, w = p.hunterT > 0 ? 3 : 1.4; dx += (prey.x - p.x) / d * w; dy += (prey.y - p.y) / d * w; }
@@ -416,6 +422,7 @@ function step(dt) {
     let speed = (45 + 80 / (1 + p.r / (25 * S))) * S;
     if (p.boostT > 0) speed *= 1.6;
     if (p.hunterT > 0) speed *= 1.7;
+    speed *= 1 + Math.min(0.4, p.power * 0.02);
     const k = 1 - Math.exp(-2.2 * dt);
     p.vx += (dx / dl * speed - p.vx) * k; p.vy += (dy / dl * speed - p.vy) * k;
     p.x += p.vx * dt; p.y += p.vy * dt;
@@ -438,9 +445,8 @@ function step(dt) {
       if (!b.alive) continue;
       const dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy) || 0.01, rs = a.r + b.r;
       if (d >= rs) continue;
-      const big = a.score >= b.score ? a : b, small = big === a ? b : a;
-      const canEat = big.score >= small.score * CONFIG.EAT_RATIO && small.shieldT <= 0;
-      if (canEat) {
+      const big = canEat(a, b) ? a : canEat(b, a) ? b : (a.score >= b.score ? a : b), small = big === a ? b : a;
+      if (canEat(big, small)) {
         if (d < big.r - small.r * 0.25) {
           big.score += small.score * CONFIG.EAT_GAIN; big.kills++; big.pulse = 1;
           text(big.x, big.y - big.r - 8 * S, '+' + fmt(small.score * CONFIG.EAT_GAIN), '#39ff7a', 16);
@@ -452,7 +458,17 @@ function step(dt) {
         a.x -= nx * overlap * (mb / tot); a.y -= ny * overlap * (mb / tot);
         b.x += nx * overlap * (ma / tot); b.y += ny * overlap * (ma / tot);
         const rv = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny;
-        if (rv < 0) { const imp = -1.8 * rv / tot; a.vx -= imp * mb * nx; a.vy -= imp * mb * ny; b.vx += imp * ma * nx; b.vy += imp * ma * ny; }
+        if (rv < 0) {
+          const imp = -1.8 * rv / tot; a.vx -= imp * mb * nx; a.vy -= imp * mb * ny; b.vx += imp * ma * nx; b.vy += imp * ma * ny;
+          // ⚡ power bump: the stronger circle steals points
+          if (a.power !== b.power && rv < -20 * S) {
+            const st = a.power > b.power ? a : b, wk = st === a ? b : a;
+            if (wk.shieldT <= 0) {
+              const take = wk.score * Math.min(0.2, 0.02 * (st.power - wk.power));
+              if (take >= 1) { wk.score -= take; st.score += take; text(st.x, st.y - st.r - 6 * S, '⚡+' + fmt(take), '#ffd84d', 14); burst((a.x + b.x) / 2, (a.y + b.y) / 2, '#ffd84d', 8, 160 * S); }
+            }
+          }
+        }
       }
     }
   }
@@ -471,7 +487,7 @@ function step(dt) {
         const nx = dx / d, ny = dy / d;
         p.vx += nx * 260 * S; p.vy += ny * 260 * S;
         if (p.shieldT > 0) { ring(p.x, p.y, p.r, p.r + 20 * S, 0.3, '#7df9ff', 3); continue; }
-        const dmg = Math.max(1, p.score * CONFIG.SAW_DAMAGE);
+        const dmg = Math.max(1, p.score * CONFIG.SAW_DAMAGE / (1 + p.power * 0.15));
         p.score -= dmg;
         text(p.x + nx * p.r * 0.5, p.y - p.r * 0.3, '-' + fmt(dmg), '#ff4d6d', 15);
         burst(s.x + (p.x - s.x) * 0.5, s.y + (p.y - s.y) * 0.5, '#ffffff', 10, 200 * S);
@@ -537,10 +553,10 @@ const LiveEvents = {
 };
 
 const GIFTS = {
-  rose:     { icon: '🌹', name: 'Rose',     score: 50 },
-  heart:    { icon: '💗', name: 'Heart',    score: 200 },
-  galaxy:   { icon: '🌌', name: 'Galaxy',   score: 1000 },
-  universe: { icon: '🪐', name: 'Universe', score: 5000 }
+  rose:     { icon: '🌹', name: 'Rose',     score: 50,   power: 1 },
+  heart:    { icon: '💗', name: 'Heart',    score: 200,  power: 3 },
+  galaxy:   { icon: '🌌', name: 'Galaxy',   score: 1000, power: 10 },
+  universe: { icon: '🪐', name: 'Universe', score: 5000, power: 30 }
 };
 
 LiveEvents.on(e => {
@@ -583,7 +599,10 @@ LiveEvents.on(e => {
       else p = getOrJoin(user);
       if (!p) return;
       giftFeed(g.icon, user);
-      addScore(p, g.score, '+' + fmt(g.score), '#ffd84d');
+      addScore(p, g.score, '+' + fmt(g.score) + '  ⚡+' + g.power, '#ffd84d');
+      const before = p.power;
+      p.power += g.power;
+      if (before < JAWS_POWER && p.power >= JAWS_POWER) { banner(`${p.name} unlocked GIANT JAWS 🦈`); ring(p.x, p.y, p.r, p.r + 90 * S, 0.7, '#ffd84d', 6); }
       if (e.gift === 'rose') { p.boostT = 4; burst(p.x, p.y, '#ff2bd6', 18, 160 * S); }
       if (e.gift === 'heart') { p.shieldT = Math.max(p.shieldT, 10); burst(p.x, p.y, '#ff5fa2', 24, 180 * S); }
       if (e.gift === 'galaxy') { shockwave(p); banner(`${user} sent a Galaxy 🌌`); }
@@ -730,6 +749,16 @@ function drawPlayer(p, rank) {
   const half = ctx.measureText(nm).width / 2 + 3;
   const nx = clamp(x, half, W - half), nyy = Math.min(ny, H - fn * 0.7);
   ctx.strokeText(nm, nx, nyy); ctx.fillStyle = p.isHost ? '#00f0ff' : 'rgba(255,255,255,.9)'; ctx.fillText(nm, nx, nyy);
+  // ⚡ power badge
+  if (p.power > 0) {
+    const t2 = (p.power >= JAWS_POWER ? '🦈' : '') + '⚡' + p.power, fsb = Math.max(9 * S, Math.min(13 * S, r * 0.28));
+    ctx.font = `900 ${fsb}px system-ui,sans-serif`;
+    const bw = ctx.measureText(t2).width + 10 * S, bh = fsb + 6 * S, bx = x - r * 0.75 - bw / 2, by = y - r * 0.75 - bh / 2;
+    ctx.fillStyle = p.power >= JAWS_POWER ? 'rgba(255,216,77,.95)' : 'rgba(20,5,46,.9)';
+    ctx.strokeStyle = '#ffd84d'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.rect(bx, by, bw, bh); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = p.power >= JAWS_POWER ? '#14052e' : '#ffd84d'; ctx.fillText(t2, bx + bw / 2, by + bh / 2 + 0.5);
+  }
   // NEW badge
   if (p.newT > 0) {
     ctx.font = `900 ${9 * S}px system-ui,sans-serif`;

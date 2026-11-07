@@ -61,10 +61,10 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 <div id="banner"></div>
 <div id="win" class="box hidden"><div class="a">🏆 WINNER 🏆</div><div class="b" id="winName"></div><div class="c" id="winSub"></div></div>
 <div id="how" class="box">
-  <div class="st"><span>1</span> 💬 <b>TYPE 1–13</b> = pick your zodiac sign snake</div>
+  <div class="st"><span>1</span> 💬 <b>COMMENT 1–13</b> = pick your snake</div>
   <div class="st"><span>2</span> 👆 <b>TAP THE SCREEN</b> = your snake moves up</div>
   <div class="st"><span>3</span> 🏁 <b>FIRST TO THE TOP WINS!</b></div>
-  <div style="font-size:10.5px;color:#ffd84d;text-align:center">You must pick a number before your taps count!</div>
+  <div style="font-size:10.5px;color:#ffd84d;text-align:center">Type the number in the COMMENTS. Your taps only count after you pick!</div>
 </div>
 <div id="chip" class="hidden"></div>
 <div id="test" class="hidden">
@@ -160,9 +160,9 @@ function setLane(name, lane, info) {
 function needPick(name, p) {
   if (R.t - p.nagT < 25) return;
   p.nagT = R.t;
-  banner(`👉 ${name}: TYPE 1–13 to pick your zodiac sign snake first!`);
-  feed(`👉 ${name}, type a number 1–13 to pick your snake!`, '#ffd84d');
-  say(`${clean(name)}, pick your zodiac sign snake first! Type a number, one to thirteen.`, 'nag', 12);
+  banner(`👉 ${name}: COMMENT a number 1–13 to pick your snake first!`);
+  feed(`👉 ${name}, comment a number 1–13 to pick your snake!`, '#ffd84d');
+  say(`${clean(name)}, pick your zodiac sign snake first! Comment a number, one to thirteen.`, 'nag', 12);
 }
 // 🕳️ snake dives into a hole and pops up further ahead
 function tunnel(lane, jump) {
@@ -198,14 +198,14 @@ function onEvent(e) {
     const isNew = !R.players.has(name);
     getPlayer(name, e.pic);
     if (isNew) {
-      banner(`👋 ${name}! Type 1–13 to pick your zodiac sign snake, then TAP!`);
-      say(`Welcome ${clean(name)}! Pick your zodiac sign snake. Type a number, one to thirteen. Then tap the screen!`, 'welcome', 20);
+      banner(`👋 ${name}! Comment a number 1–13 to pick your snake, then TAP!`);
+      say(`Welcome ${clean(name)}! Pick your zodiac sign snake. Comment a number, one to thirteen. Then tap the screen!`, 'welcome', 20);
     }
   }
   else if (e.type === 'follow') { const p = getPlayer(name, e.pic); if (p.lane < 0) { needPick(name, p); return; } push(p.lane, 0.007); feed(`${name} followed ➕ boost!`, '#3d7bff'); }
   else if (e.type === 'gift') {
     const p = getPlayer(name, e.pic);
-    if (p.lane < 0) { if (p.pending.length < 20) p.pending.push(e); feed(`🎁 ${name}, thanks for the gift! Type 1–13 to pick your snake and it will count!`, '#ffd84d'); needPick(name, p); return; }
+    if (p.lane < 0) { if (p.pending.length < 20) p.pending.push(e); feed(`🎁 ${name}, thanks for the gift! Comment 1–13 to pick your snake and it will count!`, '#ffd84d'); needPick(name, p); return; }
     const coins = Math.max(1, Math.round(+e.coins || 1));
     const L = R.lanes[p.lane], sg = SIGNS[p.lane];
     p.taps += coins * 5;
@@ -264,7 +264,7 @@ function leaderBut(i) { let ld = -1, lp = -1; R.lanes.forEach((o, k) => { if (k 
 function stepSpin(dt) {
   if (R.phase === 'race') {
     R.howT = (R.howT || 0) + dt;
-    if (R.howT >= 120) { R.howT = 0; banner('💬 Type 1–13 to pick your zodiac sign snake · 👆 TAP to race · 🌹 Rose = spin!'); say('Pick your zodiac sign snake! Type a number, one to thirteen. Tap the screen to make it go. Send a rose to spin the wheel!', 'how', 100); }
+    if (R.howT >= 120) { R.howT = 0; banner('💬 Comment 1–13 to pick your snake · 👆 TAP to race · 🌹 Rose = spin!'); say('Pick your zodiac sign snake! Comment a number, one to thirteen. Tap the screen to make it go. Send a rose to spin the wheel!', 'how', 100); }
     R.bonusT = (R.bonusT || 0) + dt;
     if (R.bonusT >= 180) { R.bonusT = 0; R.spins.unshift({ user: 'BONUS', lane: -1, bonus: true }); feed('🎁 BONUS SPIN! Everyone watch the wheel!', '#ffd84d'); }
   }
@@ -585,8 +585,8 @@ function draw() {
     ctx.save(); ctx.translate(W / 2, TOP + (BOT - TOP) * 0.3); ctx.scale(pz, pz);
     ctx.globalAlpha = 0.85; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.font = `900 ${fs}px system-ui`; ctx.lineWidth = 6; ctx.strokeStyle = 'rgba(0,0,0,.75)';
-    ctx.strokeText('👆 TAP TAP TAP!', 0, 0); ctx.fillStyle = '#fff'; ctx.fillText('👆 TAP TAP TAP!', 0, 0);
-    ctx.font = `900 ${fs * 0.5}px system-ui`; ctx.strokeText('to race your snake ❤️', 0, fs * 0.85); ctx.fillStyle = '#ffd84d'; ctx.fillText('to race your snake ❤️', 0, fs * 0.85);
+    ctx.strokeText('💬 COMMENT 1–13', 0, 0); ctx.fillStyle = '#fff'; ctx.fillText('💬 COMMENT 1–13', 0, 0);
+    ctx.font = `900 ${fs * 0.5}px system-ui`; ctx.strokeText('to pick your snake, then 👆 TAP TAP TAP!', 0, fs * 0.85); ctx.fillStyle = '#ffd84d'; ctx.fillText('to pick your snake, then 👆 TAP TAP TAP!', 0, fs * 0.85);
     ctx.restore();
   }
   drawWheel();
@@ -663,7 +663,7 @@ function begin(mode) {
   if (mode === 'demo') { autoOn = true; $('test').classList.remove('hidden'); feed('Practice mode: pretend viewers are playing', '#7df9ff'); }
   else if (mode === 'laptop') Bridge.connect(params.get('ws') || 'ws://localhost:21213/');
   else if (mode === 'phone') { if (cloudUrl()) Bridge.connect(cloudUrl()); else showSetup(); }
-  say('Welcome to the Zodiac Snake Race! Pick your zodiac sign snake. Type a number, one to thirteen, then tap the screen!');
+  say('Welcome to the Zodiac Snake Race! Pick your zodiac sign snake. Comment a number, one to thirteen, then tap the screen!');
 }
 function showSetup() { $('sUser').value = ls.get('cal_cloud_user') || 'ancient_women_13_zodiac'; $('sKey').value = ls.get('cal_cloud_key'); $('setup').classList.remove('hidden'); }
 $('btnDemo').onclick = () => begin('demo');

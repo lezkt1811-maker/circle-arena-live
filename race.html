@@ -22,6 +22,8 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 #how{left:6px;right:6px;bottom:calc(6px + var(--sab));padding:7px 12px;font-size:13px;font-weight:800;line-height:1.45}
 #how .h{text-align:center;color:var(--gold);letter-spacing:.18em;font-size:11.5px}
 #how b{color:var(--cyan)}
+#how .st{font-size:15px;line-height:1.55;display:flex;gap:7px;align-items:center}
+#how .st span{display:inline-flex;align-items:center;justify-content:center;min-width:21px;height:21px;border-radius:50%;background:var(--pink);color:#fff;font-size:12px;font-weight:900}
 #how .g{margin-top:3px;padding-top:3px;border-top:1px solid rgba(157,77,255,.4);font-size:10.5px;color:#d9d2ff;text-align:center}
 #feed{position:absolute;left:8px;right:8px;z-index:6;display:flex;flex-direction:column;gap:2px;pointer-events:none}
 .f{font-size:12px;font-weight:700;text-shadow:0 1px 3px #000,0 0 2px #000;transition:opacity .6s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -53,10 +55,11 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 <div id="win" class="box hidden"><div class="a">🏆 WINNER 🏆</div><div class="b" id="winName"></div><div class="c" id="winSub"></div></div>
 <div id="how" class="box">
   <div class="h">HOW TO PLAY</div>
-  <div>👆 <b>JUST TAP THE SCREEN!</b> You get a snake automatically</div>
-  <div>💬 Want a different snake? Type its <b>number 1–13</b></div>
-  <div>🎁 <b>GIFTS</b> = boosts, blocks &amp; tunnels · 🏁 First to <b>1000 pts</b> wins!</div>
-  <div class="g">🌹1 SPIN THE WHEEL 🎡 · 💗5 big boost · 🪨10 block the leader · 🌌30 turbo<br>❄️99 freeze all rivals · 🕳️299 TUNNEL jump · 👑1000 MEGA TUNNEL</div>
+  <div class="st"><span>1</span> 👆 <b>TAP THE SCREEN</b> = you get a snake</div>
+  <div class="st"><span>2</span> 👆 <b>KEEP TAPPING</b> = your snake moves up</div>
+  <div class="st"><span>3</span> 🏁 <b>FIRST SNAKE TO THE TOP WINS!</b></div>
+  <div class="st"><span>🌹</span> Send a <b>ROSE</b> = spin the wheel 🎡</div>
+  <div class="g">💗5 boost · 🪨10 block leader · 🌌30 turbo · ❄️99 freeze · 🕳️299 tunnel · 👑1000 mega<br>Want a different snake? Type its number 1–13</div>
 </div>
 <div id="chip" class="hidden"></div>
 <div id="test" class="hidden">
@@ -515,6 +518,16 @@ function draw() {
     else { ctx.fillStyle = q.c; ctx.fillRect(q.x - 1.5, q.y - 1.5, 3, 3); }
   }
   ctx.globalAlpha = 1;
+  // big pulsing reminder in the middle of the track
+  if (R.phase === 'race') {
+    const pz = 1 + Math.sin(t * 4) * 0.06, fs = Math.min(W * 0.085, 34);
+    ctx.save(); ctx.translate(W / 2, TOP + (BOT - TOP) * 0.3); ctx.scale(pz, pz);
+    ctx.globalAlpha = 0.85; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.font = `900 ${fs}px system-ui`; ctx.lineWidth = 6; ctx.strokeStyle = 'rgba(0,0,0,.75)';
+    ctx.strokeText('👆 TAP TAP TAP!', 0, 0); ctx.fillStyle = '#fff'; ctx.fillText('👆 TAP TAP TAP!', 0, 0);
+    ctx.font = `900 ${fs * 0.5}px system-ui`; ctx.strokeText('to race your snake ❤️', 0, fs * 0.85); ctx.fillStyle = '#ffd84d'; ctx.fillText('to race your snake ❤️', 0, fs * 0.85);
+    ctx.restore();
+  }
   drawWheel();
 }
 

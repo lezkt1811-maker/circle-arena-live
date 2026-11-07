@@ -252,7 +252,7 @@ const fmt = n => { n = Math.max(0, Math.floor(n)); if (n < 1000) return String(n
 const levelFor = s => 1 + Math.floor(Math.log2(1 + Math.max(0, s) / 40));
 /* ---------------- 13-SIGN ZODIAC (StarChart13 boundaries) ----------------
    Same unequal constellation sectors StarChart13 uses (ecliptic longitude). */
-const ZODIAC = true;   // zodiac teams: viewers comment their birthday or sign (set false to turn off)
+const ZODIAC = false;   // zodiac teams: viewers comment their birthday or sign (set false to turn off)
 const SIGNS = [
   { name: 'Aries',       glyph: '♈︎', lo: 29.32,  span: 24,    color: '#ff4d6d', alias: ['aries', '♈'] },
   { name: 'Taurus',      glyph: '♉︎', lo: 53.32,  span: 38,    color: '#5cffa8', alias: ['taurus', '♉'] },
@@ -1734,7 +1734,6 @@ if (LIVE_MODE) {
   ht.classList.remove('hidden');
   ht.innerHTML = '<div class="h1">HOW TO PLAY</div>' +
     '<div>👆 <b>TAP THE SCREEN</b> to join &amp; grow</div>' +
-    '<div>💬 <b>COMMENT YOUR BIRTHDAY</b> (like <b>Dec 5</b>) to join your zodiac team</div>' +
     '<div>🎁 <b>SEND GIFTS</b> = super powers</div>' +
     '<div>🐍 Touch the snake\'s head = <b>+100</b></div>' +
     '<div>🏆 Biggest circle wins the round!</div>' +
@@ -1767,7 +1766,7 @@ if (LIVE_MODE) {
     gate.classList.add('hidden');
     try { if (navigator.wakeLock && !Sound.wake) navigator.wakeLock.request('screen').then(w => { Sound.wake = w; }).catch(() => {}); } catch (err) { /* ignore */ }
     if (Sound.on) return;
-    Sound.start(); Sound.say('Welcome to Circle Arena Live! Tap the screen to join, and type your sign in the chat!');
+    Sound.start(); Sound.say('Welcome to Circle Arena Live! Tap the screen to join and grow!');
   };
   document.addEventListener('pointerdown', startSound);
   document.addEventListener('keydown', startSound);

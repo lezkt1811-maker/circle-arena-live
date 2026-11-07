@@ -308,6 +308,8 @@ const LIVE_MODE = params.get('live') === '1';
 /* ---------------- screen ---------------- */
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
+// Safety: never let a bad radius crash the drawing.
+ctx.arc = function (x, y, r, a, b, c) { return CanvasRenderingContext2D.prototype.arc.call(this, x, y, r > 0 ? r : 0, a, b, c); };
 let W = 0, H = 0, S = 1, DPR = 1, bg = null;
 
 function resize() {
@@ -469,6 +471,90 @@ function eliminate(p, by) {
   if (p.isHost) toast('💀', 'You were ' + (by ? 'eaten by ' + by : 'cut by a saw') + '! Back in ' + CONFIG.HOST_RESPAWN + 's', '#ff2bd6');
 }
 
+/* ---------------- 🐍 THE OPHIUCHUS SERPENT ----------------
+   Slithers around the arena all game. Touching its HEAD gives a bonus. Never hurts anyone. */
+const SNAKE_BONUS = 100, SNAKE_LEN = 70;
+function makeSnake() {
+  return { x: W * 0.5, y: H * 0.6, ang: Math.random() * 6.283, trail: [], target: null, tx: W / 2, ty: H / 2, retarget: 0, tongue: 0 };
+}
+function updateSnake(dt, alive) {
+  const sn = G.snake; if (!sn) return;
+  const sp = 115 * S, headR = 15 * S;
+  sn.retarget -= dt;
+  if (sn.target && !sn.target.alive) sn.target = null;
+  if (sn.retarget <= 0 || (!sn.target && Math.hypot(sn.tx - sn.x, sn.ty - sn.y) < 40 * S)) {
+    sn.retarget = rand(4, 8);
+    // usually slither toward a random circle to bless it, sometimes just roam
+    if (alive.length && Math.random() < 0.65) sn.target = pick(alive);
+    else { sn.target = null; sn.tx = rand(W * 0.1, W * 0.9); sn.ty = rand(H * 0.1, H * 0.9); }
+  }
+  const tx = sn.target ? sn.target.x : sn.tx, ty = sn.target ? sn.target.y : sn.ty;
+  let want = Math.atan2(ty - sn.y, tx - sn.x);
+  // stay inside the screen
+  const m = 40 * S;
+  if (sn.x < m || sn.x > W - m || sn.y < m || sn.y > H - m) want = Math.atan2(H / 2 - sn.y, W / 2 - sn.x);
+  let diff = ((want - sn.ang + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
+  sn.ang += clamp(diff, -2.4 * dt, 2.4 * dt) + Math.sin(G.time * 5) * 1.1 * dt;   // slither wiggle
+  sn.x = clamp(sn.x + Math.cos(sn.ang) * sp * dt, 5, W - 5);
+  sn.y = clamp(sn.y + Math.sin(sn.ang) * sp * dt, 5, H - 5);
+  const last = sn.trail[0];
+  if (!last || Math.hypot(last.x - sn.x, last.y - sn.y) > 5 * S) { sn.trail.unshift({ x: sn.x, y: sn.y }); if (sn.trail.length > SNAKE_LEN) sn.trail.pop(); }
+  sn.tongue = (sn.tongue + dt) % 1.2;
+  // blessing: a circle that touches the head gets bonus points
+  for (const p of alive) {
+    if (!p.alive || (p.snakeCD || 0) > G.time) continue;
+    if (Math.hypot(p.x - sn.x, p.y - sn.y) < p.r + headR) {
+      p.snakeCD = G.time + 4;
+      p.score += SNAKE_BONUS; p.pulse = 1;
+      text(p.x, p.y - p.r - 12 * S, '🐍 +' + SNAKE_BONUS + ' BLESSED!', '#00f0ff', 17);
+      ring(p.x, p.y, p.r, p.r + 70 * S, 0.6, '#00f0ff', 5);
+      burst(sn.x, sn.y, '#00f0ff', 22, 220 * S);
+      chatLine('🐍', `The serpent blessed ${p.name}! +${SNAKE_BONUS}`, '#00f0ff');
+      if (sn.target === p) { sn.target = null; sn.retarget = 0; }
+    }
+  }
+}
+function drawSnake(t) {
+  const sn = G.snake; if (!sn || sn.trail.length < 2) return;
+  const tr = sn.trail, n = tr.length, headR = 15 * S;
+  // glow under the body
+  ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.shadowColor = '#00f0ff'; ctx.shadowBlur = 18; ctx.strokeStyle = 'rgba(0,240,255,.35)'; ctx.lineWidth = headR * 1.4;
+  ctx.beginPath(); ctx.moveTo(tr[0].x, tr[0].y); for (let i = 1; i < n; i++) ctx.lineTo(tr[i].x, tr[i].y); ctx.stroke();
+  ctx.restore();
+  // scaled body: tail first so the head is on top
+  for (let i = n - 1; i >= 1; i--) {
+    const k = i / n, r = headR * (0.95 - 0.7 * k);
+    ctx.fillStyle = `hsl(${185 + 95 * k + Math.sin(t * 2 + i * 0.3) * 10},100%,${55 - 15 * k}%)`;
+    ctx.beginPath(); ctx.arc(tr[i].x, tr[i].y, r, 0, 6.283); ctx.fill();
+    if (i % 4 === 0) { ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.beginPath(); ctx.arc(tr[i].x, tr[i].y, r * 0.35, 0, 6.283); ctx.fill(); }
+  }
+  // head
+  ctx.save(); ctx.translate(sn.x, sn.y); ctx.rotate(sn.ang);
+  ctx.shadowColor = '#00f0ff'; ctx.shadowBlur = 20;
+  const hg = ctx.createRadialGradient(-headR * 0.2, -headR * 0.3, 2, 0, 0, headR * 1.3);
+  hg.addColorStop(0, '#ffffff'); hg.addColorStop(0.35, '#00f0ff'); hg.addColorStop(1, '#3d1a8f');
+  ctx.fillStyle = hg; ctx.beginPath(); ctx.ellipse(headR * 0.25, 0, headR * 1.35, headR, 0, 0, 6.283); ctx.fill();
+  ctx.shadowBlur = 0;
+  // forked tongue flick
+  if (sn.tongue < 0.35) {
+    ctx.strokeStyle = '#ff2bd6'; ctx.lineWidth = 2 * S;
+    ctx.beginPath(); ctx.moveTo(headR * 1.5, 0); ctx.lineTo(headR * 2.3, 0); ctx.lineTo(headR * 2.7, -headR * 0.3);
+    ctx.moveTo(headR * 2.3, 0); ctx.lineTo(headR * 2.7, headR * 0.3); ctx.stroke();
+  }
+  // eyes
+  for (const sgn of [-1, 1]) {
+    ctx.fillStyle = '#ffd84d'; ctx.beginPath(); ctx.arc(headR * 0.75, sgn * headR * 0.45, headR * 0.26, 0, 6.283); ctx.fill();
+    ctx.fillStyle = '#14052e'; ctx.beginPath(); ctx.ellipse(headR * 0.8, sgn * headR * 0.45, headR * 0.08, headR * 0.2, 0, 0, 6.283); ctx.fill();
+  }
+  ctx.restore();
+  // little "+100" halo so viewers know the head is good
+  ctx.globalAlpha = 0.55 + 0.35 * Math.sin(t * 4);
+  ctx.strokeStyle = '#ffd84d'; ctx.lineWidth = 2 * S; ctx.setLineDash([4 * S, 5 * S]);
+  ctx.beginPath(); ctx.arc(sn.x, sn.y, headR * 1.9, 0, 6.283); ctx.stroke(); ctx.setLineDash([]);
+  ctx.globalAlpha = 1;
+}
+
 function makeSaw() {
   const r = 20 * S, a = Math.random() * Math.PI * 2, sp = rand(35, 70) * S;
   const pos = { x: rand(r + 20, W - r - 20), y: rand(r + 20, H - r - 20) };
@@ -479,6 +565,7 @@ function newRound(keepRoster) {
   const roster = keepRoster ? G.players.slice() : [];
   G.players = []; G.byName.clear(); G.pellets = []; G.parts = []; G.texts = []; G.rings = []; G.bubbles = [];
   G.saws = []; for (let i = 0; i < CONFIG.SAW_COUNT; i++) G.saws.push(makeSaw());
+  G.snake = makeSnake();
   G.timeLeft = CONFIG.ROUND_TIME; G.phase = 'play';
   for (const old of roster) {
     // viewers who haven't done anything for 3 minutes sit out the next round
@@ -621,6 +708,9 @@ function step(dt) {
       }
     }
   }
+
+  // 🐍 serpent
+  updateSnake(dt, aliveList());
 
   // spinning saws
   for (const s of G.saws) {
@@ -1047,6 +1137,7 @@ function draw() {
   }
   for (const p of alive) drawPlayer(p, rankOf.get(p));
   if (G.freezeT > 0) { ctx.fillStyle = `rgba(125,249,255,${0.08 + 0.04 * Math.sin(t * 5)})`; ctx.fillRect(0, 0, W, H); }
+  drawSnake(G.time);
   for (const s of G.saws) drawSaw(s);
   // particles
   ctx.globalCompositeOperation = 'lighter';
@@ -1313,12 +1404,15 @@ let last = performance.now();
 function loop(now) {
   const dt = Math.min(0.05, (now - last) / 1000 || 0);
   last = now;
-  if (!G.paused) {
-    step(dt);
-    flashA = Math.max(0, flashA - dt * 1.5);
-  }
-  draw();
-  if (G.phase !== 'menu') updateHud(dt);
+  // Safety net: if anything goes wrong in one frame, log it and keep the game running (never freeze mid-LIVE).
+  try {
+    if (!G.paused) {
+      step(dt);
+      flashA = Math.max(0, flashA - dt * 1.5);
+    }
+    draw();
+    if (G.phase !== 'menu') updateHud(dt);
+  } catch (err) { console.error('frame error', err); }
   requestAnimationFrame(loop);
 }
 
@@ -1326,6 +1420,7 @@ function loop(now) {
 resize();
 (function demo() {
   G.saws = []; for (let i = 0; i < CONFIG.SAW_COUNT; i++) G.saws.push(makeSaw());
+  G.snake = makeSnake();
   for (let i = 0; i < 14; i++) addPlayer(fakeName(), { score: Math.floor(rand(10, 2500)) });
   for (let i = 0; i < 40; i++) addPellet();
   G.phase = 'demo';
@@ -1340,7 +1435,7 @@ if (LIVE_MODE) {
   $('startScreen').classList.add('hidden');
   ['btns', 'you'].forEach(id => $(id).classList.add('hidden'));
   // rotating how-to-play bar so viewers know what taps and gifts do
-  const tips = ['💬 Type your <b>SIGN</b> or <b>BIRTHDAY</b> in chat!', '👆 TAP THE SCREEN = <b>+3 points</b> each tap', '🐍 Your TRUE SKY sign? Type <b>Dec 5</b> etc.', '🔮 Free 13-sign chart at <b>starchart13.com</b>', '🎁 1 COIN = <b>50 points</b> · bigger gifts = bigger powers',
+  const tips = ['💬 Type your <b>SIGN</b> or <b>BIRTHDAY</b> in chat!', '👆 TAP THE SCREEN = <b>+3 points</b> each tap', '🐍 Your TRUE SKY sign? Type <b>Dec 5</b> etc.', '🐍 Touch the serpent\'s HEAD = <b>+100 BONUS!</b>', '🔮 Free 13-sign chart at <b>starchart13.com</b>', '🎁 1 COIN = <b>50 points</b> · bigger gifts = bigger powers',
     '🌹 1 · 💗 5 · 🧲 10 · 🌌 30 · ❄️ 99 · 🎯 199 · 🕳️ 299 · 👑 1K coins', '🌹 Even ONE Rose = <b>+50 points</b> + speed! 5 Roses = shield!', '🏅 Gift more = higher rank = taps worth up to <b>10×</b>',
     '💫 Knocked out? Any gift brings you back!'];
   const ht = $('howto'); let ti = 0;

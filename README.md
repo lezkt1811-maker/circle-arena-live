@@ -88,6 +88,10 @@ So a viewer who taps a lot gets **big**, and a viewer who gifts gets **strong**.
 
 Birthday dates used: Capricorn Jan 19 · Aquarius Feb 16 · Pisces Mar 12 · Aries Apr 19 · Taurus May 14 · Gemini Jun 20 · Cancer Jul 21 · Leo Aug 10 · Virgo Sep 16 · Libra Oct 31 · Scorpio Nov 23 · **Ophiuchus Nov 30** · Sagittarius Dec 18.
 
+## 🐍 The Ophiuchus serpent
+
+A glowing serpent slithers around the arena the whole game. It often heads toward a circle to "bless" it. **Any circle that touches the serpent's HEAD gets +100 bonus points** (once every 4 seconds per circle). It never hurts anyone. The head has a pulsing gold ring so viewers can spot it. Change the bonus with `SNAKE_BONUS` in the code.
+
 ## 🧪 Testing it yourself
 
 - **Tap anywhere on the screen.** You have a test circle (★ and your name), and each tap is a like for it. On a computer, press **Space**.

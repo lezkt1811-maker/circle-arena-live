@@ -1340,8 +1340,8 @@ window.addEventListener('keydown', e => {
   if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT')) return;
   if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); if (!e.repeat) hostTap(W / 2, H / 2); }
   if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') togglePause();
-  if (e.key === 'm' || e.key === 'M') { Sound.start(); Sound.toggleMusic(); }
-  if (e.key === 'v' || e.key === 'V') { Sound.start(); Sound.toggleVoice(); }
+  if (e.key === 'm' || e.key === 'M') { if (!Sound.on) Sound.start(); else Sound.toggleMusic(); }
+  if (e.key === 'v' || e.key === 'V') { if (!Sound.on) Sound.start(); else Sound.toggleVoice(); }
 });
 document.addEventListener('touchmove', e => { if (!e.target.closest('#giftPanel')) e.preventDefault(); }, { passive: false });
 document.addEventListener('gesturestart', e => e.preventDefault());
@@ -1612,7 +1612,14 @@ if (LIVE_MODE) {
   chatLine('👆', 'Tap the screen to join the arena!', '#00f0ff');
   const gate = $('soundGate');
   gate.classList.remove('hidden');
-  gate.addEventListener('click', () => { gate.classList.add('hidden'); Sound.start(); Sound.say('Welcome to Circle Arena Live! Tap the screen to join, and type your sign in the chat!'); });
+  // Any click or key press anywhere turns the sound on (browsers require one click first).
+  const startSound = () => {
+    gate.classList.add('hidden');
+    if (Sound.on) return;
+    Sound.start(); Sound.say('Welcome to Circle Arena Live! Tap the screen to join, and type your sign in the chat!');
+  };
+  document.addEventListener('pointerdown', startSound);
+  document.addEventListener('keydown', startSound);
 }
 
 window.CircleArena = { G, CONFIG, LiveEvents, Bridge, Sound };

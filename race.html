@@ -17,12 +17,14 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 #top .t{font-weight:900;font-size:13px;letter-spacing:.12em;background:linear-gradient(90deg,var(--cyan),#9d4dff,var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent}
 #top .r{font-size:12px;font-weight:800;text-align:right;line-height:1.3}
 #top .r b{color:var(--gold)}
+#gifts{right:6px;top:calc(44px + var(--sat));padding:5px 9px;font-size:10.5px;font-weight:800;line-height:1.38;width:44%}
+#gifts .h{color:var(--gold);font-size:10px;letter-spacing:.12em}
 #lead{left:6px;top:calc(44px + var(--sat));padding:5px 9px;font-size:11.5px;font-weight:800;line-height:1.5;max-width:46%}
 #lead .h{color:#a79cd6;font-size:10px;letter-spacing:.14em}
-#how{left:6px;right:6px;bottom:calc(6px + var(--sab));padding:7px 12px;font-size:13px;font-weight:800;line-height:1.45}
+#how{left:6px;right:6px;bottom:calc(6px + var(--sab));padding:5px 12px;font-size:13px;font-weight:800;line-height:1.45}
 #how .h{text-align:center;color:var(--gold);letter-spacing:.18em;font-size:11.5px}
 #how b{color:var(--cyan)}
-#how .st{font-size:15px;line-height:1.55;display:flex;gap:7px;align-items:center}
+#how .st{font-size:13.5px;line-height:1.5;display:flex;gap:7px;align-items:center}
 #how .st span{display:inline-flex;align-items:center;justify-content:center;min-width:21px;height:21px;border-radius:50%;background:var(--pink);color:#fff;font-size:12px;font-weight:900}
 #how .g{margin-top:3px;padding-top:3px;border-top:1px solid rgba(157,77,255,.4);font-size:10.5px;color:#d9d2ff;text-align:center}
 #feed{position:absolute;left:8px;right:8px;z-index:6;display:flex;flex-direction:column;gap:2px;pointer-events:none}
@@ -50,16 +52,18 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 <canvas id="c"></canvas>
 <div id="top" class="box"><div class="t" style="cursor:pointer">ZODIAC SNAKE RACE 🎵</div><div class="r">Racers: <b id="racers">0</b><br>Race <span id="raceNo">1</span></div></div>
 <div id="lead" class="box"></div>
+<div id="gifts" class="box">
+  <div class="h">🎁 GIFT POWERS</div>
+  <div>🌹 1 = spin wheel</div><div>💗 5 = boost</div><div>🪨 10 = block leader</div><div>🌌 30 = turbo</div>
+  <div>❄️ 99 = freeze all</div><div>🕳️ 299 = tunnel</div><div>👑 1000 = mega</div>
+</div>
 <div id="feed"></div>
 <div id="banner"></div>
 <div id="win" class="box hidden"><div class="a">🏆 WINNER 🏆</div><div class="b" id="winName"></div><div class="c" id="winSub"></div></div>
 <div id="how" class="box">
-  <div class="h">HOW TO PLAY</div>
-  <div class="st"><span>1</span> 👆 <b>TAP THE SCREEN</b> = you get a snake</div>
-  <div class="st"><span>2</span> 👆 <b>KEEP TAPPING</b> = your snake moves up</div>
-  <div class="st"><span>3</span> 🏁 <b>FIRST SNAKE TO THE TOP WINS!</b></div>
-  <div class="st"><span>🌹</span> Send a <b>ROSE</b> = spin the wheel 🎡</div>
-  <div class="g">💗5 boost · 🪨10 block leader · 🌌30 turbo · ❄️99 freeze · 🕳️299 tunnel · 👑1000 mega<br>Want a different snake? Type its number 1–13</div>
+  <div class="st"><span>1</span> 👆 <b>TAP THE SCREEN</b> = get a snake</div>
+  <div class="st"><span>2</span> 👆 <b>KEEP TAPPING</b> = it moves up</div>
+  <div class="st"><span>3</span> 🏁 <b>FIRST TO THE TOP WINS!</b> <small style="color:#d9d2ff;font-size:10px">(type 1–13 to switch)</small></div>
 </div>
 <div id="chip" class="hidden"></div>
 <div id="test" class="hidden">
@@ -120,10 +124,14 @@ function parsePick(text) {
 /* ---------- state ---------- */
 const R = {
   players: new Map(),             // name -> { lane, taps, pic, img }
-  lanes: SIGNS.map(() => ({ pos: 0, vis: 0, turboT: 0, frozenT: 0, blockT: 0, tunnelT: 0, holeFrom: 0, members: 0, flash: 0, wig: Math.random() * 6 })),
+  lanes: SIGNS.map(() => ({ botRate: 0, botT: 0, pos: 0, vis: 0, turboT: 0, frozenT: 0, blockT: 0, tunnelT: 0, holeFrom: 0, members: 0, flash: 0, wig: Math.random() * 6 })),
   phase: 'menu', race: 1, winT: 0, leader: -1, t: 0, parts: [], texts: [], spins: [], spin: null
 };
-const TAP_PUSH = 0.0045;          // progress per like (1.0 = finish)
+// Bot crawl: every snake slithers forward on its own at a random, changing pace,
+// so all 13 race even with only a few viewers. Alone, a race takes ~3-4 minutes
+// and a random snake wins. Real taps add on top and are much faster.
+const BOT_PACE = 1 / 200;         // average progress per second from bots
+const TAP_PUSH = 0.0015;          // progress per like (1.0 = finish): about 670 likes to win
 const finish = () => R.lanes.some(l => l.pos >= 1);
 
 function laneOf(name) { const p = R.players.get(name); return p ? p.lane : -1; }
@@ -176,7 +184,7 @@ function onEvent(e) {
     p.taps += n; push(p.lane, TAP_PUSH * n);
     for (let i = 0; i < Math.min(3, n); i++) heart(p.lane);
   } else if (e.type === 'join') { getPlayer(name, e.pic); feed(`${name} joined 👋 comment your sign to pick a snake!`, '#7df9ff'); }
-  else if (e.type === 'follow') { const p = getPlayer(name, e.pic); push(p.lane, 0.02); feed(`${name} followed ➕ boost!`, '#3d7bff'); }
+  else if (e.type === 'follow') { const p = getPlayer(name, e.pic); push(p.lane, 0.007); feed(`${name} followed ➕ boost!`, '#3d7bff'); }
   else if (e.type === 'gift') {
     const p = getPlayer(name, e.pic);
     const coins = Math.max(1, Math.round(+e.coins || 1));
@@ -185,10 +193,10 @@ function onEvent(e) {
     if (coins < 5) {
       // 🌹 small gifts spin the wheel (up to 6 waiting; extra spins become a small boost)
       if (R.spins.length < 6) { R.spins.push({ user: name, lane: p.lane }); feed(`🌹 ${name} gets a SPIN for Team ${sg.name}!`, '#ff7bf2'); }
-      else push(p.lane, 0.01 * coins);
+      else push(p.lane, 0.004 * coins);
       return;
     }
-    push(p.lane, Math.min(0.35, 0.012 * coins));
+    push(p.lane, Math.min(0.12, 0.004 * coins));
     let label = coins >= 5 ? 'BIG BOOST' : 'boost';
     if (coins >= 10) {
       // 🪨 drop a boulder in the leading lane (if the leader isn't you)
@@ -197,7 +205,7 @@ function onEvent(e) {
     }
     if (coins >= 30) { L.turboT = Math.max(L.turboT, 8); label = 'TURBO'; }
     if (coins >= 99) { R.lanes.forEach((o, i) => { if (i !== p.lane) o.frozenT = 4; }); label = 'FREEZE ALL RIVALS'; }
-    if (coins >= 299) { tunnel(p.lane, coins >= 1000 ? 0.35 : 0.2); label = coins >= 1000 ? 'MEGA TUNNEL' : 'TUNNEL JUMP'; if (coins >= 1000) L.turboT = Math.max(L.turboT, 10); }
+    if (coins >= 299) { tunnel(p.lane, coins >= 1000 ? 0.15 : 0.08); label = coins >= 1000 ? 'MEGA TUNNEL' : 'TUNNEL JUMP'; if (coins >= 1000) L.turboT = Math.max(L.turboT, 10); }
     burst(p.lane, 18 + Math.min(60, coins));
     feed(`🎁 ${name} sent ${e.giftName || 'a gift'} → ${label} for ${sg.name}!`, '#ffd84d');
     if (coins >= 5) banner(`${name} → ${label} for Team ${sg.name}`);
@@ -218,12 +226,13 @@ const EFFECTS = [
   { k: '-100', w: 2, c: '#d6246e', fx: L => { L.pos -= 0.10; }, say: 'back one hundred' },
   { k: 'TURBO', w: 2, c: '#ffb020', fx: L => { L.turboT = Math.max(L.turboT, 8); }, say: 'turbo' },
   { k: 'FREEZE', w: 1, c: '#7df9ff', fx: L => { L.frozenT = 5; }, say: 'frozen' },
-  { k: 'TUNNEL', w: 1, c: '#9d4dff', fx: (L, i) => { tunnel(i, 0.12); }, say: 'tunnel jump' }
+  { k: 'TUNNEL', w: 1, c: '#9d4dff', fx: (L, i) => { tunnel(i, 0.06); }, say: 'tunnel jump' }
 ];
 function weighted() { const tot = EFFECTS.reduce((a, e) => a + e.w, 0); let r = Math.random() * tot; for (const e of EFFECTS) { if ((r -= e.w) < 0) return e; } return EFFECTS[0]; }
 function buildWheel(myLane) {
   const out = [];
-  out.push({ t: 'YOUR TEAM +100', c: '#ffd84d', fx: () => { R.lanes[myLane].pos += 0.10; }, say: `Team ${SIGNS[myLane].name} up one hundred` });
+  if (myLane >= 0) out.push({ t: 'YOUR TEAM +100', c: '#ffd84d', fx: () => { R.lanes[myLane].pos += 0.10; }, say: `Team ${SIGNS[myLane].name} up one hundred` });
+  else out.push({ t: 'LAST PLACE +150', c: '#ffd84d', fx: () => { let lo = 0; R.lanes.forEach((o, k) => { if (o.pos < R.lanes[lo].pos) lo = k; }); R.lanes[lo].pos += 0.15; }, say: 'last place up one fifty' });
   out.push({ t: 'ALL TEAMS +30', c: '#ff7bf2', fx: () => { R.lanes.forEach(o => { o.pos += 0.03; }); }, say: 'all teams up thirty' });
   const lanes = SIGNS.map(x => x.i).sort(() => Math.random() - 0.5).slice(0, 10);
   for (const li of lanes) {
@@ -234,6 +243,10 @@ function buildWheel(myLane) {
 }
 function leaderBut(i) { let ld = -1, lp = -1; R.lanes.forEach((o, k) => { if (k !== i && o.pos > lp) { lp = o.pos; ld = k; } }); return ld; }
 function stepSpin(dt) {
+  if (R.phase === 'race') {
+    R.bonusT = (R.bonusT || 0) + dt;
+    if (R.bonusT >= 180) { R.bonusT = 0; R.spins.unshift({ user: 'BONUS', lane: -1, bonus: true }); feed('🎁 BONUS SPIN! Everyone watch the wheel!', '#ffd84d'); }
+  }
   if (!R.spin && R.spins.length && R.phase === 'race') {
     const s = R.spins.shift();
     WHEEL = buildWheel(s.lane);
@@ -242,6 +255,7 @@ function stepSpin(dt) {
     const target = -Math.PI / 2 - (pickI + 0.5) * seg + 6.2832 * Math.floor(rand(4, 7));
     R.spin = Object.assign(s, { ang: 0, target, t: 0, dur: 3.2, pickI, done: false, wheel: WHEEL });
   }
+  $('gifts').style.visibility = R.spin ? 'hidden' : 'visible';
   const sp = R.spin; if (!sp) return;
   sp.t += dt;
   const k = Math.min(1, sp.t / sp.dur), e = 1 - Math.pow(1 - k, 3);
@@ -251,9 +265,9 @@ function stepSpin(dt) {
     if (R.phase === 'race') {
       w.fx(L, sp.lane);
       R.lanes.forEach(o => { o.pos = clamp(o.pos, 0, 0.98); });
-      burst(sp.lane, 30);
-      banner(`🎡 ${sp.user} landed on ${w.t}!`);
-      feed(`🎡 ${sp.user} landed on ${w.t}!`, w.c);
+      if (sp.lane >= 0) burst(sp.lane, 30);
+      banner(sp.bonus ? `🎁 BONUS SPIN: ${w.t}!` : `🎡 ${sp.user} landed on ${w.t}!`);
+      feed(sp.bonus ? `🎁 Bonus spin landed on ${w.t}!` : `🎡 ${sp.user} landed on ${w.t}!`, w.c);
     }
   }
   if (sp.t > sp.dur + 1.2) R.spin = null;
@@ -261,7 +275,7 @@ function stepSpin(dt) {
 function drawWheel() {
   const sp = R.spin; if (!sp) return;
   // tiny wheel in the top-right corner, above the finish line (never over the lanes)
-  const WH = sp.wheel, r = 30, cx = W - r - 10, cy = TOP - r - 16, seg = 6.2832 / WH.length;
+  const WH = sp.wheel, r = 30, cx = W - r - 12, cy = $('gifts').offsetTop + r + 8, seg = 6.2832 / WH.length;
   ctx.save(); ctx.translate(cx, cy);
   ctx.fillStyle = '#14052e'; ctx.beginPath(); ctx.arc(0, 0, r + 3, 0, 6.283); ctx.fill();
   ctx.rotate(sp.ang);
@@ -277,8 +291,9 @@ function drawWheel() {
   // what the pointer is on right now, written beside the wheel
   const seg2 = 6.2832 / WH.length, a = ((-Math.PI / 2 - sp.ang) % 6.2832 + 6.2832) % 6.2832, cur = WH[Math.floor(a / seg2) % WH.length];
   ctx.textAlign = 'right'; ctx.textBaseline = 'middle'; ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(0,0,0,.8)';
+  if (cx - r - 8 < $('lead').offsetLeft + $('lead').offsetWidth + 70) { /* not enough room: text goes under the wheel */ }
   ctx.font = '800 9.5px system-ui'; ctx.fillStyle = '#ffd84d';
-  const who = `🌹 ${sp.user}`;
+  const who = sp.bonus ? '🎁 BONUS SPIN' : `🌹 ${sp.user}`;
   ctx.strokeText(who, cx - r - 8, cy - 9); ctx.fillText(who, cx - r - 8, cy - 9);
   ctx.font = '900 11px system-ui'; ctx.fillStyle = sp.done ? '#fff' : cur.c;
   const now = (sp.done ? '✅ ' : '') + cur.t;
@@ -409,7 +424,7 @@ function resize() {
   document.body.style.width = pw + 'px'; document.body.style.left = Math.floor((innerWidth - pw) / 2) + 'px';
   W = pw; H = innerHeight; DPR = Math.min(devicePixelRatio || 1, 2);
   cv.width = W * DPR; cv.height = H * DPR;
-  TOP = 124; BOT = H - $('how').offsetHeight - 140; LW = W / 13;
+  TOP = Math.max($('lead').offsetTop + $('lead').offsetHeight, $('gifts').offsetTop + $('gifts').offsetHeight) + 22; BOT = H - $('how').offsetHeight - 140; LW = W / 13;
   $('feed').style.bottom = (H - BOT + 6 + 26) + 'px';
   bg = document.createElement('canvas'); bg.width = cv.width; bg.height = cv.height;
   const g = bg.getContext('2d'); g.scale(DPR, DPR);
@@ -439,7 +454,7 @@ function draw() {
   // finish line (checkered)
   const fy = TOP - 10, sq = 6;
   for (let x = 0; x < W; x += sq) for (let r = 0; r < 2; r++) { ctx.fillStyle = ((x / sq + r) % 2) ? '#fff' : '#111'; ctx.fillRect(x, fy + r * sq, sq, sq); }
-  ctx.font = '900 11px system-ui'; ctx.textAlign = 'center'; ctx.fillStyle = '#ffd84d'; ctx.fillText('🏁 FINISH 🏁', W / 2, fy - 5);
+
   for (let i = 0; i < 13; i++) {
     const L = R.lanes[i], sg = SIGNS[i], x = laneX(i);
     // lane
@@ -535,6 +550,18 @@ function draw() {
 function step(dt) {
   R.t += dt;
   if (autoOn && R.phase === 'race') autoStep(dt);
+  if (R.phase === 'race') {
+    for (const L of R.lanes) {
+      L.botT -= dt;
+      if (L.botT <= 0) { L.botT = rand(2, 6); L.botRate = BOT_PACE * (Math.random() < 0.15 ? rand(1.6, 2.2) : rand(0.4, 1.3)); }   // random surges
+      if (L.tunnelT > 0) continue;
+      let amt = L.botRate * dt;
+      if (L.frozenT > 0) amt *= 0.25;
+      if (L.blockT > 0) amt *= 0.3;
+      if (L.turboT > 0) amt *= 2;
+      L.pos = Math.min(1, L.pos + amt);
+    }
+  }
   stepSpin(dt);
   for (const L of R.lanes) {
     if (L.tunnelT <= 0) L.vis += (L.pos - L.vis) * Math.min(1, dt * 6);

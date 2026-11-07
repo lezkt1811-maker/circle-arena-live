@@ -20,7 +20,11 @@ html.phone body{right:auto;contain:paint;box-shadow:0 0 0 2px rgba(0,240,255,.35
 /* no blur effects in phone mode: keeps text crisp and the laptop fast */
 html.phone .glass{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(12,5,30,.88)}
 html.phone .logo{filter:none}
-html.phone #howto{font-size:17px;padding:9px 16px}
+html.phone #howto{font-size:14px;padding:8px 14px;line-height:1.45;text-align:left;white-space:normal;border-radius:14px;bottom:calc(8px + var(--sab));max-width:92%;font-weight:800}
+html.phone #howto .h1{text-align:center;color:#ffd84d;letter-spacing:.18em;font-size:12px;margin-bottom:2px}
+html.phone #howto b{color:#00f0ff}
+html.phone #howto .gl{margin-top:4px;padding-top:4px;border-top:1px solid rgba(157,77,255,.4);font-size:11px;color:#d9d2ff;text-align:center;font-weight:700}
+html.phone #chat{bottom:calc(225px + var(--sab))}
 html.phone #howto,html.phone #banner{left:0;right:0;margin:0 auto;width:fit-content;transform:none}html.phone .cm{font-size:14px}html.phone #lbList li{font-size:12.5px}
 html.phone #howto{max-width:94%}html.phone #banner{max-width:92%}html.phone #chat{width:62%}html.phone #giftFeed{width:48%}
 canvas#game{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
@@ -248,6 +252,7 @@ const fmt = n => { n = Math.max(0, Math.floor(n)); if (n < 1000) return String(n
 const levelFor = s => 1 + Math.floor(Math.log2(1 + Math.max(0, s) / 40));
 /* ---------------- 13-SIGN ZODIAC (StarChart13 boundaries) ----------------
    Same unequal constellation sectors StarChart13 uses (ecliptic longitude). */
+const ZODIAC = true;   // zodiac teams: viewers comment their birthday or sign (set false to turn off)
 const SIGNS = [
   { name: 'Aries',       glyph: '♈︎', lo: 29.32,  span: 24,    color: '#ff4d6d', alias: ['aries', '♈'] },
   { name: 'Taurus',      glyph: '♉︎', lo: 53.32,  span: 38,    color: '#5cffa8', alias: ['taurus', '♉'] },
@@ -784,6 +789,7 @@ function step(dt) {
 }
 
 function teamTotals() {
+  if (!ZODIAC) return [];
   const tot = new Map();
   for (const p of G.players) if (p.alive && p.sign != null) tot.set(p.sign, (tot.get(p.sign) || 0) + p.score);
   return [...tot.entries()].sort((a, b) => b[1] - a[1]);
@@ -814,7 +820,7 @@ function autoViewers(dt) {
   const r = Math.random();
   if (r < 0.60) LiveEvents.emit({ type: 'like', user: existing(), count: Math.floor(rand(1, 8)), quiet: true });
   else if (r < 0.67) LiveEvents.emit({ type: 'join', user: fakeName() });
-  else if (r < 0.77) LiveEvents.emit({ type: 'comment', user: existing(), comment: Math.random() < 0.6 ? pick(ZODIAC_CHAT) : pick(CHAT_LINES) });
+  else if (r < 0.77) LiveEvents.emit({ type: 'comment', user: existing(), comment: ZODIAC && Math.random() < 0.6 ? pick(ZODIAC_CHAT) : pick(CHAT_LINES) });
   else if (r < 0.80) LiveEvents.emit({ type: 'follow', user: fakeName() });
   else {
     // pretend gifts: mostly small, big ones are rare
@@ -903,7 +909,7 @@ LiveEvents.on(e => {
       chatLine(user, msg);
       if (p) {
         addScore(p, 5); G.bubbles = G.bubbles.filter(b => b.p !== p); G.bubbles.push({ p, msg, life: 3.5 });
-        const z = parseZodiac(msg);
+        const z = ZODIAC ? parseZodiac(msg) : null;
         if (z && (z.sign !== p.sign || z.fromBirthday)) setSign(p, z.sign, z);
       }
       break;
@@ -1194,7 +1200,7 @@ function draw() {
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   if (bg) ctx.drawImage(bg, 0, 0); else { ctx.fillStyle = '#05020d'; ctx.fillRect(0, 0, canvas.width, canvas.height); }
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-  drawZodiacWheel(G.time);
+  if (ZODIAC) drawZodiacWheel(G.time);
   const t = G.time;
   // arena border
   ctx.save(); ctx.shadowColor = '#00f0ff'; ctx.shadowBlur = 16; ctx.strokeStyle = 'rgba(0,240,255,.8)'; ctx.lineWidth = 3;
@@ -1723,13 +1729,16 @@ if (LIVE_MODE) {
   newRound(false);
   $('startScreen').classList.add('hidden');
   ['btns', 'you'].forEach(id => $(id).classList.add('hidden'));
-  // rotating how-to-play bar so viewers know what taps and gifts do
-  const tips = ['💬 Type your <b>SIGN</b> or <b>BIRTHDAY</b> in chat!', '👆 TAP THE SCREEN = <b>+3 points</b> each tap', '🐍 Your TRUE SKY sign? Type <b>Dec 5</b> etc.', '🐍 Touch the serpent\'s HEAD = <b>+100 BONUS!</b>', '🔮 Free 13-sign chart at <b>starchart13.com</b>', '🎁 1 COIN = <b>50 points</b> · bigger gifts = bigger powers',
-    '🌹 1 · 💗 5 · 🧲 10 · 🌌 30 · ❄️ 99 · 🎯 199 · 🕳️ 299 · 👑 1K coins', '🌹 Even ONE Rose = <b>+50 points</b> + speed! 5 Roses = shield!', '🏅 Gift more = higher rank = taps worth up to <b>10×</b>',
-    '💫 Knocked out? Any gift brings you back!'];
-  const ht = $('howto'); let ti = 0;
-  ht.classList.remove('hidden'); ht.innerHTML = tips[0];
-  setInterval(() => { ht.style.opacity = 0; setTimeout(() => { ti = (ti + 1) % tips.length; ht.innerHTML = tips[ti]; ht.style.opacity = 1; }, 400); }, 5000);
+  // always-visible HOW TO PLAY box, so every viewer knows what to do
+  const ht = $('howto');
+  ht.classList.remove('hidden');
+  ht.innerHTML = '<div class="h1">HOW TO PLAY</div>' +
+    '<div>👆 <b>TAP THE SCREEN</b> to join &amp; grow</div>' +
+    '<div>💬 <b>COMMENT YOUR BIRTHDAY</b> (like <b>Dec 5</b>) to join your zodiac team</div>' +
+    '<div>🎁 <b>SEND GIFTS</b> = super powers</div>' +
+    '<div>🐍 Touch the snake\'s head = <b>+100</b></div>' +
+    '<div>🏆 Biggest circle wins the round!</div>' +
+    '<div class="gl">🌹1 speed · 💗5 shield · 🧲10 magnet · 🌌30 blast<br>❄️99 freeze · 🎯199 hunter · 🕳️299 black hole · 👑1K king</div>';
   if (CLOUD_MODE) {
     const go = () => {
       try {

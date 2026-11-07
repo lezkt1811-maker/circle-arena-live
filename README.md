@@ -83,6 +83,9 @@ So a viewer who taps a lot gets **big**, and a viewer who gifts gets **strong**.
 
 ## 🔮 Zodiac teams (13 signs + Ophiuchus)
 
+The LIVE screen always shows a **HOW TO PLAY** box (tap to join, comment your birthday, gifts = powers, snake head = +100, gift price list). To turn zodiac teams off, set `ZODIAC = false` in the code.
+
+
 - Viewers **type their sign in chat** ("Scorpio", "leo", "♏", "team ophiuchus 🐍") to join that team. Their circle gets the sign's color and glyph.
 - Or they **type their birthday** ("Dec 5", "December 5th", "12/5"). The game uses the StarChart13 13-sign dates and announces their **TRUE SKY** sign, e.g. *"not Sagittarius… TRUE SKY OPHIUCHUS ⛎"*.
 - **✨ Zodiac Teams** on the leaderboard shows the top 3 signs (total points), and each round announces which sign wins.

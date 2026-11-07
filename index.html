@@ -1501,12 +1501,20 @@ const Sound = {
   start() {
     if (this.on) return;
     this.on = true;
-    this.el = new Audio(this.MUSIC_FILE);
-    this.el.loop = true; this.el.volume = 0; this.vol = 0;
+    this.preload();
+    this.el.volume = 0; this.vol = 0;
+    if (this.el.readyState < 3) this.status('⏳ Loading music… (slow internet can take a few seconds)');
     if (this.musicOn) this.playMusic();
     this.fadeTimer = setInterval(() => this.fade(), 50);
     this.pickVoice();
     if (window.speechSynthesis) speechSynthesis.onvoiceschanged = () => this.pickVoice();
+  },
+  // start loading the song as soon as the page opens, so it's ready when you click
+  preload() {
+    if (this.el) return;
+    this.el = new Audio();
+    this.el.preload = 'auto'; this.el.loop = true; this.el.volume = 0;
+    this.el.src = this.MUSIC_FILE; this.el.load();
   },
   status(msg, ok) {
     const el = $('sndStatus'); if (!el) return;
@@ -1517,6 +1525,8 @@ const Sound = {
     this.target = this.speaking ? this.DUCK_VOL : this.MUSIC_VOL;
     this.el.onerror = () => this.status('⚠️ Music file failed to load (' + (this.el.error ? this.el.error.code : '?') + '). Tell Claude.');
     this.el.onplaying = () => this.status('🎵 Music playing', true);
+    clearTimeout(this.slowT);
+    this.slowT = setTimeout(() => { if (this.el.paused || this.el.readyState < 3) this.status('⚠️ Music still loading… click here to retry'); }, 15000);
     const pr = this.el.play();
     if (pr && pr.catch) pr.catch(err => { console.warn('music blocked', err); this.status('⚠️ Sound blocked by browser: ' + err.name + '. Click here.'); });
   },
@@ -1630,6 +1640,7 @@ if (LIVE_MODE) {
   ht.classList.remove('hidden'); ht.innerHTML = tips[0];
   setInterval(() => { ht.style.opacity = 0; setTimeout(() => { ti = (ti + 1) % tips.length; ht.innerHTML = tips[ti]; ht.style.opacity = 1; }, 400); }, 5000);
   Bridge.connect(defaultWs);
+  Sound.preload();
   chatLine('👆', 'Tap the screen to join the arena!', '#00f0ff');
   const gate = $('soundGate');
   gate.classList.remove('hidden');

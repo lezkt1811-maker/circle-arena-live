@@ -61,10 +61,10 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 <div id="banner"></div>
 <div id="win" class="box hidden"><div class="a">🏆 WINNER 🏆</div><div class="b" id="winName"></div><div class="c" id="winSub"></div></div>
 <div id="how" class="box">
-  <div class="st"><span>1</span> 💬 <b>TYPE A NUMBER 1–13</b> = pick your snake</div>
+  <div class="st"><span>1</span> 💬 <b>TYPE 1–13</b> = pick your zodiac sign snake</div>
   <div class="st"><span>2</span> 👆 <b>TAP THE SCREEN</b> = your snake moves up</div>
   <div class="st"><span>3</span> 🏁 <b>FIRST TO THE TOP WINS!</b></div>
-  <div style="font-size:10.5px;color:#d9d2ff;text-align:center">No number? You get a random snake.</div>
+  <div style="font-size:10.5px;color:#ffd84d;text-align:center">You must pick a number before your taps count!</div>
 </div>
 <div id="chip" class="hidden"></div>
 <div id="test" class="hidden">
@@ -73,7 +73,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 
 <div id="start" class="overlay"><div class="card box" style="position:relative">
   <h1>🐍 ZODIAC SNAKE RACE</h1>
-  <p>13 zodiac snakes race to the top. Viewers just <b>tap the screen</b> to get a snake and make it go. Send a 🌹 Rose to spin the wheel!</p>
+  <p>13 zodiac snakes race to the top. Viewers <b>type a number 1–13</b> to pick their zodiac sign snake, then <b>tap the screen</b> to make it go. Send a 🌹 Rose to spin the wheel!</p>
   <button class="btn" id="btnDemo">PRACTICE (pretend viewers)</button>
   <button class="btn alt" id="btnLive">📱 GO LIVE (phone, Euler Stream)</button>
   <button class="btn alt" id="btnLaptop">💻 GO LIVE (laptop, TikFinity)</button>
@@ -139,11 +139,9 @@ function laneOf(name) { const p = R.players.get(name); return p ? p.lane : -1; }
 function getPlayer(name, pic) {
   let p = R.players.get(name);
   if (!p) {
-    // no pick yet: join the snake with the fewest members so every lane gets action
-    let best = 0; for (let i = 1; i < 13; i++) if (R.lanes[i].members < R.lanes[best].members || (R.lanes[i].members === R.lanes[best].members && Math.random() < 0.3)) best = i;
-    p = { lane: best, taps: 0, pic: null, img: null, auto: true };
-    R.players.set(name, p); R.lanes[best].members++;
-    feed(`${name} is racing for #${best + 1} ${SIGNS[best].name.toUpperCase()} 🐍`, '#fff3c4');
+    // no snake until they pick one (lane -1). Gifts sent before picking are saved and used when they pick.
+    p = { lane: -1, taps: 0, pic: null, img: null, pending: [], nagT: -99 };
+    R.players.set(name, p);
   }
   if (pic && p.pic !== pic) { p.pic = pic; const im = new Image(); im.referrerPolicy = 'no-referrer'; im.onload = () => { p.img = im; }; im.src = pic; }
   return p;
@@ -151,9 +149,20 @@ function getPlayer(name, pic) {
 function setLane(name, lane, info) {
   const p = getPlayer(name);
   const sg = SIGNS[lane];
-  if (p.lane !== lane) { R.lanes[p.lane].members--; p.lane = lane; R.lanes[lane].members++; }
-  p.auto = false;
+  if (p.lane !== lane) { if (p.lane >= 0) R.lanes[p.lane].members--; p.lane = lane; R.lanes[lane].members++; }
   feed(`${name} joined Team ${sg.name} ${sg.glyph}`, sg.color);
+  banner(`${name} is racing for #${lane + 1} ${sg.name.toUpperCase()}!`);
+  say(`${clean(name)} is racing for ${sg.name}!`, 'pick', 6);
+  // gifts sent before picking now count
+  if (p.pending.length) { const q = p.pending; p.pending = []; q.forEach(ev => onEvent(ev)); }
+}
+// remind someone who hasn't picked a snake yet (at most every 25s per person)
+function needPick(name, p) {
+  if (R.t - p.nagT < 25) return;
+  p.nagT = R.t;
+  banner(`👉 ${name}: TYPE 1–13 to pick your zodiac sign snake first!`);
+  feed(`👉 ${name}, type a number 1–13 to pick your snake!`, '#ffd84d');
+  say(`${clean(name)}, pick your zodiac sign snake first! Type a number, one to thirteen.`, 'nag', 12);
 }
 // 🕳️ snake dives into a hole and pops up further ahead
 function tunnel(lane, jump) {
@@ -181,13 +190,22 @@ function onEvent(e) {
     if (pk) setLane(name, pk.lane, pk); else { getPlayer(name, e.pic); feed(`${name}: ${String(e.comment || '').slice(0, 40)}`); }
   } else if (e.type === 'like') {
     const p = getPlayer(name, e.pic);
+    if (p.lane < 0) { needPick(name, p); return; }
     const n = clamp(+e.count || 1, 1, 50);
     p.taps += n; push(p.lane, TAP_PUSH * n);
     for (let i = 0; i < Math.min(3, n); i++) heart(p.lane);
-  } else if (e.type === 'join') { getPlayer(name, e.pic); feed(`${name} joined 👋 comment your sign to pick a snake!`, '#7df9ff'); }
-  else if (e.type === 'follow') { const p = getPlayer(name, e.pic); push(p.lane, 0.007); feed(`${name} followed ➕ boost!`, '#3d7bff'); }
+  } else if (e.type === 'join') {
+    const isNew = !R.players.has(name);
+    getPlayer(name, e.pic);
+    if (isNew) {
+      banner(`👋 ${name}! Type 1–13 to pick your zodiac sign snake, then TAP!`);
+      say(`Welcome ${clean(name)}! Pick your zodiac sign snake. Type a number, one to thirteen. Then tap the screen!`, 'welcome', 20);
+    }
+  }
+  else if (e.type === 'follow') { const p = getPlayer(name, e.pic); if (p.lane < 0) { needPick(name, p); return; } push(p.lane, 0.007); feed(`${name} followed ➕ boost!`, '#3d7bff'); }
   else if (e.type === 'gift') {
     const p = getPlayer(name, e.pic);
+    if (p.lane < 0) { if (p.pending.length < 20) p.pending.push(e); feed(`🎁 ${name}, thanks for the gift! Type 1–13 to pick your snake and it will count!`, '#ffd84d'); needPick(name, p); return; }
     const coins = Math.max(1, Math.round(+e.coins || 1));
     const L = R.lanes[p.lane], sg = SIGNS[p.lane];
     p.taps += coins * 5;
@@ -245,6 +263,8 @@ function buildWheel(myLane) {
 function leaderBut(i) { let ld = -1, lp = -1; R.lanes.forEach((o, k) => { if (k !== i && o.pos > lp) { lp = o.pos; ld = k; } }); return ld; }
 function stepSpin(dt) {
   if (R.phase === 'race') {
+    R.howT = (R.howT || 0) + dt;
+    if (R.howT >= 120) { R.howT = 0; banner('💬 Type 1–13 to pick your zodiac sign snake · 👆 TAP to race · 🌹 Rose = spin!'); say('Pick your zodiac sign snake! Type a number, one to thirteen. Tap the screen to make it go. Send a rose to spin the wheel!', 'how', 100); }
     R.bonusT = (R.bonusT || 0) + dt;
     if (R.bonusT >= 180) { R.bonusT = 0; R.spins.unshift({ user: 'BONUS', lane: -1, bonus: true }); feed('🎁 BONUS SPIN! Everyone watch the wheel!', '#ffd84d'); }
   }
@@ -370,6 +390,8 @@ let autoOn = false, autoT = 0;
 function autoStep(dt) {
   autoT -= dt; if (autoT > 0) return; autoT = rand(0.08, 0.3);
   const names = [...R.players.keys()], who = names.length && Math.random() < 0.85 ? pick(names) : fake();
+  const pl = R.players.get(who);
+  if (!pl || pl.lane < 0) { onEvent({ type: 'comment', user: who, comment: String(Math.floor(rand(1, 14))) }); return; }
   const r = Math.random();
   if (r < 0.75) onEvent({ type: 'like', user: who, count: Math.floor(rand(1, 6)) });
   else if (r < 0.9) onEvent({ type: 'comment', user: who, comment: pick([pick(SIGNS).name, 'dec 5', 'march 3', 'go go go', 'leo!', 'team scorpio', '7/20']) });
@@ -398,14 +420,17 @@ const Music = {
 let voiceOn = false, voice = null, lastSay = {}, speaking = false;
 const clean = n => String(n).replace(/[_.\-]+/g, ' ').replace(/\d+/g, ' ').replace(/\s+/g, ' ').trim() || 'Someone';
 function pickVoice() { if (!window.speechSynthesis) return; const vs = speechSynthesis.getVoices().filter(v => /^en/i.test(v.lang)); voice = vs.find(v => /natural|aria|jenny|google us/i.test(v.name)) || vs[0] || null; }
+const sayQ = [];
 function say(text, key, every) {
   if (!voiceOn || !window.speechSynthesis) return;
   const now = performance.now();
-  if (key) { if (now - (lastSay[key] || 0) < (every || 0) * 1000) return; lastSay[key] = now; }
-  if (speaking && !key) speechSynthesis.cancel(); else if (speaking) return;
+  if (key) { if (key in lastSay && now - lastSay[key] < (every || 0) * 1000) return; lastSay[key] = now; }
+  if (speaking) { if (sayQ.length < 2) sayQ.push(text); return; }
   const u = new SpeechSynthesisUtterance(text); if (voice) u.voice = voice; u.rate = 1.1;
-  speaking = true; Music.duck(true); u.onend = u.onerror = () => { speaking = false; Music.duck(false); };
-  speechSynthesis.speak(u); setTimeout(() => { if (speaking) { speaking = false; Music.duck(false); } }, 8000);
+  speaking = true; Music.duck(true);
+  const done = () => { if (!speaking) return; speaking = false; Music.duck(false); if (sayQ.length) setTimeout(() => say(sayQ.shift()), 300); };
+  u.onend = u.onerror = done;
+  speechSynthesis.speak(u); setTimeout(done, 9000);
 }
 
 /* ---------- UI helpers ---------- */
@@ -596,7 +621,8 @@ function newRace() {
 let hudT = 0;
 function hud(dt) {
   hudT -= dt; if (hudT > 0) return; hudT = 0.3;
-  $('racers').textContent = R.players.size;
+  let n = 0; for (const q of R.players.values()) if (q.lane >= 0) n++;
+  $('racers').textContent = n;
   const order = R.lanes.map((L, i) => [i, L.pos]).filter(x => x[1] > 0).sort((a, b) => b[1] - a[1]).slice(0, 3);
   const lead = $('lead');
   lead.innerHTML = '<div class="h">🏁 LEADERS · FIRST TO 1000</div>' + (order.length ? order.map(([i, p], k) => `<div style="color:${SIGNS[i].color}">${k + 1}. ${SIGNS[i].glyph} ${SIGNS[i].name} · ${Math.floor(p * PTS)} pts</div>`).join('') : '<div>Tap to start your snake!</div>');
@@ -617,7 +643,7 @@ function begin(mode) {
   if (mode === 'demo') { autoOn = true; $('test').classList.remove('hidden'); feed('Practice mode: pretend viewers are playing', '#7df9ff'); }
   else if (mode === 'laptop') Bridge.connect(params.get('ws') || 'ws://localhost:21213/');
   else if (mode === 'phone') { if (cloudUrl()) Bridge.connect(cloudUrl()); else showSetup(); }
-  say('Welcome to the Zodiac Snake Race! Comment your sign and tap to push your snake!');
+  say('Welcome to the Zodiac Snake Race! Pick your zodiac sign snake. Type a number, one to thirteen, then tap the screen!');
 }
 function showSetup() { $('sUser').value = ls.get('cal_cloud_user') || 'ancient_women_13_zodiac'; $('sKey').value = ls.get('cal_cloud_key'); $('setup').classList.remove('hidden'); }
 $('btnDemo').onclick = () => begin('demo');
@@ -632,7 +658,7 @@ $('btnSave').onclick = () => {
 $('chip').onclick = () => { if (/eulerstream/.test(Bridge.url || '')) showSetup(); };
 document.querySelectorAll('#test button').forEach(b => b.onclick = () => {
   const u = fake(), t = b.dataset.t;
-  if (t === 'tap') onEvent({ type: 'like', user: pick([...R.players.keys()]) || u, count: 15 });
+  if (t === 'tap') onEvent({ type: 'like', user: pick([...R.players.keys()].filter(k => R.players.get(k).lane >= 0)) || u, count: 15 });
   else if (t === 'join') onEvent({ type: 'comment', user: u, comment: pick(SIGNS).name });
   else onEvent({ type: 'gift', user: pick([...R.players.keys()]) || u, coins: { rose: 1, block: 10, turbo: 30, freeze: 99, mega: 299, king: 1000 }[t], giftName: { rose: 'Rose', block: 'Gift', turbo: 'Doughnut', freeze: 'Paper Crane', mega: 'Corgi', king: 'Galaxy' }[t] });
 });

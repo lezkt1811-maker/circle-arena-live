@@ -200,6 +200,7 @@ input,select{font-family:inherit;font-size:16px;user-select:text;-webkit-user-se
 </div>
 <div id="winBox" class="glass hidden"><div class="w1">🏆 ROUND WINNER 🏆</div><div class="w2" id="winName">-</div><div class="w3" id="winSub">Next round starting…</div></div>
 <div id="pauseBox" class="glass hidden">PAUSED</div>
+<div id="sndStatus" style="position:fixed;z-index:30;left:6px;bottom:6px;padding:5px 9px;border-radius:9px;background:#14052e;border:1px solid #ff2bd6;color:#fff;font:700 12px system-ui;display:none;cursor:pointer"></div>
 <div id="soundGate" class="overlay hidden" style="cursor:pointer"><div class="card glass"><div class="bigTitle" style="font-size:34px">🔊 CLICK TO START</div><p class="sub">Turns on the music and the announcer voice.<br>(Browsers need one click before they can play sound.)<br><br>Keys: <b>M</b> music on/off · <b>V</b> voice on/off</p></div></div>
 
 <script>
@@ -1389,6 +1390,7 @@ function setAuto(on) {
   $('btnAuto').classList.toggle('off', !G.auto);
 }
 $('btnAuto').addEventListener('click', () => setAuto(!G.auto));
+$('sndStatus').addEventListener('click', () => Sound.retry());
 $('btnMusic').addEventListener('click', () => { Sound.start(); Sound.toggleMusic(); });
 $('btnVoice').addEventListener('click', () => { Sound.start(); Sound.toggleVoice(); });
 
@@ -1506,10 +1508,17 @@ const Sound = {
     this.pickVoice();
     if (window.speechSynthesis) speechSynthesis.onvoiceschanged = () => this.pickVoice();
   },
+  status(msg, ok) {
+    const el = $('sndStatus'); if (!el) return;
+    el.textContent = msg; el.style.display = 'block'; el.style.borderColor = ok ? '#39ff7a' : '#ff2bd6';
+    clearTimeout(this.stT); if (ok) this.stT = setTimeout(() => { el.style.display = 'none'; }, 4000);
+  },
   playMusic() {
     this.target = this.speaking ? this.DUCK_VOL : this.MUSIC_VOL;
+    this.el.onerror = () => this.status('⚠️ Music file failed to load (' + (this.el.error ? this.el.error.code : '?') + '). Tell Claude.');
+    this.el.onplaying = () => this.status('🎵 Music playing', true);
     const pr = this.el.play();
-    if (pr && pr.catch) pr.catch(err => console.warn('music blocked', err));
+    if (pr && pr.catch) pr.catch(err => { console.warn('music blocked', err); this.status('⚠️ Sound blocked by browser: ' + err.name + '. Click here.'); });
   },
   // smooth volume changes (fade in/out, duck under the voice)
   fade() {
@@ -1519,6 +1528,7 @@ const Sound = {
     this.el.volume = clamp(this.vol, 0, 1);
     if (!this.musicOn && this.vol <= 0.01 && !this.el.paused) this.el.pause();
   },
+  retry() { if (!this.el) { this.on = false; this.start(); } else { this.musicOn = true; this.playMusic(); } },
   setDuck(on) { if (this.musicOn) this.target = on ? this.DUCK_VOL : this.MUSIC_VOL; },
   toggleMusic() {
     this.musicOn = !this.musicOn;

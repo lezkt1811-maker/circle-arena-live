@@ -200,6 +200,15 @@ input,select{font-family:inherit;font-size:16px;user-select:text;-webkit-user-se
 <div id="winBox" class="glass hidden"><div class="w1">🏆 ROUND WINNER 🏆</div><div class="w2" id="winName">-</div><div class="w3" id="winSub">Next round starting…</div></div>
 <div id="pauseBox" class="glass hidden">PAUSED</div>
 <div id="sndStatus" style="position:fixed;z-index:30;left:6px;bottom:6px;padding:5px 9px;border-radius:9px;background:#14052e;border:1px solid #ff2bd6;color:#fff;font:700 12px system-ui;display:none;cursor:pointer"></div>
+<div id="cloudSetup" class="overlay hidden"><div class="card glass">
+  <div class="bigTitle" style="font-size:30px">📱 PHONE LIVE</div>
+  <p class="sub" style="margin-bottom:10px">Connects straight to your TikTok LIVE through Euler Stream. No laptop needed.</p>
+  <input id="cloudUser" placeholder="TikTok username" autocomplete="off" autocapitalize="off" spellcheck="false">
+  <input id="cloudKey" placeholder="Euler Stream API key" autocomplete="off" autocapitalize="off" spellcheck="false" style="margin-top:8px">
+  <button id="btnCloudGo" class="btn">SAVE &amp; CONNECT</button>
+  <p class="help">Your key is saved only on this phone. Free key: eulerstream.com → sign up → dashboard → API keys.<br>To change these later, tap the connection message at the top.</p>
+</div></div>
+<div id="cloudChip" class="hidden" style="position:fixed;z-index:12;left:50%;transform:translateX(-50%);top:calc(70px + var(--sat));padding:4px 10px;border-radius:10px;background:rgba(20,5,46,.92);border:1px solid #ff2bd6;color:#fff;font:700 11.5px system-ui;white-space:nowrap;cursor:pointer"></div>
 <div id="soundGate" class="overlay hidden" style="cursor:pointer"><div class="card glass"><div class="bigTitle" style="font-size:34px">🔊 CLICK TO START</div><p class="sub">Turns on the announcer voice.<br>(Browsers need one click before they can play sound.)<br><br>Key: <b>V</b> voice on/off</p></div></div>
 
 <script>
@@ -1398,7 +1407,11 @@ $('btnVoice').addEventListener('click', () => { Sound.start(); Sound.toggleVoice
    Also accepts this game's own simple format, so any relay can be used. */
 const Bridge = {
   ws: null, want: false, retry: null,
-  status(msg, ok) { const el = $('bridgeStatus'); el.textContent = msg; el.style.color = ok ? '#39ff7a' : ''; },
+  status(msg, ok) {
+    const el = $('bridgeStatus'); el.textContent = msg; el.style.color = ok ? '#39ff7a' : '';
+    const c = $('cloudChip');
+    if (c && CLOUD_MODE) { c.classList.remove('hidden'); c.textContent = (ok ? '🟢 ' : '🔴 ') + msg; c.style.borderColor = ok ? '#39ff7a' : '#ff2bd6'; clearTimeout(this.chipT); if (ok) this.chipT = setTimeout(() => c.classList.add('hidden'), 5000); }
+  },
   connect(url) {
     this.url = url; this.want = true;
     try { localStorage.setItem('cal_ws', url); } catch (err) { /* ignore */ }
@@ -1416,12 +1429,17 @@ const Bridge = {
     };
     this.ws.onmessage = m => {
       let d; try { d = JSON.parse(m.data); } catch (err) { return; }
-      (Array.isArray(d) ? d : [d]).forEach(x => { try { this.handle(x); } catch (err) { console.warn(err); } });
+      // Euler Stream bundles events as { messages: [{ type, data }, ...] }
+      const list = Array.isArray(d) ? d : (d && Array.isArray(d.messages) ? d.messages : [d]);
+      list.forEach(x => { try { this.handle(x); } catch (err) { console.warn(err); } });
     };
-    this.ws.onclose = () => {
+    this.ws.onclose = (e) => {
       if (!this.want) return;
-      this.status('Not connected. Is TikFinity open? Retrying…');
-      this.retry = setTimeout(() => this.open(), 3000);
+      const cloud = /eulerstream/.test(this.url);
+      const why = { 4401: 'API key not accepted. Tap here to fix it.', 4404: 'You are not LIVE yet. Waiting…', 4429: 'Too many connections. Waiting…', 4005: 'LIVE ended. Waiting…', 4403: 'Key has no permission. Tap here.' }[e && e.code];
+      this.status(cloud ? (why || 'Connection lost. Retrying…') : 'Not connected. Is TikFinity open? Retrying…');
+      if (cloud && e && (e.code === 4401 || e.code === 4403)) { this.want = false; return; }   // bad key: don't hammer the server
+      this.retry = setTimeout(() => this.open(), cloud ? 15000 : 3000);
     };
   },
   disconnect() {
@@ -1432,6 +1450,7 @@ const Bridge = {
   },
   handle(msg) {
     if (!msg || typeof msg !== 'object') return;
+    if (typeof msg.type === 'string' && msg.type.indexOf('Webcast') === 0) { this.handleEuler(msg.type, msg.data || {}); return; }
     // Our own format passes straight through.
     if (['like', 'join', 'follow', 'comment', 'gift'].includes(msg.type) && msg.user) { LiveEvents.emit(msg); return; }
     const ev = String(msg.event || msg.type || '').toLowerCase();
@@ -1460,6 +1479,43 @@ const Bridge = {
     }
   }
 };
+// Euler Stream (raw TikTok Webcast messages) → game events
+Bridge.handleEuler = function (type, d) {
+  const u = d.user || {};
+  const user = u.nickname || u.displayId || u.uniqueId;
+  if (!user) return;
+  const pic = (u.avatarThumb && u.avatarThumb.urlList && u.avatarThumb.urlList[0]) ||
+    (u.avatarLarge && u.avatarLarge.urlList && u.avatarLarge.urlList[0]) ||
+    (u.profilePicture && u.profilePicture.url && u.profilePicture.url[0]) || u.profilePictureUrl;
+  const base = { user: String(user), pic };
+  if (type === 'WebcastLikeMessage') LiveEvents.emit(Object.assign(base, { type: 'like', count: Math.max(1, Math.min(50, +d.likeCount || +d.count || 1)) }));
+  else if (type === 'WebcastChatMessage') LiveEvents.emit(Object.assign(base, { type: 'comment', comment: String(d.comment || d.content || '') }));
+  else if (type === 'WebcastMemberMessage') LiveEvents.emit(Object.assign(base, { type: 'join' }));
+  else if (type === 'WebcastSocialMessage') {
+    const key = String((d.common && d.common.displayText && d.common.displayText.key) || '').toLowerCase();
+    if (key.includes('follow')) LiveEvents.emit(Object.assign(base, { type: 'follow' }));
+    else if (key.includes('share')) LiveEvents.emit(Object.assign(base, { type: 'like', count: 10 }));
+  } else if (type === 'WebcastGiftMessage') {
+    const g = d.giftDetails || d.gift || {};
+    // Streak gifts (like many Roses in a row) send updates; only count the final one.
+    if ((g.giftType === 1 || d.giftType === 1) && !d.repeatEnd) return;
+    const count = Math.max(1, +d.repeatCount || 1);
+    const diamonds = Math.max(1, (+g.diamondCount || +d.diamondCount || 1) * count);
+    LiveEvents.emit(Object.assign(base, { type: 'gift', coins: diamonds, giftName: g.giftName || d.giftName || 'Gift', count }));
+  }
+};
+const CLOUD_MODE = params.get('cloud') === '1';
+const cloudGet = k => { try { return localStorage.getItem(k) || ''; } catch (err) { return ''; } };
+function cloudUrl() {
+  const user = cloudGet('cal_cloud_user').replace(/^@/, '').trim(), key = cloudGet('cal_cloud_key').trim();
+  if (!user || !key) return null;
+  return 'wss://ws.eulerstream.com?uniqueId=' + encodeURIComponent(user) + '&apiKey=' + encodeURIComponent(key);
+}
+function showCloudSetup() {
+  $('cloudUser').value = cloudGet('cal_cloud_user') || 'ancient_women_13_zodiac';
+  $('cloudKey').value = cloudGet('cal_cloud_key');
+  $('cloudSetup').classList.remove('hidden');
+}
 const defaultWs = params.get('ws') || (function () { try { return localStorage.getItem('cal_ws'); } catch (err) { return null; } })() || 'ws://localhost:21213/';
 $('wsUrl').value = defaultWs;
 $('overlayLink').textContent = location.origin + location.pathname + '?live=1';
@@ -1674,13 +1730,33 @@ if (LIVE_MODE) {
   const ht = $('howto'); let ti = 0;
   ht.classList.remove('hidden'); ht.innerHTML = tips[0];
   setInterval(() => { ht.style.opacity = 0; setTimeout(() => { ti = (ti + 1) % tips.length; ht.innerHTML = tips[ti]; ht.style.opacity = 1; }, 400); }, 5000);
-  Bridge.connect(defaultWs);
+  if (CLOUD_MODE) {
+    const go = () => {
+      try {
+        localStorage.setItem('cal_cloud_user', $('cloudUser').value.trim().replace(/^@/, ''));
+        localStorage.setItem('cal_cloud_key', $('cloudKey').value.trim());
+      } catch (err) { /* ignore */ }
+      const u = cloudUrl();
+      if (!u) { $('cloudKey').focus(); return; }
+      $('cloudSetup').classList.add('hidden');
+      if (Bridge.ws) { Bridge.want = false; try { Bridge.ws.close(); } catch (err) { /* ignore */ } }
+      Bridge.connect(u);
+    };
+    $('btnCloudGo').addEventListener('click', go);
+    $('cloudChip').addEventListener('click', e => { e.stopPropagation(); showCloudSetup(); });
+    if (cloudUrl()) Bridge.connect(cloudUrl()); else showCloudSetup();
+  } else {
+    Bridge.connect(defaultWs);
+  }
   chatLine('👆', 'Tap the screen to join the arena!', '#00f0ff');
   const gate = $('soundGate');
   gate.classList.remove('hidden');
   // Any click or key press anywhere turns the sound on (browsers require one click first).
-  const startSound = () => {
+  if (CLOUD_MODE && !cloudUrl()) gate.classList.add('hidden');
+  const startSound = (e) => {
+    if (e && e.target && e.target.closest && e.target.closest('#cloudSetup')) return;
     gate.classList.add('hidden');
+    try { if (navigator.wakeLock && !Sound.wake) navigator.wakeLock.request('screen').then(w => { Sound.wake = w; }).catch(() => {}); } catch (err) { /* ignore */ }
     if (Sound.on) return;
     Sound.start(); Sound.say('Welcome to Circle Arena Live! Tap the screen to join, and type your sign in the chat!');
   };

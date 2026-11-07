@@ -131,7 +131,25 @@ To edit on your phone: open the file on GitHub → ✏️ pencil → make the ch
 
 ---
 
-## 🔴 Going LIVE for real (laptop + TikFinity)
+## 📱 Going LIVE from your PHONE only (recommended)
+
+No laptop. The game runs in your phone's browser and you share your screen with TikTok's **Mobile gaming** LIVE, so it looks perfectly sharp.
+
+**One-time setup**
+1. Sign up free at **eulerstream.com** (no credit card) → dashboard → create an **API key** → copy it.
+2. On your phone, open **https://lezkt1811-maker.github.io/circle-arena-live/?live=1&cloud=1** (bookmark it / add to home screen).
+3. Your username is filled in. Paste your API key → **SAVE & CONNECT**. (Saved on your phone only.)
+
+**Every stream**
+1. Turn on **Do Not Disturb** (screen sharing shows notifications). Plug in your charger.
+2. TikTok → **+** → **LIVE** → **Mobile gaming** → **Go LIVE**.
+3. Switch to the game in your browser. It connects by itself once you're LIVE (until then it says "You are not LIVE yet. Waiting…").
+4. Tap the game once so the announcer voice can talk.
+5. To change username/key: tap the connection message at the top.
+
+Euler Stream's free tier allows plenty for normal streams. It's an unofficial service, so it may occasionally break when TikTok changes things.
+
+## 🔴 Going LIVE with a laptop (TikFinity)
 
 The game can now read your **real** TikTok LIVE through **TikFinity**, a free streaming tool. TikFinity connects to your LIVE using only your @username, not your password, and passes viewers' taps, comments, follows and gifts (with their **profile pictures**) to the game.
 

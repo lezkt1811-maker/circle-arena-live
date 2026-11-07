@@ -26,7 +26,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 #feed{position:absolute;left:8px;right:8px;z-index:6;display:flex;flex-direction:column;gap:2px;pointer-events:none}
 .f{font-size:12px;font-weight:700;text-shadow:0 1px 3px #000,0 0 2px #000;transition:opacity .6s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .f.out{opacity:0}
-#banner{position:absolute;z-index:8;left:0;right:0;margin:0 auto;width:fit-content;max-width:92%;top:38%;padding:8px 16px;border-radius:20px;background:linear-gradient(90deg,#d6246e,#ff2bd6);font-weight:900;font-size:15px;text-align:center;box-shadow:0 0 24px rgba(255,43,214,.7);opacity:0;transition:opacity .3s;pointer-events:none}
+#banner{position:absolute;z-index:8;left:0;right:0;margin:0 auto;width:fit-content;max-width:92%;top:128px;padding:8px 16px;border-radius:20px;background:linear-gradient(90deg,#d6246e,#ff2bd6);font-weight:900;font-size:15px;text-align:center;box-shadow:0 0 24px rgba(255,43,214,.7);opacity:0;transition:opacity .3s;pointer-events:none}
 #banner.show{opacity:1}
 #win{position:absolute;z-index:9;left:0;right:0;margin:0 auto;width:fit-content;max-width:90%;top:30%;padding:18px 24px;text-align:center}
 #win .a{font-size:12px;letter-spacing:.3em;color:var(--gold)}
@@ -141,7 +141,6 @@ function setLane(name, lane, info) {
   if (p.lane !== lane) { R.lanes[p.lane].members--; p.lane = lane; R.lanes[lane].members++; }
   p.auto = false;
   feed(`${name} joined Team ${sg.name} ${sg.glyph}`, sg.color);
-  say(info && info.bday ? `${clean(name)}, you're a true sky ${sg.name}!` : `${clean(name)} joined Team ${sg.name}!`, 'join', 1.5);
 }
 // 🕳️ snake dives into a hole and pops up further ahead
 function tunnel(lane, jump) {
@@ -173,7 +172,7 @@ function onEvent(e) {
     p.taps += n; push(p.lane, TAP_PUSH * n);
     for (let i = 0; i < Math.min(3, n); i++) heart(p.lane);
   } else if (e.type === 'join') { getPlayer(name, e.pic); feed(`${name} joined 👋 comment your sign to pick a snake!`, '#7df9ff'); }
-  else if (e.type === 'follow') { const p = getPlayer(name, e.pic); push(p.lane, 0.02); feed(`${name} followed ➕ boost!`, '#3d7bff'); say(`Thank you for the follow, ${clean(name)}!`, 'follow', 6); }
+  else if (e.type === 'follow') { const p = getPlayer(name, e.pic); push(p.lane, 0.02); feed(`${name} followed ➕ boost!`, '#3d7bff'); }
   else if (e.type === 'gift') {
     const p = getPlayer(name, e.pic);
     const coins = Math.max(1, Math.round(+e.coins || 1));
@@ -197,7 +196,8 @@ function onEvent(e) {
     if (coins >= 299) { tunnel(p.lane, coins >= 1000 ? 0.35 : 0.2); label = coins >= 1000 ? 'MEGA TUNNEL' : 'TUNNEL JUMP'; if (coins >= 1000) L.turboT = Math.max(L.turboT, 10); }
     burst(p.lane, 18 + Math.min(60, coins));
     feed(`🎁 ${name} sent ${e.giftName || 'a gift'} → ${label} for ${sg.name}!`, '#ffd84d');
-    if (coins >= 5) { banner(`${name} → ${label} for Team ${sg.name} ${sg.glyph}`); say(`${clean(name)} sent ${e.giftName || 'a gift'}! ${label.toLowerCase()} for Team ${sg.name}!`); }
+    if (coins >= 5) banner(`${name} → ${label} for Team ${sg.name}`);
+    if (coins >= 99) say(`${clean(name)} sent ${e.giftName || 'a big gift'}! ${label.toLowerCase()} for Team ${sg.name}!`);
   }
 }
 
@@ -237,7 +237,6 @@ function stepSpin(dt) {
     // land the pointer (top) in the middle of the chosen slice, after 4-6 full turns
     const target = -Math.PI / 2 - (pickI + 0.5) * seg + 6.2832 * Math.floor(rand(4, 7));
     R.spin = Object.assign(s, { ang: 0, target, t: 0, dur: 3.2, pickI, done: false, wheel: WHEEL });
-    say(`${clean(s.user)} is spinning the wheel!`, 'spin', 6);
   }
   const sp = R.spin; if (!sp) return;
   sp.t += dt;
@@ -251,16 +250,14 @@ function stepSpin(dt) {
       burst(sp.lane, 30);
       banner(`🎡 ${sp.user} landed on ${w.t}!`);
       feed(`🎡 ${sp.user} landed on ${w.t}!`, w.c);
-      say(`${w.say}!`);
     }
   }
-  if (sp.t > sp.dur + 1.6) R.spin = null;
+  if (sp.t > sp.dur + 1.2) R.spin = null;
 }
 function drawWheel() {
   const sp = R.spin; if (!sp) return;
-  const WH = sp.wheel, r = Math.min(W * 0.42, 165), cx = W / 2, cy = TOP + (BOT - TOP) * 0.45, seg = 6.2832 / WH.length;
+  const WH = sp.wheel, r = Math.min(W * 0.27, 108), cx = W / 2, cy = TOP + (BOT - TOP) * 0.42, seg = 6.2832 / WH.length;
   ctx.save();
-  ctx.fillStyle = 'rgba(5,2,13,.55)'; ctx.fillRect(0, 0, W, H);
   ctx.translate(cx, cy);
   ctx.shadowColor = '#ff2bd6'; ctx.shadowBlur = 25;
   ctx.fillStyle = '#14052e'; ctx.beginPath(); ctx.arc(0, 0, r + 8, 0, 6.283); ctx.fill(); ctx.shadowBlur = 0;
@@ -268,19 +265,19 @@ function drawWheel() {
   for (let i = 0; i < WH.length; i++) {
     ctx.fillStyle = WH[i].c; ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, r, i * seg, (i + 1) * seg); ctx.closePath(); ctx.fill();
     ctx.strokeStyle = '#14052e'; ctx.lineWidth = 2; ctx.stroke();
-    ctx.save(); ctx.rotate((i + 0.5) * seg); ctx.fillStyle = '#fff'; ctx.font = '900 9.5px system-ui'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
-    ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(0,0,0,.6)'; ctx.strokeText(WH[i].t, r - 6, 0); ctx.fillText(WH[i].t, r - 6, 0); ctx.restore();
+    ctx.save(); ctx.rotate((i + 0.5) * seg); ctx.fillStyle = '#fff'; ctx.font = '900 7.6px system-ui'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+    ctx.lineWidth = 2.5; ctx.strokeStyle = 'rgba(0,0,0,.6)'; ctx.strokeText(WH[i].t, r - 4, 0); ctx.fillText(WH[i].t, r - 4, 0); ctx.restore();
   }
   ctx.rotate(-sp.ang);
-  ctx.fillStyle = '#ffd84d'; ctx.beginPath(); ctx.arc(0, 0, 16, 0, 6.283); ctx.fill();
-  ctx.fillStyle = '#14052e'; ctx.font = '14px system-ui'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('🌹', 0, 1);
+  ctx.fillStyle = '#ffd84d'; ctx.beginPath(); ctx.arc(0, 0, 11, 0, 6.283); ctx.fill();
+  ctx.fillStyle = '#14052e'; ctx.font = '10px system-ui'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('🌹', 0, 1);
   // pointer at the top
   ctx.fillStyle = '#fff'; ctx.strokeStyle = '#ff2bd6'; ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.moveTo(0, -r + 14); ctx.lineTo(-11, -r - 14); ctx.lineTo(11, -r - 14); ctx.closePath(); ctx.fill(); ctx.stroke();
-  ctx.fillStyle = '#fff'; ctx.font = '900 13px system-ui';
+  ctx.beginPath(); ctx.moveTo(0, -r + 10); ctx.lineTo(-8, -r - 10); ctx.lineTo(8, -r - 10); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#fff'; ctx.font = '900 11px system-ui';
   const title = sp.done ? `${WH[sp.pickI].t}!` : `🎡 ${sp.user}'s spin · Team ${SIGNS[sp.lane].name}`;
-  ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(0,0,0,.7)'; ctx.strokeText(title, 0, r + 26); ctx.fillText(title, 0, r + 26);
-  if (R.spins.length) { ctx.font = '800 11px system-ui'; ctx.fillStyle = '#ffd84d'; ctx.fillText(`${R.spins.length} more spin${R.spins.length > 1 ? 's' : ''} waiting`, 0, r + 44); }
+  ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(0,0,0,.7)'; ctx.strokeText(title, 0, r + 20); ctx.fillText(title, 0, r + 20);
+  if (R.spins.length) { ctx.font = '800 11px system-ui'; ctx.fillStyle = '#ffd84d'; ctx.fillText(`${R.spins.length} more spin${R.spins.length > 1 ? 's' : ''} waiting`, 0, r + 34); }
   ctx.restore();
 }
 
@@ -392,7 +389,7 @@ function say(text, key, every) {
 /* ---------- UI helpers ---------- */
 function feed(msg, color) {
   const box = $('feed'), el = document.createElement('div'); el.className = 'f'; el.textContent = msg; if (color) el.style.color = color;
-  box.appendChild(el); while (box.children.length > 4) box.firstChild.remove();
+  box.appendChild(el); while (box.children.length > 3) box.firstChild.remove();
   setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 650); }, 6000);
 }
 let bt = 0;
@@ -416,6 +413,7 @@ function resize() {
   g.globalAlpha = 1;
 }
 function laneX(i) { return LW * i + LW / 2; }
+function shade(hex) { const n = parseInt(hex.slice(1), 16); const f = v => Math.round(v * 0.55); return `rgb(${f(n >> 16 & 255)},${f(n >> 8 & 255)},${f(n & 255)})`; }
 function laneY(pos) { return BOT - (BOT - TOP) * pos; }
 function heart(lane) { R.parts.push({ x: laneX(lane) + rand(-6, 6), y: laneY(R.lanes[lane].vis) + 10, vx: rand(-15, 15), vy: rand(-90, -50), life: 0.8, c: SIGNS[lane].color, h: true }); }
 function burst(lane, n) { const x = laneX(lane), y = laneY(R.lanes[lane].vis); for (let i = 0; i < n && R.parts.length < 400; i++) { const a = rand(0, 6.28), v = rand(40, 220); R.parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: rand(0.4, 1), c: pick(['#ffd84d', '#ff2bd6', '#00f0ff', SIGNS[lane].color]) }); } }
@@ -447,26 +445,46 @@ function draw() {
       ctx.fillStyle = '#ffd84d'; ctx.font = '900 10px system-ui'; ctx.textBaseline = 'middle'; ctx.fillText('🕳️', x, laneY(L.pos) - 14);
       continue;
     }
-    // snake body (wavy trail below the head)
-    const hy = laneY(L.vis), len = Math.min(BOT + 14 - hy, 46 + L.vis * 160), segs = 18, amp = LW * 0.22;
-    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-    ctx.strokeStyle = sg.color; ctx.lineWidth = Math.max(5, LW * 0.42);
-    ctx.globalAlpha = L.frozenT > 0 ? 0.45 : 1;
-    ctx.beginPath();
+    // full sign name written up the lane
+    ctx.save(); ctx.translate(x, BOT - 6); ctx.rotate(-Math.PI / 2);
+    ctx.globalAlpha = 0.22; ctx.fillStyle = sg.color; ctx.font = `900 ${Math.min(17, LW * 0.6)}px system-ui`; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    ctx.fillText(sg.name.toUpperCase(), 0, 0); ctx.restore(); ctx.globalAlpha = 1; ctx.textAlign = 'center';
+    // snake: tapered, striped body that slithers behind the head
+    const hy = laneY(L.vis), hr = Math.max(7, LW * 0.36);
+    const len = Math.min(BOT + 10 - hy, 60 + L.vis * 140), segs = 22, amp = LW * 0.2;
+    ctx.globalAlpha = L.frozenT > 0 ? 0.5 : 1;
+    const pts = [];
     for (let k = 0; k <= segs; k++) {
-      const yy = hy + (len * k) / segs, xx = x + Math.sin(t * 6 + L.wig + k * 0.7) * amp * (k / segs + 0.15);
-      if (k === 0) ctx.moveTo(xx, yy); else ctx.lineTo(xx, yy);
+      const f = k / segs, yy = hy + hr * 0.6 + len * f;
+      pts.push([x + Math.sin(t * 6 + L.wig - k * 0.55) * amp * Math.min(1, f * 3), yy]);
     }
-    ctx.stroke();
-    ctx.strokeStyle = 'rgba(255,255,255,.25)'; ctx.lineWidth = Math.max(1.5, LW * 0.1); ctx.stroke();
-    // head
-    const hr = Math.max(7, LW * 0.42);
-    ctx.save(); ctx.shadowColor = L.turboT > 0 ? '#ffd84d' : sg.color; ctx.shadowBlur = 10 + L.flash * 14 + (L.turboT > 0 ? 12 : 0);
-    ctx.fillStyle = sg.color; ctx.beginPath(); ctx.ellipse(x, hy, hr * 0.85, hr, 0, 0, 6.283); ctx.fill(); ctx.restore();
-    ctx.fillStyle = '#14052e'; ctx.font = `900 ${hr * 1.1}px "Segoe UI Symbol","Noto Sans Symbols",system-ui`; ctx.textBaseline = 'middle'; ctx.fillText(sg.glyph, x, hy + 1);
-    // eyes + tongue
-    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(x - hr * 0.35, hy - hr * 0.55, hr * 0.17, 0, 6.283); ctx.arc(x + hr * 0.35, hy - hr * 0.55, hr * 0.17, 0, 6.283); ctx.fill();
-    if ((t * 2 + i) % 2 < 0.4) { ctx.strokeStyle = '#ff2bd6'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(x, hy - hr); ctx.lineTo(x, hy - hr - 6); ctx.lineTo(x - 3, hy - hr - 9); ctx.moveTo(x, hy - hr - 6); ctx.lineTo(x + 3, hy - hr - 9); ctx.stroke(); }
+    for (let k = segs; k >= 0; k--) {
+      const f = k / segs, rad = hr * (0.78 - 0.62 * f) + 1;
+      ctx.fillStyle = (k % 4 < 2) ? sg.color : shade(sg.color);
+      ctx.beginPath(); ctx.arc(pts[k][0], pts[k][1], rad, 0, 6.283); ctx.fill();
+      if (k % 4 === 1) { ctx.fillStyle = 'rgba(255,255,255,.28)'; ctx.beginPath(); ctx.arc(pts[k][0] - rad * 0.3, pts[k][1], rad * 0.35, 0, 6.283); ctx.fill(); }
+    }
+    // head: wide, rounded snake head pointing up
+    ctx.save(); ctx.translate(pts[0][0] * 0.5 + x * 0.5, hy);
+    ctx.shadowColor = L.turboT > 0 ? '#ffd84d' : sg.color; ctx.shadowBlur = 8 + L.flash * 14 + (L.turboT > 0 ? 12 : 0);
+    ctx.fillStyle = sg.color;
+    ctx.beginPath(); ctx.moveTo(0, -hr * 1.15);
+    ctx.bezierCurveTo(hr * 0.9, -hr * 1.0, hr * 1.15, hr * 0.1, hr * 0.6, hr * 0.8);
+    ctx.lineTo(-hr * 0.6, hr * 0.8);
+    ctx.bezierCurveTo(-hr * 1.15, hr * 0.1, -hr * 0.9, -hr * 1.0, 0, -hr * 1.15);
+    ctx.fill(); ctx.shadowBlur = 0;
+    ctx.fillStyle = shade(sg.color); ctx.beginPath(); ctx.ellipse(0, -hr * 0.1, hr * 0.28, hr * 0.5, 0, 0, 6.283); ctx.fill();
+    // eyes with slit pupils
+    for (const sx of [-1, 1]) {
+      ctx.fillStyle = '#ffd84d'; ctx.beginPath(); ctx.ellipse(sx * hr * 0.5, -hr * 0.35, hr * 0.24, hr * 0.28, 0, 0, 6.283); ctx.fill();
+      ctx.fillStyle = '#111'; ctx.beginPath(); ctx.ellipse(sx * hr * 0.5, -hr * 0.35, hr * 0.06, hr * 0.22, 0, 0, 6.283); ctx.fill();
+    }
+    // forked tongue flick
+    if ((t * 1.7 + i * 0.37) % 1.6 < 0.35) {
+      ctx.strokeStyle = '#ff2bd6'; ctx.lineWidth = 1.6; ctx.beginPath();
+      ctx.moveTo(0, -hr * 1.1); ctx.lineTo(0, -hr * 1.9); ctx.lineTo(-hr * 0.3, -hr * 2.25); ctx.moveTo(0, -hr * 1.9); ctx.lineTo(hr * 0.3, -hr * 2.25); ctx.stroke();
+    }
+    ctx.restore();
     ctx.globalAlpha = 1;
     if (L.frozenT > 0) { ctx.font = `${hr}px system-ui`; ctx.fillText('❄️', x, hy - hr - 10); }
     if (L.blockT > 0) {
@@ -507,7 +525,7 @@ function step(dt) {
   for (let i = R.parts.length - 1; i >= 0; i--) { const q = R.parts[i]; q.x += q.vx * dt; q.y += q.vy * dt; q.life -= dt * 1.2; if (q.life <= 0) R.parts.splice(i, 1); }
   if (R.phase === 'race') {
     let lead = -1, lp = 0.02; R.lanes.forEach((L, i) => { if (L.pos > lp) { lp = L.pos; lead = i; } });
-    if (lead !== R.leader && lead >= 0) { R.leader = lead; say(`Team ${SIGNS[lead].name} takes the lead!`, 'lead', 8); }
+    if (lead !== R.leader && lead >= 0) { R.leader = lead; say(`Team ${SIGNS[lead].name} takes the lead!`, 'lead', 30); }
     if (finish()) endRace();
   } else if (R.phase === 'win') { R.winT -= dt; if (R.winT <= 0) newRace(); }
 }

@@ -53,8 +53,8 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 <div id="win" class="box hidden"><div class="a">🏆 WINNER 🏆</div><div class="b" id="winName"></div><div class="c" id="winSub"></div></div>
 <div id="how" class="box">
   <div class="h">HOW TO PLAY</div>
-  <div>💬 <b>TYPE A NUMBER 1–13</b> in chat to pick your snake</div>
-  <div>👆 <b>TAP THE SCREEN</b> to make it go faster</div>
+  <div>👆 <b>JUST TAP THE SCREEN!</b> You get a snake automatically</div>
+  <div>💬 Want a different snake? Type its <b>number 1–13</b></div>
   <div>🎁 <b>GIFTS</b> = boosts, blocks &amp; tunnels · 🏁 First to <b>1000 pts</b> wins!</div>
   <div class="g">🌹1 SPIN THE WHEEL 🎡 · 💗5 big boost · 🪨10 block the leader · 🌌30 turbo<br>❄️99 freeze all rivals · 🕳️299 TUNNEL jump · 👑1000 MEGA TUNNEL</div>
 </div>
@@ -131,6 +131,7 @@ function getPlayer(name, pic) {
     let best = 0; for (let i = 1; i < 13; i++) if (R.lanes[i].members < R.lanes[best].members || (R.lanes[i].members === R.lanes[best].members && Math.random() < 0.3)) best = i;
     p = { lane: best, taps: 0, pic: null, img: null, auto: true };
     R.players.set(name, p); R.lanes[best].members++;
+    feed(`${name} is racing for #${best + 1} ${SIGNS[best].name.toUpperCase()} 🐍`, '#fff3c4');
   }
   if (pic && p.pic !== pic) { p.pic = pic; const im = new Image(); im.referrerPolicy = 'no-referrer'; im.onload = () => { p.img = im; }; im.src = pic; }
   return p;

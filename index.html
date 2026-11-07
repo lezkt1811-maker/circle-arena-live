@@ -1526,7 +1526,7 @@ const Sound = {
     this.el.onerror = () => this.loadWhole();
     this.el.onplaying = () => this.status('🎵 Music playing', true);
     clearTimeout(this.slowT);
-    this.slowT = setTimeout(() => { if (this.el.paused || this.el.readyState < 3) this.status('⚠️ Music still loading… click here to retry'); }, 15000);
+    this.slowT = setTimeout(() => { if (this.el.paused || this.el.readyState < 3) this.loadWhole(); }, 8000);   // stalled: switch to full download
     const pr = this.el.play();
     if (pr && pr.catch) pr.catch(err => {
       console.warn('music play failed', err);
@@ -1569,7 +1569,7 @@ const Sound = {
     this.loadingWhole = false;
     this.status('⚠️ Music couldn\'t download (internet too slow). Click here to try again.');
   },
-  retry() { if (!this.el) { this.on = false; this.start(); } else { this.musicOn = true; this.playMusic(); } },
+  retry() { if (!this.el) { this.on = false; this.start(); } else { this.musicOn = true; this.loadingWhole = false; this.loadWhole(); } },
   setDuck(on) { if (this.musicOn) this.target = on ? this.DUCK_VOL : this.MUSIC_VOL; },
   toggleMusic() {
     this.musicOn = !this.musicOn;

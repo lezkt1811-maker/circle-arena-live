@@ -1523,12 +1523,16 @@ const Sound = {
   },
   playMusic() {
     this.target = this.speaking ? this.DUCK_VOL : this.MUSIC_VOL;
-    this.el.onerror = () => this.status('⚠️ Music file failed to load (' + (this.el.error ? this.el.error.code : '?') + '). Tell Claude.');
+    this.el.onerror = () => this.loadWhole();
     this.el.onplaying = () => this.status('🎵 Music playing', true);
     clearTimeout(this.slowT);
     this.slowT = setTimeout(() => { if (this.el.paused || this.el.readyState < 3) this.status('⚠️ Music still loading… click here to retry'); }, 15000);
     const pr = this.el.play();
-    if (pr && pr.catch) pr.catch(err => { console.warn('music blocked', err); this.status('⚠️ Sound blocked by browser: ' + err.name + '. Click here.'); });
+    if (pr && pr.catch) pr.catch(err => {
+      console.warn('music play failed', err);
+      if (err.name === 'NotAllowedError') this.status('⚠️ Click anywhere to turn the sound on');
+      else this.loadWhole();   // loading got cut off (slow/spotty internet): download the whole song, then play
+    });
   },
   // smooth volume changes (fade in/out, duck under the voice)
   fade() {
@@ -1537,6 +1541,33 @@ const Sound = {
     if (Math.abs(d) < 0.01) this.vol = this.target; else this.vol += d * 0.25;
     this.el.volume = clamp(this.vol, 0, 1);
     if (!this.musicOn && this.vol <= 0.01 && !this.el.paused) this.el.pause();
+  },
+  // Download the entire song into memory (retrying), then play it from there. Works on spotty hotspots.
+  async loadWhole() {
+    if (this.loadingWhole) return;
+    this.loadingWhole = true;
+    for (let tryN = 1; tryN <= 5; tryN++) {
+      this.status(`⏳ Downloading music… (try ${tryN} of 5)`);
+      try {
+        const res = await fetch(this.MUSIC_FILE, { cache: 'reload' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const blob = await res.blob();
+        this.el.onerror = () => this.status('⚠️ Music can\'t play on this computer. Check the laptop volume.');
+        this.el.src = URL.createObjectURL(blob);
+        this.loadingWhole = false;
+        if (this.musicOn) {
+          this.target = this.speaking ? this.DUCK_VOL : this.MUSIC_VOL;
+          await this.el.play();
+        }
+        return;
+      } catch (err) {
+        console.warn('music download failed', err);
+        if (err && err.name === 'NotAllowedError') { this.loadingWhole = false; this.status('⚠️ Click anywhere to turn the sound on'); return; }
+        await new Promise(r => setTimeout(r, 2000));
+      }
+    }
+    this.loadingWhole = false;
+    this.status('⚠️ Music couldn\'t download (internet too slow). Click here to try again.');
   },
   retry() { if (!this.el) { this.on = false; this.start(); } else { this.musicOn = true; this.playMusic(); } },
   setDuck(on) { if (this.musicOn) this.target = on ? this.DUCK_VOL : this.MUSIC_VOL; },

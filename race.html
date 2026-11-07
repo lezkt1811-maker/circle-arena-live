@@ -17,7 +17,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 #top .t{font-weight:900;font-size:13px;letter-spacing:.12em;background:linear-gradient(90deg,var(--cyan),#9d4dff,var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent}
 #top .r{font-size:12px;font-weight:800;text-align:right;line-height:1.3}
 #top .r b{color:var(--gold)}
-#lead{left:6px;top:calc(44px + var(--sat));padding:5px 9px;font-size:11.5px;font-weight:800;line-height:1.5;max-width:62%}
+#lead{left:6px;top:calc(44px + var(--sat));padding:5px 9px;font-size:11.5px;font-weight:800;line-height:1.5;max-width:46%}
 #lead .h{color:#a79cd6;font-size:10px;letter-spacing:.14em}
 #how{left:6px;right:6px;bottom:calc(6px + var(--sab));padding:7px 12px;font-size:13px;font-weight:800;line-height:1.45}
 #how .h{text-align:center;color:var(--gold);letter-spacing:.18em;font-size:11.5px}
@@ -40,7 +40,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .btn{display:block;width:100%;margin-top:10px;padding:13px;border:none;border-radius:11px;font-size:16px;font-weight:900;letter-spacing:.12em;color:#fff;background:linear-gradient(90deg,#3d7bff,#9d4dff,#ff2bd6);cursor:pointer}
 .btn.alt{background:rgba(255,255,255,.08);border:1px solid rgba(157,77,255,.5);font-size:13px}
 #chip{position:absolute;z-index:12;left:0;right:0;margin:0 auto;width:fit-content;max-width:94%;top:calc(46px + var(--sat));padding:4px 10px;border-radius:10px;background:rgba(20,5,46,.94);border:1px solid var(--pink);font:700 11.5px system-ui;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
-#test{position:absolute;z-index:11;right:6px;top:calc(46px + var(--sat));display:flex;flex-direction:column;gap:5px}
+#test{position:absolute;z-index:11;right:6px;top:calc(150px + var(--sat));display:flex;flex-direction:column;gap:5px}
 #test button{border:1px solid rgba(157,77,255,.6);background:rgba(12,5,30,.9);color:#fff;border-radius:9px;padding:6px 8px;font-size:11px;font-weight:800;cursor:pointer}
 </style>
 </head>
@@ -256,29 +256,31 @@ function stepSpin(dt) {
 }
 function drawWheel() {
   const sp = R.spin; if (!sp) return;
-  const WH = sp.wheel, r = Math.min(W * 0.27, 108), cx = W / 2, cy = TOP + (BOT - TOP) * 0.42, seg = 6.2832 / WH.length;
-  ctx.save();
-  ctx.translate(cx, cy);
-  ctx.shadowColor = '#ff2bd6'; ctx.shadowBlur = 25;
-  ctx.fillStyle = '#14052e'; ctx.beginPath(); ctx.arc(0, 0, r + 8, 0, 6.283); ctx.fill(); ctx.shadowBlur = 0;
+  // tiny wheel in the top-right corner, above the finish line (never over the lanes)
+  const WH = sp.wheel, r = 30, cx = W - r - 10, cy = TOP - r - 16, seg = 6.2832 / WH.length;
+  ctx.save(); ctx.translate(cx, cy);
+  ctx.fillStyle = '#14052e'; ctx.beginPath(); ctx.arc(0, 0, r + 3, 0, 6.283); ctx.fill();
   ctx.rotate(sp.ang);
   for (let i = 0; i < WH.length; i++) {
     ctx.fillStyle = WH[i].c; ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, r, i * seg, (i + 1) * seg); ctx.closePath(); ctx.fill();
-    ctx.strokeStyle = '#14052e'; ctx.lineWidth = 2; ctx.stroke();
-    ctx.save(); ctx.rotate((i + 0.5) * seg); ctx.fillStyle = '#fff'; ctx.font = '900 7.6px system-ui'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
-    ctx.lineWidth = 2.5; ctx.strokeStyle = 'rgba(0,0,0,.6)'; ctx.strokeText(WH[i].t, r - 4, 0); ctx.fillText(WH[i].t, r - 4, 0); ctx.restore();
+    ctx.strokeStyle = '#14052e'; ctx.lineWidth = 1; ctx.stroke();
   }
   ctx.rotate(-sp.ang);
-  ctx.fillStyle = '#ffd84d'; ctx.beginPath(); ctx.arc(0, 0, 11, 0, 6.283); ctx.fill();
-  ctx.fillStyle = '#14052e'; ctx.font = '10px system-ui'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('🌹', 0, 1);
-  // pointer at the top
-  ctx.fillStyle = '#fff'; ctx.strokeStyle = '#ff2bd6'; ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.moveTo(0, -r + 10); ctx.lineTo(-8, -r - 10); ctx.lineTo(8, -r - 10); ctx.closePath(); ctx.fill(); ctx.stroke();
-  ctx.fillStyle = '#fff'; ctx.font = '900 11px system-ui';
-  const title = sp.done ? `${WH[sp.pickI].t}!` : `🎡 ${sp.user}'s spin · Team ${SIGNS[sp.lane].name}`;
-  ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(0,0,0,.7)'; ctx.strokeText(title, 0, r + 20); ctx.fillText(title, 0, r + 20);
-  if (R.spins.length) { ctx.font = '800 11px system-ui'; ctx.fillStyle = '#ffd84d'; ctx.fillText(`${R.spins.length} more spin${R.spins.length > 1 ? 's' : ''} waiting`, 0, r + 34); }
+  ctx.fillStyle = '#ffd84d'; ctx.beginPath(); ctx.arc(0, 0, 6, 0, 6.283); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.strokeStyle = '#ff2bd6'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(0, -r + 6); ctx.lineTo(-5, -r - 6); ctx.lineTo(5, -r - 6); ctx.closePath(); ctx.fill(); ctx.stroke();
   ctx.restore();
+  // what the pointer is on right now, written beside the wheel
+  const seg2 = 6.2832 / WH.length, a = ((-Math.PI / 2 - sp.ang) % 6.2832 + 6.2832) % 6.2832, cur = WH[Math.floor(a / seg2) % WH.length];
+  ctx.textAlign = 'right'; ctx.textBaseline = 'middle'; ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(0,0,0,.8)';
+  ctx.font = '800 9.5px system-ui'; ctx.fillStyle = '#ffd84d';
+  const who = `🌹 ${sp.user}`;
+  ctx.strokeText(who, cx - r - 8, cy - 9); ctx.fillText(who, cx - r - 8, cy - 9);
+  ctx.font = '900 11px system-ui'; ctx.fillStyle = sp.done ? '#fff' : cur.c;
+  const now = (sp.done ? '✅ ' : '') + cur.t;
+  ctx.strokeText(now, cx - r - 8, cy + 6); ctx.fillText(now, cx - r - 8, cy + 6);
+  if (R.spins.length) { ctx.font = '800 8.5px system-ui'; ctx.fillStyle = '#d9d2ff'; ctx.strokeText(`+${R.spins.length} waiting`, cx - r - 8, cy + 19); ctx.fillText(`+${R.spins.length} waiting`, cx - r - 8, cy + 19); }
+  ctx.textAlign = 'center';
 }
 
 /* ---------- connection (TikFinity on laptop, or Euler Stream on phone) ---------- */
@@ -403,7 +405,7 @@ function resize() {
   document.body.style.width = pw + 'px'; document.body.style.left = Math.floor((innerWidth - pw) / 2) + 'px';
   W = pw; H = innerHeight; DPR = Math.min(devicePixelRatio || 1, 2);
   cv.width = W * DPR; cv.height = H * DPR;
-  TOP = 118; BOT = H - $('how').offsetHeight - 122; LW = W / 13;
+  TOP = 124; BOT = H - $('how').offsetHeight - 122; LW = W / 13;
   $('feed').style.bottom = (H - BOT + 6 + 26) + 'px';
   bg = document.createElement('canvas'); bg.width = cv.width; bg.height = cv.height;
   const g = bg.getContext('2d'); g.scale(DPR, DPR);

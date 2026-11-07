@@ -410,14 +410,19 @@ function resize() {
   $('feed').style.bottom = (H - BOT + 6 + 26) + 'px';
   bg = document.createElement('canvas'); bg.width = cv.width; bg.height = cv.height;
   const g = bg.getContext('2d'); g.scale(DPR, DPR);
-  g.fillStyle = '#3f7d3a'; g.fillRect(0, 0, W, H);                       // grass
-  for (let i = 0; i < 500; i++) { g.fillStyle = Math.random() < 0.5 ? '#468a40' : '#37702f'; g.fillRect(rand(0, W), rand(0, H), 2, 3); }
-  const dirt = g.createLinearGradient(0, 0, W, 0); dirt.addColorStop(0, '#b98a5a'); dirt.addColorStop(0.5, '#c79a68'); dirt.addColorStop(1, '#b98a5a');
-  g.fillStyle = dirt; g.fillRect(0, TOP - 4, W, BOT - TOP + 26);          // dirt track
-  for (let i = 0; i < 900; i++) { g.fillStyle = Math.random() < 0.5 ? 'rgba(90,60,30,.18)' : 'rgba(255,240,210,.18)'; g.fillRect(rand(0, W), rand(TOP, BOT + 20), 2, 2); }
-  g.strokeStyle = 'rgba(255,255,255,.85)'; g.lineWidth = 1.5;          // white lane lines
+  g.fillStyle = '#040208'; g.fillRect(0, 0, W, H);                       // deep black space
+  const neb = g.createRadialGradient(W * 0.3, H * 0.4, 0, W * 0.3, H * 0.4, H * 0.6);
+  neb.addColorStop(0, 'rgba(90,40,140,.18)'); neb.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = neb; g.fillRect(0, 0, W, H);
+  for (let i = 0; i < 420; i++) {                                         // sparkly stars
+    const big = Math.random() < 0.07; g.globalAlpha = rand(0.35, 1);
+    g.fillStyle = pick(['#ffffff', '#ffffff', '#fff6d8', '#dfe8ff']);
+    if (big) { const x = rand(0, W), y = rand(0, H), r = rand(2.5, 4); g.fillRect(x - r, y - 0.5, r * 2, 1); g.fillRect(x - 0.5, y - r, 1, r * 2); g.fillRect(x - 1, y - 1, 2, 2); }
+    else g.fillRect(rand(0, W), rand(0, H), 1.2, 1.2);
+  }
+  g.globalAlpha = 1;
+  g.strokeStyle = 'rgba(255,255,255,.55)'; g.lineWidth = 1.2;            // straight silver lane lines
   for (let i = 0; i <= 13; i++) { g.beginPath(); g.moveTo(LW * i, TOP - 4); g.lineTo(LW * i, BOT + 22); g.stroke(); }
-  g.fillStyle = '#f4ead8'; g.fillRect(0, BOT + 22, W, H - BOT - 22);     // name board area
+  g.fillStyle = 'rgba(255,255,255,.07)'; g.fillRect(0, BOT + 22, W, H - BOT - 22);   // name board
 }
 function laneX(i) { return LW * i + LW / 2; }
 function shade(hex) { const n = parseInt(hex.slice(1), 16); const f = v => Math.round(v * 0.55); return `rgb(${f(n >> 16 & 255)},${f(n >> 8 & 255)},${f(n & 255)})`; }
@@ -435,7 +440,7 @@ function draw() {
   for (let i = 0; i < 13; i++) {
     const L = R.lanes[i], sg = SIGNS[i], x = laneX(i);
     // lane
-    if (i === R.leader && R.phase === 'race') { ctx.fillStyle = 'rgba(255,230,120,.25)'; ctx.fillRect(LW * i, TOP + 2, LW, BOT - TOP + 20); }
+    if (i === R.leader && R.phase === 'race') { ctx.fillStyle = 'rgba(255,230,120,.12)'; ctx.fillRect(LW * i, TOP + 2, LW, BOT - TOP + 20); }
     // tunnel holes
     if (L.tunnelT > 0) {
       const k = 1 - L.tunnelT / 1.4;
@@ -497,10 +502,10 @@ function draw() {
     }
     if (L.turboT > 0 && Math.random() < 0.5) R.parts.push({ x: x + rand(-4, 4), y: hy + hr, vx: rand(-10, 10), vy: rand(40, 90), life: 0.4, c: '#ffd84d' });
     // lane label: number + full name, big, reading bottom-to-top
-    if (L.members) { ctx.fillStyle = '#5a3a1a'; ctx.font = '800 9px system-ui'; ctx.textBaseline = 'middle'; ctx.fillText('👤' + L.members, x, BOT + 14); }
-    ctx.fillStyle = '#222'; ctx.font = `900 ${Math.min(15, LW * 0.52)}px system-ui`; ctx.textBaseline = 'middle'; ctx.fillText(String(i + 1), x, BOT + 33);
+    if (L.members) { ctx.fillStyle = '#ffd84d'; ctx.font = '800 9px system-ui'; ctx.textBaseline = 'middle'; ctx.fillText('👤' + L.members, x, BOT + 14); }
+    ctx.fillStyle = '#fff'; ctx.font = `900 ${Math.min(15, LW * 0.52)}px system-ui`; ctx.textBaseline = 'middle'; ctx.fillText(String(i + 1), x, BOT + 33);
     ctx.save(); ctx.translate(x, BOT + 45); ctx.rotate(-Math.PI / 2);
-    ctx.fillStyle = shade(sg.color); ctx.font = `900 ${Math.min(13, LW * 0.46)}px system-ui`; ctx.textAlign = "right"; ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#fff'; ctx.font = `900 ${Math.min(13, LW * 0.46)}px system-ui`; ctx.textAlign = "right"; ctx.textBaseline = 'middle';
     ctx.fillText(sg.name.toUpperCase(), 0, 0); ctx.restore(); ctx.textAlign = 'center';
   }
   // particles

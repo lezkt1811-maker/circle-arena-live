@@ -1,5 +1,8 @@
 # 🟣 CIRCLE ARENA LIVE
 
+> **New: 🐍 Zodiac Snake Race** → `race.html`. 13 zodiac snakes in numbered lanes (1 Aries → 13 Pisces). Viewers type a number 1–13 (or a sign or birthday) to pick a snake, then tap to push it. 🌹 Rose = spin the wheel (team +50/+100/−50/−100, turbo, freeze, tunnel…). 💗5 big boost · 🪨10 boulder on the leader · 🌌30 turbo · ❄️99 freeze all rivals · 🕳️299 tunnel jump · 👑1000 mega tunnel. First to 1000 points wins. Music ("Action Dubstep" by The_Mountain, Pixabay) and announcer voice built in; tap the title to toggle music.
+> Phone LIVE link: **https://lezkt1811-maker.github.io/circle-arena-live/race.html?live=1&cloud=1** (uses the same saved Euler Stream key).
+
 A neon arena game made for TikTok LIVE-style streams. **The whole game plays on one screen. Nobody steers.**
 
 - Every viewer who comes into the LIVE gets their own glowing circle.

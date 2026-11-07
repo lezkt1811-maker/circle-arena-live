@@ -147,6 +147,8 @@ The game can now read your **real** TikTok LIVE through **TikFinity**, a free st
    **`https://lezkt1811-maker.github.io/circle-arena-live/?live=1`**
    This is the clean version: no buttons, no pretend viewers, and it connects to TikFinity automatically.
 
+**Getting a sharp picture with your phone camera:** the LIVE version (`?live=1`) always draws the game in **phone shape (9:16)**, as tall as your screen. Press **F11** in Edge for full screen (F11 again to exit), point your phone's 1× back camera straight at it from about 8–12 inches, turn **Enhance/beauty filters off** in TikTok, put laptop brightness at max, and tap the game on your phone to focus.
+
 **Every time you stream**
 1. Open TikFinity.
 2. Go LIVE in LIVE Studio.

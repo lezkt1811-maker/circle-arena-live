@@ -14,6 +14,10 @@
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{position:fixed;inset:0;overflow:hidden;background:#05020d;color:var(--text);
   font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;overscroll-behavior:none;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+/* Phone-shaped stage for streaming (?live=1): a tall 9:16 column, as big as the screen allows */
+html.phone{background:#000}
+html.phone body{left:50%;right:auto;width:min(100vw,calc(100vh * 9 / 16));transform:translateX(-50%);box-shadow:0 0 0 2px rgba(0,240,255,.35)}
+html.phone #howto{max-width:94%}html.phone #banner{max-width:92%}html.phone #chat{width:62%}html.phone #giftFeed{width:48%}
 canvas#game{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
 button{font-family:inherit;cursor:pointer;border:none;color:inherit;touch-action:manipulation}
 input,select{font-family:inherit;font-size:16px;user-select:text;-webkit-user-select:text}
@@ -315,6 +319,7 @@ const fakeName = () => pick(NAME_A) + '_' + pick(NAME_B) + (Math.random() < 0.5 
 
 const params = new URLSearchParams(location.search);
 const LIVE_MODE = params.get('live') === '1';
+if (LIVE_MODE || params.get('phone') === '1') document.documentElement.classList.add('phone');
 
 /* ---------------- screen ---------------- */
 const canvas = document.getElementById('game');
@@ -325,7 +330,7 @@ let W = 0, H = 0, S = 1, DPR = 1, bg = null;
 
 function resize() {
   DPR = Math.min(window.devicePixelRatio || 1, 2);
-  W = window.innerWidth; H = window.innerHeight;
+  W = document.body.clientWidth || window.innerWidth; H = document.body.clientHeight || window.innerHeight;
   canvas.width = Math.round(W * DPR); canvas.height = Math.round(H * DPR);
   S = clamp(Math.min(W, H) / 400, 0.8, 1.8);
   bg = buildBackground();

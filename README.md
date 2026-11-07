@@ -57,7 +57,9 @@ The whole game is in **`index.html`**: plain HTML, CSS, and JavaScript with a Ca
 | 300 | 💎 Diamond | 5× |
 | 1,000 | 🔥 Legend | 10× |
 
-The rank shows next to their name with a colored ring.
+The rank shows next to their name with a glowing ring, and each rank gets a cooler **skin**: 🥈 Silver = orbiting sparkles · 🥇 Gold = rotating golden light rays · 💎 Diamond = spinning crystal shards · 🔥 Legend = a flickering fire aura.
+
+**Size:** circles grow gently with points and are capped at a moderate size, and everyone shrinks a bit automatically when the arena gets crowded, so there's always room for everybody.
 
 **💫 Revive:** if a viewer gets knocked out, any gift brings them back with **half their old points**.
 

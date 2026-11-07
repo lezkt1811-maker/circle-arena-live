@@ -94,7 +94,7 @@ A glowing serpent slithers around the arena the whole game. It often heads towar
 
 ## 🎵 Music & 🗣️ announcer voice
 
-- **Music:** an original dubstep track (F minor, 140 BPM, wobble-bass drop) that the game **creates live in code**. It's not a copyrighted song, so it's safe for TikTok LIVE. It loops: intro → snare build → DROP → breakdown.
+- **Music:** "Action Dubstep" by The_Mountain (free-to-use track from Pixabay), stored in `music/action-dubstep.mp3`, looping. To change songs, upload a new MP3 to the `music` folder with the same name (or change `MUSIC_FILE` in the code). Use free-to-use music only; popular songs can get your LIVE muted.
 - **Voice:** the computer's built-in text-to-speech announces things for you: *"Maria joined Team Scorpio!"*, *"Jen, you're not a Sagittarius. You're a true sky Ophiuchus!"*, *"big spender sent a Paper Crane! freeze all!"*, *"Thank you for the follow!"*, *"Team Pisces wins the round!"*. Music gets quieter while it talks. On Edge it uses a natural-sounding Microsoft voice when available.
 - **Starting sound:** browsers need one click before they can play sound. In the LIVE version (`?live=1`), click the **🔊 CLICK TO START** box once, before you point your camera.
 - **Keys:** **M** = music on/off · **V** = voice on/off. (Also in the 🎁 panel.)

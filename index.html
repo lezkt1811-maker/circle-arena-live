@@ -1422,134 +1422,53 @@ window.addEventListener('orientationchange', () => setTimeout(resize, 250));
 document.addEventListener('visibilitychange', () => { if (document.hidden && !G.paused && G.phase !== 'menu' && !LIVE_MODE) togglePause(); });
 
 /* ================================================================
-   🎵 SOUND: original dubstep made live in code (no copyrighted music)
+   🎵 SOUND: background song from the music/ folder (free-to-use track)
    🗣️ VOICE: announcer using the computer's built-in text-to-speech
    Keys: M = music on/off, V = voice on/off
    ================================================================ */
 const Sound = {
-  ac: null, on: false, musicOn: true, voiceOn: true, step: 0, bar: 0, next: 0, timer: null, voice: null, q: [], speaking: false, lastSay: {},
+  on: false, musicOn: true, voiceOn: true, voice: null, q: [], speaking: false, lastSay: {},
+  el: null, vol: 0, target: 0, fadeTimer: null,
+  MUSIC_FILE: 'music/action-dubstep.mp3',   // "Action Dubstep" by The_Mountain (Pixabay, free to use)
+  MUSIC_VOL: 0.6, DUCK_VOL: 0.15,
   start() {
     if (this.on) return;
-    try {
-      const AC = window.AudioContext || window.webkitAudioContext;
-      this.ac = new AC();
-    } catch (err) { console.warn('no audio', err); return; }
-    const ac = this.ac;
-    this.master = ac.createDynamicsCompressor(); this.master.connect(ac.destination);
-    this.music = ac.createGain(); this.music.gain.value = this.musicOn ? 0.55 : 0; this.music.connect(this.master);
-    // echo for the lead synth
-    this.delay = ac.createDelay(1); this.delay.delayTime.value = 60 / 140 * 0.75;
-    const fb = ac.createGain(); fb.gain.value = 0.35; this.delay.connect(fb); fb.connect(this.delay);
-    this.delayOut = ac.createGain(); this.delayOut.gain.value = 0.4; this.delay.connect(this.delayOut); this.delayOut.connect(this.music);
-    // white noise for drums
-    const nb = ac.createBuffer(1, ac.sampleRate, ac.sampleRate), d = nb.getChannelData(0);
-    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
-    this.noise = nb;
-    this.on = true; this.next = ac.currentTime + 0.1; this.step = 0; this.bar = 0;
-    this.timer = setInterval(() => this.schedule(), 25);
+    this.on = true;
+    this.el = new Audio(this.MUSIC_FILE);
+    this.el.loop = true; this.el.volume = 0; this.vol = 0;
+    if (this.musicOn) this.playMusic();
+    this.fadeTimer = setInterval(() => this.fade(), 50);
     this.pickVoice();
     if (window.speechSynthesis) speechSynthesis.onvoiceschanged = () => this.pickVoice();
-    if (ac.state === 'suspended') ac.resume();
   },
+  playMusic() {
+    this.target = this.speaking ? this.DUCK_VOL : this.MUSIC_VOL;
+    const pr = this.el.play();
+    if (pr && pr.catch) pr.catch(err => console.warn('music blocked', err));
+  },
+  // smooth volume changes (fade in/out, duck under the voice)
+  fade() {
+    if (!this.el) return;
+    const d = this.target - this.vol;
+    if (Math.abs(d) < 0.01) this.vol = this.target; else this.vol += d * 0.25;
+    this.el.volume = clamp(this.vol, 0, 1);
+    if (!this.musicOn && this.vol <= 0.01 && !this.el.paused) this.el.pause();
+  },
+  setDuck(on) { if (this.musicOn) this.target = on ? this.DUCK_VOL : this.MUSIC_VOL; },
   toggleMusic() {
     this.musicOn = !this.musicOn;
-    if (this.music) this.music.gain.setTargetAtTime(this.musicOn ? 0.55 : 0, this.ac.currentTime, 0.1);
+    if (this.el) { if (this.musicOn) this.playMusic(); else this.target = 0; }
     chatLine('🎵', 'Music ' + (this.musicOn ? 'ON' : 'OFF'), '#ff7bf2'); this.syncButtons();
   },
   toggleVoice() {
     this.voiceOn = !this.voiceOn;
-    if (!this.voiceOn && window.speechSynthesis) { speechSynthesis.cancel(); this.q = []; this.speaking = false; }
+    if (!this.voiceOn && window.speechSynthesis) { speechSynthesis.cancel(); this.q = []; this.speaking = false; this.setDuck(false); }
     chatLine('🗣️', 'Voice ' + (this.voiceOn ? 'ON' : 'OFF'), '#7df9ff'); this.syncButtons();
   },
   syncButtons() {
     const m = $('btnMusic'), v = $('btnVoice');
     if (m) { m.textContent = '🎵 MUSIC: ' + (this.musicOn ? 'ON' : 'OFF'); m.classList.toggle('off', !this.musicOn); }
     if (v) { v.textContent = '🗣️ VOICE: ' + (this.voiceOn ? 'ON' : 'OFF'); v.classList.toggle('off', !this.voiceOn); }
-  },
-
-  /* ---------- music ---------- */
-  // 16-bar loop in F minor at 140 BPM: intro → DROP (wobble bass) → breakdown
-  schedule() {
-    const ac = this.ac, s16 = 60 / 140 / 4;
-    while (this.next < ac.currentTime + 0.15) {
-      this.playStep(this.step, this.bar, this.next);
-      this.next += s16; this.step++;
-      if (this.step === 16) { this.step = 0; this.bar = (this.bar + 1) % 16; }
-    }
-  },
-  playStep(st, bar, t) {
-    const roots = [43.65, 34.65, 51.91, 38.89];          // F1, Db1, Ab1, Eb1
-    const chords = [[349.2, 415.3, 523.3], [277.2, 349.2, 415.3], [415.3, 523.3, 622.3], [311.1, 392.0, 466.2]];
-    const ci = Math.floor(bar / 2) % 4, root = roots[ci], chord = chords[ci];
-    const intro = bar < 4, drop = bar >= 4 && bar < 12, brk = bar >= 12;
-    const build = bar === 3 || bar === 11;
-    // drums (half-time dubstep: kick on 1, snare on 3)
-    if (!intro || bar >= 2) {
-      if (st === 0 || (drop && st === 10) || (brk && st === 6)) this.kick(t);
-      if (st === 8 && !intro) this.snare(t, 1);
-    }
-    if (build && st >= 8) this.snare(t, 0.3 + (st - 8) * 0.08);           // snare roll into the drop
-    if (st % 2 === 0) this.hat(t, st % 4 === 2 ? 0.12 : 0.06);
-    if (drop && st % 4 === 3) this.hat(t, 0.05);
-    // wobble bass on the drop
-    if (drop && st % 8 === 0) {
-      const wob = [2, 4, 3, 6, 4, 8, 3, 4][(bar * 2 + st / 8) % 8];
-      this.wobble(t, root, wob, 60 / 140 * 2);
-    }
-    // pads every 2 bars
-    if (st === 0 && bar % 2 === 0) this.pad(t, chord, 60 / 140 * 8, drop ? 0.05 : 0.09);
-    // arpeggio lead (intro + breakdown, light on the drop)
-    if ((intro && bar >= 2) || brk || (drop && st % 2 === 0)) {
-      const n = chord[[0, 1, 2, 1, 0, 2, 1, 2][st % 8]] * (st % 16 < 8 ? 2 : 4);
-      this.lead(t, n, drop ? 0.03 : 0.05);
-    }
-  },
-  env(g, t, a, peak, dur) { g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + a); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); },
-  kick(t) {
-    const ac = this.ac, o = ac.createOscillator(), g = ac.createGain();
-    o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(42, t + 0.14);
-    this.env(g, t, 0.002, 1.0, 0.35); o.connect(g); g.connect(this.music); o.start(t); o.stop(t + 0.4);
-  },
-  snare(t, vol) {
-    const ac = this.ac, n = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
-    n.buffer = this.noise; f.type = 'bandpass'; f.frequency.value = 1900; f.Q.value = 0.7;
-    this.env(g, t, 0.002, 0.5 * vol, 0.22); n.connect(f); f.connect(g); g.connect(this.music); n.start(t); n.stop(t + 0.25);
-    const o = ac.createOscillator(), og = ac.createGain(); o.frequency.value = 190;
-    this.env(og, t, 0.002, 0.3 * vol, 0.1); o.connect(og); og.connect(this.music); o.start(t); o.stop(t + 0.12);
-  },
-  hat(t, vol) {
-    const ac = this.ac, n = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
-    n.buffer = this.noise; f.type = 'highpass'; f.frequency.value = 8000;
-    this.env(g, t, 0.001, vol, 0.05); n.connect(f); f.connect(g); g.connect(this.music); n.start(t); n.stop(t + 0.06);
-  },
-  wobble(t, freq, wobbles, dur) {
-    const ac = this.ac, f = ac.createBiquadFilter(), g = ac.createGain();
-    f.type = 'lowpass'; f.Q.value = 9;
-    [['sawtooth', 1, 0], ['sawtooth', 1, 9], ['square', 0.5, -7]].map(([type, mul, det]) => {
-      const o = ac.createOscillator(); o.type = type; o.frequency.value = freq * 2 * mul; o.detune.value = det; o.connect(f); o.start(t); o.stop(t + dur); return o;
-    });
-    const sub = ac.createOscillator(); sub.frequency.value = freq; sub.connect(g); sub.start(t); sub.stop(t + dur);
-    // the "wub": sweep the filter open and closed
-    const per = dur / wobbles;
-    f.frequency.setValueAtTime(120, t);
-    for (let i = 0; i < wobbles; i++) {
-      f.frequency.linearRampToValueAtTime(1900 + (i % 2) * 700, t + per * (i + 0.45));
-      f.frequency.linearRampToValueAtTime(120, t + per * (i + 1));
-    }
-    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.38, t + 0.01); g.gain.setValueAtTime(0.38, t + dur - 0.03); g.gain.linearRampToValueAtTime(0.0001, t + dur);
-    f.connect(g); g.connect(this.music);
-  },
-  pad(t, chord, dur, vol) {
-    const ac = this.ac, f = ac.createBiquadFilter(), g = ac.createGain();
-    f.type = 'lowpass'; f.frequency.value = 1400;
-    for (const fr of chord) for (const det of [-8, 8]) { const o = ac.createOscillator(); o.type = 'triangle'; o.frequency.value = fr / 2; o.detune.value = det; o.connect(f); o.start(t); o.stop(t + dur); }
-    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + 0.8); g.gain.setValueAtTime(vol, t + dur - 0.6); g.gain.linearRampToValueAtTime(0.0001, t + dur);
-    f.connect(g); g.connect(this.music);
-  },
-  lead(t, freq, vol) {
-    const ac = this.ac, o = ac.createOscillator(), g = ac.createGain();
-    o.type = 'square'; o.frequency.value = freq;
-    this.env(g, t, 0.005, vol, 0.14); o.connect(g); g.connect(this.music); g.connect(this.delay); o.start(t); o.stop(t + 0.16);
   },
 
   /* ---------- voice ---------- */
@@ -1581,10 +1500,10 @@ const Sound = {
     u.rate = 1.08; u.pitch = 1.05; u.volume = 1;
     this.speaking = true;
     // turn the music down while the voice talks
-    if (this.music && this.musicOn) this.music.gain.setTargetAtTime(0.18, this.ac.currentTime, 0.08);
+    this.setDuck(true);
     const done = () => {
       this.speaking = false;
-      if (this.music && this.musicOn && !this.q.length) this.music.gain.setTargetAtTime(0.55, this.ac.currentTime, 0.3);
+      if (!this.q.length) this.setDuck(false);
       setTimeout(() => this.pump(), 150);
     };
     u.onend = done; u.onerror = done;

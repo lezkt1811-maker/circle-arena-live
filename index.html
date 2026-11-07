@@ -31,6 +31,8 @@ input,select{font-family:inherit;font-size:16px;user-select:text;-webkit-user-se
 #lbList .sc{color:var(--green);font-weight:800}
 #lbList .kl{color:var(--pink);width:30px;text-align:right}
 #lbList li.me .nm{color:var(--cyan);font-weight:800}
+#teams{margin-top:4px;padding-top:4px;border-top:1px solid rgba(157,77,255,.35);font-size:11px;font-weight:800;line-height:1.5}#teams:empty{display:none}#teams div{display:flex;gap:5px;white-space:nowrap}#teams .g{width:14px;text-align:center;font-family:'Segoe UI Symbol','Noto Sans Symbols',system-ui}#teams .n{flex:1;overflow:hidden;text-overflow:ellipsis}
+#sc13{margin-top:5px;font-size:10.5px;color:#7df9ff;font-weight:700;white-space:nowrap}#sc13 b{color:#ff7bf2}
 #topGifter{margin-top:4px;font-size:10.5px;color:var(--gold);font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#topGifter:empty{display:none}
 
 #info{top:calc(8px + var(--sat));right:calc(8px + var(--sar));padding:7px 10px;text-align:right;font-size:12px;line-height:1.5}
@@ -41,7 +43,7 @@ input,select{font-family:inherit;font-size:16px;user-select:text;-webkit-user-se
 .iconBtn:active{transform:scale(.92)}
 #btnGifts{color:var(--pink)}
 
-#banner{position:fixed;z-index:7;left:50%;top:calc(64px + var(--sat));transform:translateX(-50%);max-width:92vw;padding:7px 16px;border-radius:20px;
+#banner{position:fixed;z-index:7;left:50%;top:34%;transform:translateX(-50%);max-width:92vw;padding:7px 16px;border-radius:20px;
   background:linear-gradient(90deg,#d6246e,#ff2bd6);color:#fff;font-weight:800;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   box-shadow:0 0 22px rgba(255,43,214,.7);pointer-events:none;opacity:0;transition:opacity .3s}
 #banner.show{opacity:1}
@@ -118,7 +120,7 @@ input,select{font-family:inherit;font-size:16px;user-select:text;-webkit-user-se
 <body>
 <canvas id="game"></canvas>
 
-<div id="lb" class="ui glass"><div class="logo">CIRCLE ARENA LIVE</div><ol id="lbList"></ol><div id="topGifter"></div></div>
+<div id="lb" class="ui glass"><div class="logo">CIRCLE ARENA LIVE</div><ol id="lbList"></ol><div id="teams"></div><div id="topGifter"></div><div id="sc13">🔮 Free 13-sign chart: <b>starchart13.com</b></div></div>
 <div id="info" class="ui glass">
   <div>Players Left: <b id="left">0</b></div>
   <div>Round <span id="roundNum">1</span> · <span class="t" id="timer">3:00</span></div>
@@ -147,13 +149,13 @@ input,select{font-family:inherit;font-size:16px;user-select:text;-webkit-user-se
   </div>
   <div class="gifts">
     <button data-evt="gift" data-coins="1" data-name="Rose" style="--c:#ff2bd6"><em>🌹</em>1 coin<small>Speed burst</small></button>
-    <button data-evt="gift" data-coins="5" data-name="Heart" style="--c:#ff5fa2"><em>💗</em>5 coins<small>+ Shield</small></button>
-    <button data-evt="gift" data-coins="30" data-name="Magnet" style="--c:#ff7bf2"><em>🧲</em>30 coins<small>+ Magnet</small></button>
-    <button data-evt="gift" data-coins="100" data-name="Galaxy" style="--c:#9d4dff"><em>🌌</em>100 coins<small>+ Shockwave</small></button>
-    <button data-evt="gift" data-coins="500" data-name="Ice Storm" style="--c:#7df9ff"><em>❄️</em>500 coins<small>+ Freeze everyone</small></button>
-    <button data-evt="gift" data-coins="1000" data-name="Hunter" style="--c:#39ff7a"><em>🎯</em>1,000 coins<small>+ Hunter mode</small></button>
-    <button data-evt="gift" data-coins="5000" data-name="Black Hole" style="--c:#c77dff"><em>🕳️</em>5,000 coins<small>+ Black hole</small></button>
-    <button data-evt="gift" data-coins="20000" data-name="Universe" style="--c:#ffd84d"><em>👑</em>20,000 coins<small>+ ARENA KING</small></button>
+    <button data-evt="gift" data-coins="5" data-name="Finger Heart" style="--c:#ff5fa2"><em>💗</em>5 coins<small>+ Shield</small></button>
+    <button data-evt="gift" data-coins="10" data-name="Gift" style="--c:#ff7bf2"><em>🧲</em>10 coins<small>+ Magnet</small></button>
+    <button data-evt="gift" data-coins="30" data-name="Doughnut" style="--c:#9d4dff"><em>🌌</em>30 coins<small>+ Shockwave</small></button>
+    <button data-evt="gift" data-coins="99" data-name="Paper Crane" style="--c:#7df9ff"><em>❄️</em>99 coins<small>+ Freeze everyone</small></button>
+    <button data-evt="gift" data-coins="199" data-name="Gift" style="--c:#39ff7a"><em>🎯</em>199 coins<small>+ Hunter mode</small></button>
+    <button data-evt="gift" data-coins="299" data-name="Corgi" style="--c:#c77dff"><em>🕳️</em>299 coins<small>+ Black hole</small></button>
+    <button data-evt="gift" data-coins="1000" data-name="Galaxy" style="--c:#ffd84d"><em>👑</em>1,000 coins<small>+ ARENA KING</small></button>
     <button data-evt="follow" style="--c:#3d7bff"><em>➕</em>New Follower<small>joins with +100</small></button>
     <button data-evt="like" style="--c:#ff7bf2"><em>👆</em>Taps ×15<small>likes = growth</small></button>
     <button data-evt="join" style="--c:#7df9ff"><em>👋</em>Viewer Joins<small>new circle</small></button>
@@ -223,6 +225,81 @@ const pick = a => a[Math.floor(Math.random() * a.length)];
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 const fmt = n => { n = Math.max(0, Math.floor(n)); if (n < 1000) return String(n); const sh = (v, u) => (v < 10 ? v.toFixed(1).replace(/\.0$/, '') : Math.floor(v)) + u; return n < 1e6 ? sh(n / 1000, 'K') : sh(n / 1e6, 'M'); };
 const levelFor = s => 1 + Math.floor(Math.log2(1 + Math.max(0, s) / 40));
+/* ---------------- 13-SIGN ZODIAC (StarChart13 boundaries) ----------------
+   Same unequal constellation sectors StarChart13 uses (ecliptic longitude). */
+const SIGNS = [
+  { name: 'Aries',       glyph: '♈︎', lo: 29.32,  span: 24,    color: '#ff4d6d', alias: ['aries', '♈'] },
+  { name: 'Taurus',      glyph: '♉︎', lo: 53.32,  span: 38,    color: '#5cffa8', alias: ['taurus', '♉'] },
+  { name: 'Gemini',      glyph: '♊︎', lo: 91.32,  span: 27,    color: '#ffd84d', alias: ['gemini', '♊'] },
+  { name: 'Cancer',      glyph: '♋︎', lo: 118.32, span: 21,    color: '#c8d6ff', alias: ['cancer', '♋'] },
+  { name: 'Leo',         glyph: '♌︎', lo: 139.32, span: 35,    color: '#ffb020', alias: ['leo', '♌'] },
+  { name: 'Virgo',       glyph: '♍︎', lo: 174.32, span: 44,    color: '#7ddc7d', alias: ['virgo', '♍'] },
+  { name: 'Libra',       glyph: '♎︎', lo: 218.32, span: 23,    color: '#ff9ad5', alias: ['libra', '♎'] },
+  { name: 'Scorpio',     glyph: '♏︎', lo: 241.32, span: 6.18,  color: '#b026ff', alias: ['scorpio', 'scorpius', '♏'] },
+  { name: 'Ophiuchus',   glyph: '⛎︎', lo: 247.5,  span: 18.82, color: '#00f0ff', alias: ['ophiuchus', 'ophiucus', 'ophi', 'serpent bearer', '⛎', '🐍'] },
+  { name: 'Sagittarius', glyph: '♐︎', lo: 266.32, span: 34,    color: '#ff7a3d', alias: ['sagittarius', 'sagitarius', 'sag', '♐'] },
+  { name: 'Capricorn',   glyph: '♑︎', lo: 300.32, span: 28,    color: '#8a7dff', alias: ['capricorn', 'capricornus', 'cap', '♑'] },
+  { name: 'Aquarius',    glyph: '♒︎', lo: 328.32, span: 24,    color: '#3d9bff', alias: ['aquarius', '♒'] },
+  { name: 'Pisces',      glyph: '♓︎', lo: 352.32, span: 37,    color: '#4dffe0', alias: ['pisces', '♓'] }
+];
+const TROPICAL = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'];
+const mod360 = v => ((v % 360) + 360) % 360;
+function signByLon(lon) {
+  lon = mod360(lon);
+  for (let i = 0; i < SIGNS.length; i++) {
+    const sg = SIGNS[i], hi = mod360(sg.lo + sg.span);
+    if (hi > sg.lo ? (lon >= sg.lo && lon < hi) : (lon >= sg.lo || lon < hi)) return i;
+  }
+  return 0;
+}
+// Sun's ecliptic longitude at noon UTC on a month/day (standard low-precision solar formula).
+function sunLon(month, day) {
+  const y = new Date().getFullYear();
+  const n = (Date.UTC(y, month - 1, day, 12) - Date.UTC(2000, 0, 1, 12)) / 86400000;
+  const L = 280.460 + 0.9856474 * n, gA = (357.528 + 0.9856003 * n) * Math.PI / 180;
+  return mod360(L + 1.915 * Math.sin(gA) + 0.020 * Math.sin(2 * gA));
+}
+// 13-sign birthday dates (Sun's passage through each constellation), from Katy's published table.
+const SIGN_STARTS = [[1, 19, 'Capricorn'], [2, 16, 'Aquarius'], [3, 12, 'Pisces'], [4, 19, 'Aries'], [5, 14, 'Taurus'], [6, 20, 'Gemini'],
+  [7, 21, 'Cancer'], [8, 10, 'Leo'], [9, 16, 'Virgo'], [10, 31, 'Libra'], [11, 23, 'Scorpio'], [11, 30, 'Ophiuchus'], [12, 18, 'Sagittarius']];
+function signByDate(mo, d) {
+  let name = 'Sagittarius';
+  for (const [m, dd, n] of SIGN_STARTS) if (mo > m || (mo === m && d >= dd)) name = n;
+  return SIGNS.findIndex(sg => sg.name === name);
+}
+const MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+const DAYS_IN = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+// Read a chat comment: returns {sign, fromBirthday, tropical} or null.
+function parseZodiac(text) {
+  const t = ' ' + String(text || '').toLowerCase() + ' ';
+  let m, mo = 0, d = 0;
+  if ((m = t.match(/\b(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\.?\s+(\d{1,2})(st|nd|rd|th)?\b/))) { mo = MONTHS.indexOf(m[1].slice(0, 3)) + 1; d = +m[2]; }
+  else if ((m = t.match(/\b(\d{1,2})(st|nd|rd|th)?\s+(of\s+)?(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\b/))) { mo = MONTHS.indexOf(m[4].slice(0, 3)) + 1; d = +m[1]; }
+  else if ((m = t.match(/(?:^|\s)(\d{1,2})[\/\-.](\d{1,2})(?:[\/\-.](\d{2,4}))?(?=\s)/))) { mo = +m[1]; d = +m[2]; }
+  if (mo >= 1 && mo <= 12 && d >= 1 && d <= DAYS_IN[mo - 1]) {
+    const lon = sunLon(mo, d);
+    return { sign: signByDate(mo, d), fromBirthday: true, tropical: TROPICAL[Math.floor(lon / 30) % 12] };
+  }
+  for (let i = 0; i < SIGNS.length; i++) {
+    for (const a of SIGNS[i].alias) {
+      if (a.length <= 3 && /^[a-z]+$/.test(a)) { if (new RegExp('\\b' + a + '\\b').test(t)) return { sign: i }; }
+      else if (t.includes(a)) return { sign: i };
+    }
+  }
+  return null;
+}
+const ZODIAC_CHAT = ['scorpio!', 'leo here', 'team ophiuchus 🐍', 'aquarius', 'dec 5', 'pisces', 'march 3', 'taurus gang', 'sag', 'july 20', 'virgo', '11/30', 'gemini', 'capricorn', 'libra', 'aries', 'cancer ♋'];
+function setSign(p, idx, info) {
+  const before = p.sign;
+  p.sign = idx; p.color = SIGNS[idx].color;
+  const sg = SIGNS[idx];
+  ring(p.x, p.y, p.r, p.r + 60 * S, 0.6, sg.color, 5);
+  if (info && info.fromBirthday) {
+    if (info.tropical !== sg.name) banner(`${p.name}: not ${info.tropical}… TRUE SKY ${sg.name.toUpperCase()} ${sg.glyph}`);
+    else banner(`${p.name} is a TRUE SKY ${sg.name.toUpperCase()} ${sg.glyph}`);
+  } else if (before !== idx) chatLine(p.name, `joined Team ${sg.name} ${sg.glyph}`, sg.color);
+}
+
 const fakeName = () => pick(NAME_A) + '_' + pick(NAME_B) + (Math.random() < 0.5 ? Math.floor(rand(1, 999)) : '');
 
 const params = new URLSearchParams(location.search);
@@ -244,52 +321,57 @@ function resize() {
   positionButtons();
 }
 
-// Original neon city background, drawn once per resize.
+// Cosmic star-chart background, drawn once per resize.
 function buildBackground() {
   const c = document.createElement('canvas');
   c.width = canvas.width; c.height = canvas.height;
   const g = c.getContext('2d');
   g.scale(DPR, DPR);
-  const horizon = H * 0.55;
-  const sky = g.createLinearGradient(0, 0, 0, horizon);
-  sky.addColorStop(0, '#07021a'); sky.addColorStop(0.55, '#2a0b4d'); sky.addColorStop(1, '#8a1a7a');
-  g.fillStyle = sky; g.fillRect(0, 0, W, horizon);
-  for (let i = 0; i < 90; i++) { g.globalAlpha = rand(0.2, 0.9); g.fillStyle = '#ffffff'; g.fillRect(rand(0, W), rand(0, horizon * 0.7), 1.4, 1.4); }
-  g.globalAlpha = 1;
-  // sun
-  const sr = Math.min(W, H) * 0.2, sx = W * 0.5, sy = horizon - sr * 0.35;
-  const sun = g.createLinearGradient(0, sy - sr, 0, sy + sr);
-  sun.addColorStop(0, '#ffd84d'); sun.addColorStop(0.5, '#ff5fa2'); sun.addColorStop(1, '#9d4dff');
-  g.save(); g.shadowColor = '#ff2bd6'; g.shadowBlur = 40; g.fillStyle = sun;
-  g.beginPath(); g.arc(sx, sy, sr, 0, Math.PI * 2); g.fill(); g.restore();
-  g.fillStyle = '#2a0b4d';
-  for (let i = 0; i < 6; i++) { const y = sy + i * sr * 0.16; g.fillRect(sx - sr, y, sr * 2, sr * 0.05 + i * 1.2); }
-  // skyline
-  let x = -10;
-  while (x < W) {
-    const bw = rand(18, 55) * S, bh = rand(H * 0.08, H * 0.32);
-    g.fillStyle = Math.random() < 0.5 ? '#12052a' : '#180838';
-    g.fillRect(x, horizon - bh, bw, bh);
-    g.strokeStyle = Math.random() < 0.5 ? 'rgba(0,240,255,.5)' : 'rgba(255,43,214,.5)';
-    g.lineWidth = 1; g.strokeRect(x + 0.5, horizon - bh + 0.5, bw - 1, bh);
-    for (let wy = horizon - bh + 6; wy < horizon - 6; wy += 9 * S) {
-      for (let wx = x + 4; wx < x + bw - 4; wx += 7 * S) {
-        if (Math.random() < 0.35) { g.fillStyle = pick(['rgba(255,216,77,.7)', 'rgba(0,240,255,.6)', 'rgba(255,95,162,.6)']); g.fillRect(wx, wy, 2.5 * S, 3.5 * S); }
-      }
-    }
-    x += bw + rand(0, 6);
+  const sky = g.createRadialGradient(W / 2, H * 0.45, 0, W / 2, H * 0.45, Math.max(W, H) * 0.8);
+  sky.addColorStop(0, '#1b0b3d'); sky.addColorStop(0.5, '#0b0622'); sky.addColorStop(1, '#03020a');
+  g.fillStyle = sky; g.fillRect(0, 0, W, H);
+  // nebula clouds
+  const neb = [['rgba(176,38,255,.22)', 0.2, 0.25], ['rgba(34,211,238,.16)', 0.8, 0.35], ['rgba(255,46,209,.16)', 0.35, 0.8], ['rgba(99,102,241,.18)', 0.75, 0.75]];
+  for (const [col, nx, ny] of neb) {
+    const r = Math.max(W, H) * rand(0.35, 0.5), gr = g.createRadialGradient(W * nx, H * ny, 0, W * nx, H * ny, r);
+    gr.addColorStop(0, col); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(0, 0, W, H);
   }
-  // floor grid
-  const fl = g.createLinearGradient(0, horizon, 0, H);
-  fl.addColorStop(0, '#1a0638'); fl.addColorStop(1, '#05020d');
-  g.fillStyle = fl; g.fillRect(0, horizon, W, H - horizon);
-  g.strokeStyle = 'rgba(255,43,214,.35)'; g.lineWidth = 1.2;
-  for (let i = 0; i < 14; i++) { const t = i / 13, y = horizon + Math.pow(t, 2.2) * (H - horizon); g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke(); }
-  g.strokeStyle = 'rgba(0,240,255,.3)';
-  for (let i = -12; i <= 12; i++) { g.beginPath(); g.moveTo(W / 2 + i * W * 0.04, horizon); g.lineTo(W / 2 + i * W * 0.28, H); g.stroke(); }
-  // dim it so circles stand out
-  g.fillStyle = 'rgba(5,2,13,.35)'; g.fillRect(0, 0, W, H);
+  // stars
+  for (let i = 0; i < 260; i++) {
+    g.globalAlpha = rand(0.25, 1); g.fillStyle = pick(['#ffffff', '#ffffff', '#c8f6ff', '#ffd6f6']);
+    const sz = Math.random() < 0.08 ? 2.2 : 1.2; g.fillRect(rand(0, W), rand(0, H), sz, sz);
+  }
+  // a few constellation line drawings
+  g.globalAlpha = 0.35; g.strokeStyle = '#7df9ff'; g.lineWidth = 1;
+  for (let k = 0; k < 5; k++) {
+    let x = rand(0, W), y = rand(0, H); g.beginPath(); g.moveTo(x, y);
+    for (let j = 0; j < 4; j++) {
+      x += rand(-60, 60) * S; y += rand(-60, 60) * S; g.lineTo(x, y);
+      g.fillStyle = '#ffffff'; g.fillRect(x - 1.5, y - 1.5, 3, 3);
+    }
+    g.stroke();
+  }
+  g.globalAlpha = 1;
+  g.fillStyle = 'rgba(5,2,13,.25)'; g.fillRect(0, 0, W, H);
   return c;
+}
+
+// Slowly turning 13-sign zodiac wheel (drawn every frame, behind the circles).
+function drawZodiacWheel(t) {
+  const R = Math.min(W, H) * 0.44, cx = W / 2, cy = H / 2;
+  ctx.save(); ctx.translate(cx, cy); ctx.rotate(t * 0.03);
+  ctx.globalAlpha = 0.28; ctx.strokeStyle = '#b026ff'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(0, 0, R, 0, 6.283); ctx.stroke();
+  ctx.beginPath(); ctx.arc(0, 0, R * 0.8, 0, 6.283); ctx.stroke();
+  ctx.font = `${R * 0.11}px "Segoe UI Symbol","Noto Sans Symbols",system-ui,sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  for (const sg of SIGNS) {
+    const a0 = (sg.lo / 360) * 6.283, am = ((sg.lo + sg.span / 2) / 360) * 6.283;
+    ctx.strokeStyle = '#22d3ee'; ctx.globalAlpha = 0.22;
+    ctx.beginPath(); ctx.moveTo(Math.cos(a0) * R * 0.8, Math.sin(a0) * R * 0.8); ctx.lineTo(Math.cos(a0) * R, Math.sin(a0) * R); ctx.stroke();
+    ctx.globalAlpha = 0.4; ctx.fillStyle = sg.color;
+    ctx.fillText(sg.glyph, Math.cos(am) * R * 0.9, Math.sin(am) * R * 0.9);
+  }
+  ctx.restore(); ctx.globalAlpha = 1;
 }
 
 /* ---------------- game state ---------------- */
@@ -330,7 +412,7 @@ function addPlayer(name, opts) {
   const r = radiusFor(score), pos = spawnPoint(r), a = Math.random() * Math.PI * 2;
   const p = { id: G.nextId++, name, score, kills: 0, r, x: pos.x, y: pos.y, vx: Math.cos(a) * 40, vy: Math.sin(a) * 40,
     color: opts.color || pick(PALETTE), emoji: opts.emoji || pick(EMOJI), alive: true, isHost: !!opts.isHost,
-    power: 0, magnetT: 0, blackT: 0, kingT: 0, lastScore: 0, shieldT: 1.5, hunterT: 0, boostT: 0, hitCD: 0, newT: opts.isNew ? 6 : 0, wa: a, spin: rand(0.6, 1.4) * (Math.random() < 0.5 ? -1 : 1), deadT: 0, pulse: 0 };
+    power: 0, sign: null, magnetT: 0, blackT: 0, kingT: 0, lastScore: 0, shieldT: 1.5, hunterT: 0, boostT: 0, hitCD: 0, newT: opts.isNew ? 6 : 0, wa: a, spin: rand(0.6, 1.4) * (Math.random() < 0.5 ? -1 : 1), deadT: 0, pulse: 0 };
   G.players.push(p);
   G.byName.set(name, p);
   ring(p.x, p.y, 4, p.r + 40 * S, 0.6, p.color, 3);
@@ -402,7 +484,7 @@ function newRound(keepRoster) {
     // viewers who haven't done anything for 3 minutes sit out the next round
     if (!old.isHost && G.time - (old.lastActive || 0) > 180) continue;
     const p = addPlayer(old.name, { color: old.color, emoji: old.emoji, isHost: old.isHost });
-    p.lastActive = old.lastActive; p.picUrl = old.picUrl; p.img = old.img;
+    p.lastActive = old.lastActive; p.picUrl = old.picUrl; p.img = old.img; p.sign = old.sign;
     if (old.isHost) G.host = p;
   }
   if (G.noHost) G.host = null;
@@ -571,13 +653,21 @@ function step(dt) {
   for (let i = G.bubbles.length - 1; i >= 0; i--) { const b = G.bubbles[i]; b.life -= dt; if (b.life <= 0 || !b.p.alive) G.bubbles.splice(i, 1); }
 }
 
+function teamTotals() {
+  const tot = new Map();
+  for (const p of G.players) if (p.alive && p.sign != null) tot.set(p.sign, (tot.get(p.sign) || 0) + p.score);
+  return [...tot.entries()].sort((a, b) => b[1] - a[1]);
+}
+
 function endRound() {
   const alive = aliveList();
   const pool = alive.length ? alive : G.players;
   const winner = pool.reduce((a, b) => (b.score > a.score ? b : a), pool[0]);
   G.phase = 'win'; G.winT = CONFIG.WIN_PAUSE;
   document.getElementById('winName').textContent = winner ? winner.name + ' · ' + fmt(winner.score) : 'Nobody';
-  document.getElementById('winSub').textContent = winner && winner.isHost ? 'That\'s YOU! Next round starting…' : 'Next round starting…';
+  const top = teamTotals()[0];
+  const teamLine = top ? `Team ${SIGNS[top[0]].name} ${SIGNS[top[0]].glyph} wins the sky! · ` : '';
+  document.getElementById('winSub').textContent = teamLine + (winner && winner.isHost ? 'That\'s YOU! Next round starting…' : 'Next round starting…');
   document.getElementById('winBox').classList.remove('hidden');
   if (winner) { burst(winner.x, winner.y, null, 120, 500 * S); for (let i = 0; i < 4; i++) ring(winner.x, winner.y, winner.r, winner.r + 80 * S + i * 60 * S, 0.8 + i * 0.2, PALETTE[i], 5); }
 }
@@ -592,12 +682,12 @@ function autoViewers(dt) {
   const r = Math.random();
   if (r < 0.60) LiveEvents.emit({ type: 'like', user: existing(), count: Math.floor(rand(1, 8)), quiet: true });
   else if (r < 0.67) LiveEvents.emit({ type: 'join', user: fakeName() });
-  else if (r < 0.77) LiveEvents.emit({ type: 'comment', user: existing(), comment: pick(CHAT_LINES) });
+  else if (r < 0.77) LiveEvents.emit({ type: 'comment', user: existing(), comment: Math.random() < 0.6 ? pick(ZODIAC_CHAT) : pick(CHAT_LINES) });
   else if (r < 0.80) LiveEvents.emit({ type: 'follow', user: fakeName() });
   else {
     // pretend gifts: mostly small, big ones are rare
     const g = Math.random();
-    const coins = g < 0.55 ? 1 : g < 0.75 ? 5 : g < 0.87 ? 30 : g < 0.94 ? 100 : g < 0.97 ? 500 : g < 0.99 ? 1000 : g < 0.997 ? 5000 : 20000;
+    const coins = g < 0.45 ? 1 : g < 0.65 ? 5 : g < 0.77 ? 10 : g < 0.87 ? 30 : g < 0.93 ? 99 : g < 0.96 ? 199 : g < 0.985 ? 299 : 1000;
     LiveEvents.emit({ type: 'gift', coins, user: existing() });
   }
 }
@@ -626,24 +716,24 @@ const LiveEvents = {
    1 coin = 50 points. Each gift also triggers EVERY ability at or below its tier. */
 const POINTS_PER_COIN = 50;
 const TIERS = [
-  { min: 1,     key: 'speed',     icon: '🌹', label: 'SPEED BURST', power: 1 },
-  { min: 5,     key: 'shield',    icon: '💗', label: 'SHIELD',      power: 3 },
-  { min: 30,    key: 'magnet',    icon: '🧲', label: 'MAGNET',      power: 5 },
-  { min: 100,   key: 'shockwave', icon: '🌌', label: 'SHOCKWAVE',   power: 10 },
-  { min: 500,   key: 'freeze',    icon: '❄️', label: 'FREEZE ALL',  power: 15 },
-  { min: 1000,  key: 'hunter',    icon: '🎯', label: 'HUNTER MODE', power: 30 },
-  { min: 5000,  key: 'blackhole', icon: '🕳️', label: 'BLACK HOLE',  power: 50 },
-  { min: 20000, key: 'king',      icon: '👑', label: 'ARENA KING',  power: 100 }
+  { min: 1,    key: 'speed',     icon: '🌹', label: 'SPEED BURST', power: 1 },
+  { min: 5,    key: 'shield',    icon: '💗', label: 'SHIELD',      power: 3 },
+  { min: 10,   key: 'magnet',    icon: '🧲', label: 'MAGNET',      power: 5 },
+  { min: 30,   key: 'shockwave', icon: '🌌', label: 'SHOCKWAVE',   power: 8 },
+  { min: 99,   key: 'freeze',    icon: '❄️', label: 'FREEZE ALL',  power: 12 },
+  { min: 199,  key: 'hunter',    icon: '🎯', label: 'HUNTER MODE', power: 20 },
+  { min: 299,  key: 'blackhole', icon: '🕳️', label: 'BLACK HOLE',  power: 30 },
+  { min: 1000, key: 'king',      icon: '👑', label: 'ARENA KING',  power: 60 }
 ];
 const tierFor = coins => { let t = TIERS[0]; for (const x of TIERS) if (coins >= x.min) t = x; return t; };
 // Supporter ranks: total coins a viewer has sent this stream. Higher rank = every tap is worth more.
 const RANKS = [
-  { min: 0,     icon: '',   name: '',        mult: 1,  color: null },
-  { min: 100,   icon: '🥉', name: 'Bronze',  mult: 1.5, color: '#cd7f32' },
-  { min: 500,   icon: '🥈', name: 'Silver',  mult: 2,  color: '#c0c8e0' },
-  { min: 1000,  icon: '🥇', name: 'Gold',    mult: 3,  color: '#ffd84d' },
-  { min: 5000,  icon: '💎', name: 'Diamond', mult: 5,  color: '#7df9ff' },
-  { min: 20000, icon: '🔥', name: 'Legend',  mult: 10, color: '#ff4d6d' }
+  { min: 0,    icon: '',   name: '',        mult: 1,   color: null },
+  { min: 10,   icon: '🥉', name: 'Bronze',  mult: 1.5, color: '#cd7f32' },
+  { min: 50,   icon: '🥈', name: 'Silver',  mult: 2,   color: '#c0c8e0' },
+  { min: 100,  icon: '🥇', name: 'Gold',    mult: 3,   color: '#ffd84d' },
+  { min: 300,  icon: '💎', name: 'Diamond', mult: 5,   color: '#7df9ff' },
+  { min: 1000, icon: '🔥', name: 'Legend',  mult: 10,  color: '#ff4d6d' }
 ];
 const rankFor = name => { const c = G.coins.get(name) || 0; let r = RANKS[0]; for (const x of RANKS) if (c >= x.min) r = x; return r; };
 // old simple names still work (simulator / relays)
@@ -678,7 +768,11 @@ LiveEvents.on(e => {
       const p = getOrJoin(user, jo);
       const msg = String(e.comment || 'hi').slice(0, 50);
       chatLine(user, msg);
-      if (p) { addScore(p, 5); G.bubbles = G.bubbles.filter(b => b.p !== p); G.bubbles.push({ p, msg, life: 3.5 }); }
+      if (p) {
+        addScore(p, 5); G.bubbles = G.bubbles.filter(b => b.p !== p); G.bubbles.push({ p, msg, life: 3.5 });
+        const z = parseZodiac(msg);
+        if (z && (z.sign !== p.sign || z.fromBirthday)) setSign(p, z.sign, z);
+      }
       break;
     }
     case 'gift': {
@@ -717,7 +811,7 @@ LiveEvents.on(e => {
         if (t.key === 'blackhole') p.blackT = Math.max(p.blackT, 8);
         if (t.key === 'king') { p.kingT = 30; p.shieldT = Math.max(p.shieldT, 30); p.score *= 2; text(p.x, p.y, 'x2 SCORE', '#ffd84d', 26); }
       }
-      if (coins >= 100) {
+      if (coins >= 30) {
         banner(`${user} sent ${giftName} ${top.icon} → ${top.label}!`);
         burst(p.x, p.y, null, Math.min(160, 40 + coins / 50), 520 * S);
         for (let i = 0; i < Math.min(6, 1 + Math.floor(Math.log10(coins))); i++) ring(p.x, p.y, p.r, p.r + 70 * S + i * 55 * S, 0.6 + i * 0.15, PALETTE[i], 6);
@@ -896,6 +990,14 @@ function drawPlayer(p, rank) {
     ctx.beginPath(); ctx.rect(bx, by, bw, bh); ctx.fill(); ctx.stroke();
     ctx.fillStyle = p.power >= JAWS_POWER ? '#14052e' : '#ffd84d'; ctx.fillText(t2, bx + bw / 2, by + bh / 2 + 0.5);
   }
+  // zodiac sign badge
+  if (p.sign != null) {
+    const sg = SIGNS[p.sign], br = Math.max(9 * S, r * 0.3), bx = x + r * 0.72, by = y - r * 0.72;
+    ctx.fillStyle = 'rgba(10,4,26,.92)'; ctx.strokeStyle = sg.color; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(bx, by, br, 0, 6.283); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = sg.color; ctx.font = `${br * 1.25}px "Segoe UI Symbol","Noto Sans Symbols",system-ui,sans-serif`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(sg.glyph, bx, by + br * 0.05);
+  }
   // NEW badge
   if (p.newT > 0) {
     ctx.font = `900 ${9 * S}px system-ui,sans-serif`;
@@ -912,6 +1014,7 @@ function draw() {
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   if (bg) ctx.drawImage(bg, 0, 0); else { ctx.fillStyle = '#05020d'; ctx.fillRect(0, 0, canvas.width, canvas.height); }
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  drawZodiacWheel(G.time);
   const t = G.time;
   // arena border
   ctx.save(); ctx.shadowColor = '#00f0ff'; ctx.shadowBlur = 16; ctx.strokeStyle = 'rgba(0,240,255,.8)'; ctx.lineWidth = 3;
@@ -1010,6 +1113,18 @@ function updateHud(dt) {
     const d = document.createElement('span'); d.className = 'kl'; d.textContent = p.kills ? p.kills + '💀' : '';
     li.append(a, b, c, d); list.appendChild(li);
   });
+  const tb = $('teams'); tb.textContent = '';
+  const tt = teamTotals().slice(0, 3);
+  if (tt.length) {
+    const h = document.createElement('div'); h.style.color = '#a79cd6'; h.textContent = '✨ ZODIAC TEAMS'; tb.appendChild(h);
+    for (const [si, sc] of tt) {
+      const row = document.createElement('div'); row.style.color = SIGNS[si].color;
+      const a = document.createElement('span'); a.className = 'g'; a.textContent = SIGNS[si].glyph;
+      const b = document.createElement('span'); b.className = 'n'; b.textContent = SIGNS[si].name;
+      const c = document.createElement('span'); c.textContent = fmt(sc);
+      row.append(a, b, c); tb.appendChild(row);
+    }
+  }
   let tg = null, tc = 0;
   for (const [n, c] of G.coins) if (c > tc) { tc = c; tg = n; }
   $('topGifter').textContent = tg ? `💰 Top gifter: ${rankFor(tg).icon} ${tg} · ${fmt(tc)}🪙` : '';
@@ -1225,8 +1340,8 @@ if (LIVE_MODE) {
   $('startScreen').classList.add('hidden');
   ['btns', 'you'].forEach(id => $(id).classList.add('hidden'));
   // rotating how-to-play bar so viewers know what taps and gifts do
-  const tips = ['👆 TAP THE SCREEN = <b>+3 points</b> each tap', '🎁 1 COIN = <b>50 points</b> · bigger gifts = bigger powers',
-    '🌹 1 · 💗 5 · 🧲 30 · 🌌 100 · ❄️ 500 · 🎯 1K · 🕳️ 5K · 👑 20K coins', '🏅 Gift more = higher rank = taps worth up to <b>10×</b>',
+  const tips = ['💬 Type your <b>SIGN</b> or <b>BIRTHDAY</b> in chat!', '👆 TAP THE SCREEN = <b>+3 points</b> each tap', '🐍 Your TRUE SKY sign? Type <b>Dec 5</b> etc.', '🔮 Free 13-sign chart at <b>starchart13.com</b>', '🎁 1 COIN = <b>50 points</b> · bigger gifts = bigger powers',
+    '🌹 1 · 💗 5 · 🧲 10 · 🌌 30 · ❄️ 99 · 🎯 199 · 🕳️ 299 · 👑 1K coins', '🌹 Even ONE Rose = <b>+50 points</b> + speed! 5 Roses = shield!', '🏅 Gift more = higher rank = taps worth up to <b>10×</b>',
     '💫 Knocked out? Any gift brings you back!'];
   const ht = $('howto'); let ti = 0;
   ht.classList.remove('hidden'); ht.innerHTML = tips[0];

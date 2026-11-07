@@ -30,32 +30,32 @@ The whole game is in **`index.html`**: plain HTML, CSS, and JavaScript with a Ca
 - A knocked-out viewer comes back as soon as they tap, comment, or gift again.
 - The **top 3 wear crowns**. The leaderboard (top-left) shows score and 💀 eats.
 
-### 🎁 Gifts: the more coins, the stronger
+### 🎁 Gifts: cheap gifts count!
 
-**1 coin = 50 points.** A 1,000-coin gift is worth 50,000 points. Every gift also triggers **every power at or below its level**, so big gifts stack lots of powers at once.
+**1 coin = 50 points.** Even a single Rose matters. Every gift also triggers **every power at or below its level**, and a gift streak counts as one gift (5 Roses in a row = 5 coins = Shield).
 
 | Gift size | New power unlocked | What it does |
 |---|---|---|
 | 1+ coin (Rose) | 🌹 Speed burst | Faster for 4s |
 | 5+ coins | 💗 Shield | Can't be eaten or cut for 10s |
-| 30+ coins | 🧲 Magnet | Pulls in energy dots **and smaller circles** for 10s |
-| 100+ coins | 🌌 Shockwave | Blasts nearby circles away; smaller ones lose 15% |
-| 500+ coins | ❄️ Freeze | **Everyone else** and the saws freeze for 5s |
-| 1,000+ coins | 🎯 Hunter | Green crosshair, extra speed, hunts smaller circles for 15s |
-| 5,000+ coins | 🕳️ Black hole | Sucks every circle and dot toward you for 8s, and you can eat almost anything smaller |
-| 20,000+ coins | 👑 Arena King | **Doubles your score**, gold crown and aura, 30s immune to saws, eating, freeze and black holes |
+| 10+ coins | 🧲 Magnet | Pulls in energy dots **and smaller circles** for 10s |
+| 30+ coins | 🌌 Shockwave | Blasts nearby circles away; smaller ones lose 15% |
+| 99+ coins | ❄️ Freeze | **Everyone else** and the saws freeze for 5s |
+| 199+ coins | 🎯 Hunter | Hunts smaller circles for 15s |
+| 299+ coins | 🕳️ Black hole | Sucks every circle and dot toward you for 8s |
+| 1,000+ coins | 👑 Arena King | **Doubles your score**, gold crown, 30s immune to everything |
 
 **⚡ Power** also stacks with every gift, shown as a gold badge. Each point means a bit more speed, saw armor, and stealing points when bumping. At **⚡10** you get **🦈 Giant Jaws**: you can eat circles only 5% smaller.
 
-**🏅 Supporter ranks:** total coins a viewer sends during the stream (kept between rounds). A higher rank makes **every tap worth more**:
+**🏅 Supporter ranks:** total coins a viewer sends during the stream. A higher rank makes **every tap worth more**:
 
 | Total coins | Rank | Taps worth |
 |---|---|---|
-| 100 | 🥉 Bronze | 1.5× |
-| 500 | 🥈 Silver | 2× |
-| 1,000 | 🥇 Gold | 3× |
-| 5,000 | 💎 Diamond | 5× |
-| 20,000 | 🔥 Legend | 10× |
+| 10 | 🥉 Bronze | 1.5× |
+| 50 | 🥈 Silver | 2× |
+| 100 | 🥇 Gold | 3× |
+| 300 | 💎 Diamond | 5× |
+| 1,000 | 🔥 Legend | 10× |
 
 The rank shows next to their name with a colored ring.
 
@@ -78,6 +78,15 @@ The rank shows next to their name with a colored ring.
 So a viewer who taps a lot gets **big**, and a viewer who gifts gets **strong**. Both can win.
 
 ---
+
+## 🔮 Zodiac teams (13 signs + Ophiuchus)
+
+- Viewers **type their sign in chat** ("Scorpio", "leo", "♏", "team ophiuchus 🐍") to join that team. Their circle gets the sign's color and glyph.
+- Or they **type their birthday** ("Dec 5", "December 5th", "12/5"). The game uses the StarChart13 13-sign dates and announces their **TRUE SKY** sign, e.g. *"not Sagittarius… TRUE SKY OPHIUCHUS ⛎"*.
+- **✨ Zodiac Teams** on the leaderboard shows the top 3 signs (total points), and each round announces which sign wins.
+- The background is a turning 13-sign zodiac wheel, and the leaderboard shows **"Free 13-sign chart: starchart13.com"**.
+
+Birthday dates used: Capricorn Jan 19 · Aquarius Feb 16 · Pisces Mar 12 · Aries Apr 19 · Taurus May 14 · Gemini Jun 20 · Cancer Jul 21 · Leo Aug 10 · Virgo Sep 16 · Libra Oct 31 · Scorpio Nov 23 · **Ophiuchus Nov 30** · Sagittarius Dec 18.
 
 ## 🧪 Testing it yourself
 

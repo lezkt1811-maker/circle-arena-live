@@ -94,13 +94,9 @@ Birthday dates used: Capricorn Jan 19 · Aquarius Feb 16 · Pisces Mar 12 · Ari
 
 A glowing serpent slithers around the arena the whole game. It often heads toward a circle to "bless" it. **Any circle that touches the serpent's HEAD gets +100 bonus points** (once every 4 seconds per circle). It never hurts anyone. The head has a pulsing gold ring so viewers can spot it. Change the bonus with `SNAKE_BONUS` in the code.
 
-## 🎵 Music & 🗣️ announcer voice
+## 🗣️ Announcer voice
 
-- **Music:** "Action Dubstep" by The_Mountain (free-to-use track from Pixabay), stored in `music/action-dubstep.mp3`, looping. To change songs, upload a new MP3 to the `music` folder with the same name (or change `MUSIC_FILE` in the code). Use free-to-use music only; popular songs can get your LIVE muted.
-- **Voice:** the computer's built-in text-to-speech announces things for you: *"Maria joined Team Scorpio!"*, *"Jen, you're not a Sagittarius. You're a true sky Ophiuchus!"*, *"big spender sent a Paper Crane! freeze all!"*, *"Thank you for the follow!"*, *"Team Pisces wins the round!"*. Music gets quieter while it talks. On Edge it uses a natural-sounding Microsoft voice when available.
-- **Starting sound:** browsers need one click before they can play sound. In the LIVE version (`?live=1`), click the **🔊 CLICK TO START** box once, before you point your camera.
-- **Keys:** **M** = music on/off · **V** = voice on/off. (Also in the 🎁 panel.)
-- Turn the laptop volume up so your phone's mic picks it up.
+The computer's built-in text-to-speech announces things for you: team joins, true-sky reveals, gifts, follows, ranks and round winners. Browsers need one click before they can talk, so click the game once after opening it. **V** = voice on/off. Turn the laptop volume up so your phone's mic picks it up. (There is no background music.)
 
 ## 🧪 Testing it yourself
 

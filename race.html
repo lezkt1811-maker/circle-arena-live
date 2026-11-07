@@ -468,6 +468,7 @@ function resize() {
   for (let i = 0; i <= 13; i++) { g.beginPath(); g.moveTo(LW * i, TOP - 4); g.lineTo(LW * i, BOT + 22); g.stroke(); }
   g.fillStyle = 'rgba(255,255,255,.07)'; g.fillRect(0, BOT + 22, W, H - BOT - 22);   // name board
 }
+let topRacer = new Array(13).fill(null);
 function laneX(i) { return LW * i + LW / 2; }
 function shade(hex) { const n = parseInt(hex.slice(1), 16); const f = v => Math.round(v * 0.55); return `rgb(${f(n >> 16 & 255)},${f(n >> 8 & 255)},${f(n & 255)})`; }
 function laneY(pos) { return BOT - (BOT - TOP) * pos; }
@@ -476,6 +477,8 @@ function burst(lane, n) { const x = laneX(lane), y = laneY(R.lanes[lane].vis); f
 
 function draw() {
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(bg, 0, 0); ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  topRacer = new Array(13).fill(null);
+  for (const [name, p] of R.players) if (p.lane >= 0 && p.taps > 0 && (!topRacer[p.lane] || p.taps > topRacer[p.lane].p.taps)) topRacer[p.lane] = { name, p };
   const t = R.t;
   // finish line (checkered)
   const fy = TOP - 10, sq = 6;
@@ -536,6 +539,23 @@ function draw() {
     }
     ctx.restore();
     ctx.globalAlpha = 1;
+    // 👑 top tapper on this snake: their profile picture rides on the head, name above
+    const top = topRacer[i];
+    if (top) {
+      const pr = Math.max(9, LW * 0.42), py = hy - hr * 0.2;
+      ctx.save();
+      ctx.beginPath(); ctx.arc(x, py, pr, 0, 6.283); ctx.closePath();
+      ctx.fillStyle = sg.color; ctx.fill();
+      ctx.clip();
+      if (top.p.img) { try { ctx.drawImage(top.p.img, x - pr, py - pr, pr * 2, pr * 2); } catch (err) { top.p.img = null; } }
+      else { ctx.fillStyle = '#fff'; ctx.font = `900 ${pr * 1.1}px system-ui`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(top.name.replace(/^@/, '').charAt(0).toUpperCase(), x, py + 1); }
+      ctx.restore();
+      ctx.lineWidth = 2.5; ctx.strokeStyle = '#ffd84d'; ctx.beginPath(); ctx.arc(x, py, pr, 0, 6.283); ctx.stroke();
+      ctx.font = '800 9px system-ui'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(0,0,0,.85)';
+      const nm = top.name.replace(/^@/, '').slice(0, 7);
+      const hw = ctx.measureText(nm).width / 2 + 2, nx = Math.min(W - hw, Math.max(hw, x));
+      ctx.strokeText(nm, nx, py - pr - 7); ctx.fillStyle = '#fff'; ctx.fillText(nm, nx, py - pr - 7);
+    }
     if (L.frozenT > 0) { ctx.font = `${hr}px system-ui`; ctx.fillText('❄️', x, hy - hr - 10); }
     if (L.blockT > 0) {
       // boulder sitting right in front of the snake

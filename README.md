@@ -92,6 +92,14 @@ Birthday dates used: Capricorn Jan 19 · Aquarius Feb 16 · Pisces Mar 12 · Ari
 
 A glowing serpent slithers around the arena the whole game. It often heads toward a circle to "bless" it. **Any circle that touches the serpent's HEAD gets +100 bonus points** (once every 4 seconds per circle). It never hurts anyone. The head has a pulsing gold ring so viewers can spot it. Change the bonus with `SNAKE_BONUS` in the code.
 
+## 🎵 Music & 🗣️ announcer voice
+
+- **Music:** an original dubstep track (F minor, 140 BPM, wobble-bass drop) that the game **creates live in code**. It's not a copyrighted song, so it's safe for TikTok LIVE. It loops: intro → snare build → DROP → breakdown.
+- **Voice:** the computer's built-in text-to-speech announces things for you: *"Maria joined Team Scorpio!"*, *"Jen, you're not a Sagittarius. You're a true sky Ophiuchus!"*, *"big spender sent a Paper Crane! freeze all!"*, *"Thank you for the follow!"*, *"Team Pisces wins the round!"*. Music gets quieter while it talks. On Edge it uses a natural-sounding Microsoft voice when available.
+- **Starting sound:** browsers need one click before they can play sound. In the LIVE version (`?live=1`), click the **🔊 CLICK TO START** box once, before you point your camera.
+- **Keys:** **M** = music on/off · **V** = voice on/off. (Also in the 🎁 panel.)
+- Turn the laptop volume up so your phone's mic picks it up.
+
 ## 🧪 Testing it yourself
 
 - **Tap anywhere on the screen.** You have a test circle (★ and your name), and each tap is a like for it. On a computer, press **Space**.

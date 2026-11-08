@@ -59,6 +59,8 @@ input,select{font-family:inherit;font-size:16px;user-select:text;-webkit-user-se
 .cm b{color:var(--dim);margin-right:4px}
 .cm.out{opacity:0}
 
+#howto{left:50%;transform:translateX(-50%);bottom:calc(10px + var(--sab));max-width:94vw;padding:8px 16px;border-radius:24px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:900;font-size:15px;color:#fff;transition:opacity .4s}
+#howto b{color:var(--gold)}
 #you{left:50%;transform:translateX(-50%);bottom:calc(10px + var(--sab));padding:8px 16px;border-radius:24px;text-align:center;white-space:nowrap}
 #you .v{font-weight:900;color:var(--green);font-size:15px}
 #you small{display:block;font-size:10.5px;color:var(--dim);letter-spacing:.05em}
@@ -129,6 +131,7 @@ input,select{font-family:inherit;font-size:16px;user-select:text;-webkit-user-se
 <div id="banner"></div>
 <div id="giftFeed" class="ui"></div>
 <div id="chat" class="ui"></div>
+<div id="howto" class="ui glass hidden"></div>
 <div id="you" class="ui glass"><span class="v" id="youScore">0</span> <span id="youLv">LV 1</span><small id="youHint">TAP ANYWHERE TO GROW YOUR CIRCLE</small></div>
 
 <div id="giftPanel" class="glass hidden">
@@ -982,6 +985,17 @@ function draw() {
   }
   ctx.globalAlpha = 1;
   if (flashA > 0) { ctx.fillStyle = `rgba(255,255,255,${flashA})`; ctx.fillRect(0, 0, W, H); }
+  // empty arena: big invitation for new viewers
+  if (G.phase === 'play' && alive.length === 0) {
+    const fs = Math.min(W * 0.11, 46 * S), pulse = 1 + Math.sin(t * 3) * 0.05;
+    ctx.save(); ctx.translate(W / 2, H * 0.42); ctx.scale(pulse, pulse);
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.shadowColor = '#ff2bd6'; ctx.shadowBlur = 24;
+    ctx.font = `900 ${fs}px system-ui,sans-serif`; ctx.fillStyle = '#ffffff';
+    ctx.fillText('TAP THE SCREEN', 0, -fs * 0.6); ctx.fillText('TO JOIN!', 0, fs * 0.6);
+    ctx.shadowBlur = 0; ctx.font = `${fs * 1.1}px system-ui,sans-serif`; ctx.fillText('👆', 0, fs * 2);
+    ctx.restore();
+  }
 }
 
 /* ---------------- HUD / UI ---------------- */
@@ -1266,6 +1280,13 @@ if (LIVE_MODE) {
   newRound(false);
   $('startScreen').classList.add('hidden');
   ['btns', 'you'].forEach(id => $(id).classList.add('hidden'));
+  // rotating how-to-play bar so viewers know what taps and gifts do
+  const tips = ['👆 TAP THE SCREEN = <b>+3 points</b> each tap', '🎁 1 COIN = <b>50 points</b> · bigger gifts = bigger powers',
+    '🌹 1 · 💗 5 · 🧲 30 · 🌌 100 · ❄️ 500 · 🎯 1K · 🕳️ 5K · 👑 20K coins', '🏅 Gift more = higher rank = taps worth up to <b>10×</b>',
+    '💫 Knocked out? Any gift brings you back!'];
+  const ht = $('howto'); let ti = 0;
+  ht.classList.remove('hidden'); ht.innerHTML = tips[0];
+  setInterval(() => { ht.style.opacity = 0; setTimeout(() => { ti = (ti + 1) % tips.length; ht.innerHTML = tips[ti]; ht.style.opacity = 1; }, 400); }, 5000);
   if (CLOUD_MODE) {
     const go = () => {
       try {
